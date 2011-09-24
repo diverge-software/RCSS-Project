@@ -39,23 +39,23 @@ void printParsedData(senseBodyData sbd)
 	cout << "speed" << ": " << sbd.speed[0] << " "
 	                        << sbd.speed[1] << endl;
 	
-	cout << "head_angle" << ": " << sbd.actionCount << endl;
+	cout << "head_angle" << ": " << sbd.head_angle << endl;
 	
-	cout << "kick" << ": " << sbd.actionCount << endl;
+	cout << "kick" << ": " << sbd.kick << endl;
 	
-	cout << "dash" << ": " << sbd.actionCount << endl;
+	cout << "dash" << ": " << sbd.dash << endl;
 	
-	cout << "turn" << ": " << sbd.actionCount << endl;
+	cout << "turn" << ": " << sbd.turn << endl;
 	
-	cout << "say" << ": " << sbd.actionCount << endl;
+	cout << "say" << ": " << sbd.say << endl;
 	
-	cout << "turn_neck" << ": " << sbd.actionCount << endl;
+	cout << "turn_neck" << ": " << sbd.turn_neck << endl;
 	
-	cout << "catch" << ": " << sbd.actionCount << endl;
+	cout << "catch" << ": " << sbd.catchCount << endl;
 	
-	cout << "move" << ": " << sbd.actionCount << endl;
+	cout << "move" << ": " << sbd.move << endl;
 	
-	cout << "change_view" << ": " << sbd.actionCount << endl;
+	cout << "change_view" << ": " << sbd.change_view << endl;
 	
 	cout << "arm" << ": " << sbd.arm.movable << " "
 	                      << sbd.arm.expires << " "

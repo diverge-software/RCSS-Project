@@ -19,18 +19,20 @@ struct senseBodyData
 		         viewWidth should be "narrow", "normal", or "wide" */
 	} view_mode;
 	
-	float stamina[3], speed [2], actionCount;
-	/* NOTE: actionCount is used for...
-	           - head_angle
-	           - kick
-	           - dash
-	           - turn
-	           - say
-	           - turn_neck
-	           - catch
-	           - move
-	           - change_view */
-	           
+	float stamina[3],
+	      speed [2],
+	      head_angle,
+			kick,
+			dash,
+			turn,
+			say,
+			turn_neck,
+			catchCount,			// IMPORTANT NOTE: "catch" is a reserved keyword,
+									//    so this has been modified to "catchCount"
+			move,
+			change_view;
+	      
+	         
 	struct armStruct
 	{
 		float movable, expires, target[2], count;
