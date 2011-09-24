@@ -5,66 +5,15 @@
 #include <cstdlib>
 #include <stdio.h>
 #include <string.h>
+#include "sense_body_parser.h"
 
 using namespace std;
-struct senseBodyData
-{
-	
-	int timestamp;
-
-	struct viewModeStruct
-	{
-		string viewQuality, viewWidth;
-		/* NOTE: viewQuality should either be "high" or "low"
-		         viewWidth should be "narrow", "normal", or "wide" */
-	} view_mode;
-	
-	float stamina[3], speed [2], actionCount;
-	/* NOTE: actionCount is used for...
-	           - head_angle
-	           - kick
-	           - dash
-	           - turn
-	           - say
-	           - turn_neck
-	           - catch
-	           - move
-	           - change_view */
-	           
-	struct armStruct
-	{
-		float movable, expires, target[2], count;
-	} arm;
-	
-	struct focusStruct
-	{
-		string target;
-		float count;
-	} focus;
-	
-	struct tackleStruct
-	{
-		float expires, count;
-	} tackle;
-	
-	string collision;
-	
-	struct foulStruct
-	{
-		float charged;
-		string card;
-	} foul;	
-};
 
 
 senseBodyData parse_sense_body(string inData)
 {
-
+	// Create senseBodyData struct to hold the data from the server
 	senseBodyData sbd;
-	
-	
-	// create an empty hash table to store the keys and their values
-	//unordered_map<string, senseBodyData> hashData;
 	
 	// Convert the server data from string to c_string
 	char str[inData.size()+1];
