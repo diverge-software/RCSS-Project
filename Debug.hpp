@@ -25,7 +25,7 @@
 	                         << __FILE__ << ", Line: " << __LINE__ << std::endl << std::endl; }
 	// Always asserts false, then exits
 	#define alwaysAssert() { std::cout << "Always assert here: " <<  ", File: " \
-	                          << __FILE__ << ", Line: " << __LINE__ << std::endl << std::endl; exit( -1 ) }
+	                          << __FILE__ << ", Line: " << __LINE__ << std::endl << std::endl; exit( -1 ); }
 #else
 	#define fatalAssert( X ) {}
 	#define softAssert( X ) {}

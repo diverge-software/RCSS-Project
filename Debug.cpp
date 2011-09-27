@@ -13,7 +13,9 @@ void printDebugMessage( const std::string & message )
 
 void fatalError( const std::string & message )
 {
-	cerr << message << endl;
+	cerr << message << endl << endl;
+
+    system( "PAUSE" );
 	exit( 1 );
 }
 
