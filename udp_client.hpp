@@ -15,6 +15,7 @@
                            GENERAL INCLUDES
 --------------------------------------------------------------------*/
 
+#include <fstream>
 #include <string>
 #include <ws2tcpip.h>
 
@@ -24,7 +25,7 @@ using namespace std;
                           LITERAL CONSTANTS
 --------------------------------------------------------------------*/
 
-#define UDP_BUFFER_SIZE ( 10 )      /* UDP buffer size              */
+#define UDP_BUFFER_SIZE ( 100 )     /* UDP buffer size              */
 
 /*--------------------------------------------------------------------
                                  TYPES
@@ -43,21 +44,27 @@ typedef struct                      /* UDP client buffer type       */
 
 typedef struct                      /* UDP control block type       */
     {
+    ofstream            dbg_log;    /* debug log                    */
     boolean             socket_open;/* socket open                  */
+
+    HANDLE              h_mn_thrd;  /* main thread handle           */
     HANDLE              h_rx_thrd;  /* receive thread handle        */
     HANDLE              h_tx_thrd;  /* transmit thread handle       */
+
+    unsigned int        hdl_idx;    /* handle index                 */
 
     udp_client_buf_t    rx_data_q;  /* receive data queue           */
     udp_client_buf_t    tx_data_q;  /* transmit data queue          */
 
+    boolean             terminate_thrd;
+                                    /* terminate thread             */
+
+    boolean             mn_thrd_alive;
+                                    /* main thread alive            */
     boolean             rx_thrd_alive; 
                                     /* receive thread alive         */
-    boolean             rx_thrd_terminate;
-                                    /* receive terminate thread     */
     boolean             tx_thrd_alive; 
                                     /* transmit thread alive        */
-    boolean             tx_thrd_terminate;
-                                    /* transmit terminate thread    */
     } udp_client_cb_t;
 
 class UDP_client                    /* UDP Client Class             */
@@ -74,7 +81,10 @@ class UDP_client                    /* UDP Client Class             */
 
         void UDP_open_socket
             (
-            string              team_name
+            string              server_ip,  
+            unsigned int        server_port,
+            string              team_name,
+            unsigned int        hdl_idx
             );
 
         boolean UDP_retreive	
@@ -88,6 +98,14 @@ class UDP_client                    /* UDP Client Class             */
             );
 
     private:
+        static DWORD WINAPI udp_main_thread
+            (
+            LPVOID              lp_param
+            );
+
+        void udp_main
+	        ( void );
+
         void udp_receive
 	        ( void );
 
@@ -111,8 +129,33 @@ class UDP_client                    /* UDP Client Class             */
         SOCKET			        udp_skt_fd;		
         sockaddr_in		        udp_svr_intfc;	
 
-        static const string     udp_SERVER_IP;
-        static const unsigned   udp_SERVER_PORT;
+        friend boolean udp_client_q_dequeue
+            (
+            udp_client_buf_t * const
+                                q_cb,
+            string * const      q_data
+            );
+
+        friend boolean udp_client_q_enqueue
+            (
+            udp_client_buf_t * const
+                                q_cb,
+            char * const        q_data
+            );
+
+        friend void udp_client_q_init
+            (
+            udp_client_buf_t * const
+                                q_cb,
+            unsigned int        buf_size
+            );
+
+        friend boolean udp_client_q_is_empty
+            (
+            udp_client_buf_t const * const
+                                q_cb
+            );
+
         static const unsigned   udp_SERVER_PKT_SIZE;    
     };
 

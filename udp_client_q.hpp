@@ -29,41 +29,6 @@ using namespace std;
                                  TYPES
 --------------------------------------------------------------------*/
 
-class UDP_client_q
-    {
-    public:
-
-    private:
-        boolean udp_client_q_dequeue        
-            (
-            udp_client_buf_t * const
-                                q_cb,       
-            string * const      q_data
-            );
-
-        boolean udp_client_q_enqueue         
-            (
-            udp_client_buf_t * const
-                                q_cb,
-            char * const        q_data
-            );
-
-        void udp_client_q_init
-            (
-            udp_client_buf_t * const
-                                q_cb,      
-            unsigned int        buf_size
-            );
-
-        boolean udp_client_q_is_empty                          
-            (
-            udp_client_buf_t const * const
-                                q_cb
-            );
-        
-        friend class            UDP_client;
-    };
-
 /*--------------------------------------------------------------------
                             PROJECT INCLUDES
 --------------------------------------------------------------------*/
@@ -83,5 +48,32 @@ class UDP_client_q
 /*--------------------------------------------------------------------
                                PROCEDURES
 --------------------------------------------------------------------*/
+
+boolean udp_client_q_dequeue        /* remove an element from queue */
+    (
+    udp_client_buf_t * const
+                        q_cb,       /* UDP queue control block      */
+    string * const      q_data      /* UDP data                     */
+    );
+
+boolean udp_client_q_enqueue        /* add an element to queue      */
+    (
+    udp_client_buf_t * const
+                        q_cb,       /* UDP queue control block      */
+    char * const        q_data      /* UDP queue data               */
+    );
+
+void udp_client_q_init              /* initialize a UDP queue       */
+    (
+    udp_client_buf_t * const
+                        q_cb,       /* UDP queue control block      */
+    unsigned int        buf_size    /* UDP buffer size              */
+    );
+
+boolean udp_client_q_is_empty       /* return queue empty status    */
+    (
+    udp_client_buf_t const * const
+                        q_cb        /* UDP queue control block      */
+    );
 
 #endif /* _UDP_CLIENT_Q_HPP */

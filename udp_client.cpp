@@ -19,6 +19,7 @@
 #include <sstream>
 #include <string>
 
+#include "debug.hpp"
 #include "udp_client.hpp"
 #include "udp_client_q.hpp"
 
@@ -44,10 +45,6 @@ using namespace std;
                               VARIABLES
 --------------------------------------------------------------------*/
 
-const string            UDP_client::udp_SERVER_IP = "192.168.1.3";
-                                    /* UDP server IP                */
-const unsigned          UDP_client::udp_SERVER_PORT = 6000;
-                                    /* UDP server port              */
 const unsigned          UDP_client::udp_SERVER_PKT_SIZE = 8192;
                                     /* UDP server packet size       */
 
@@ -83,19 +80,13 @@ if( this->udp_client_cb.socket_open )
     }
 
 /*----------------------------------------------------------
-Terminate receive thread if running
+Terminate all running threads
 ----------------------------------------------------------*/
-if( this->udp_client_cb.rx_thrd_alive )
+if( ( this->udp_client_cb.rx_thrd_alive ) 
+ || ( this->udp_client_cb.tx_thrd_alive )
+ || ( this->udp_client_cb.mn_thrd_alive ) )
     {
-    this->udp_client_cb.rx_thrd_terminate = TRUE;
-    }
-
-/*----------------------------------------------------------
-Terminate transmit thread if running
-----------------------------------------------------------*/
-if( this->udp_client_cb.tx_thrd_alive )
-    {
-    this->udp_client_cb.tx_thrd_terminate = TRUE;
+    this->udp_client_cb.terminate_thrd = TRUE;
     }
 
 /*----------------------------------------------------------
@@ -147,6 +138,7 @@ this->~UDP_client();
 
 }   /* UDP_close_socket() */
 
+
 /*********************************************************************
 *
 *   PROCEDURE NAME:
@@ -159,16 +151,20 @@ this->~UDP_client();
 
 void UDP_client::UDP_open_socket    /* Open UDP Socket              */
     (
-    string              team_name   /* team name                    */
+    string              server_ip,  /* server IP                    */
+    unsigned int        server_port,/* server port                  */
+    string              team_name,  /* team name                    */
+    unsigned int        hdl_idx     /* handle index                 */
     )
 {
 /*----------------------------------------------------------
 Local Variables
 ----------------------------------------------------------*/
 int						err_no;		/* error number					*/
+ostringstream           err_str;    /* error string                 */
+char                    filename[ 50 ];
+                                    /* filename                     */
 ostringstream           tmp_str;    /* temporary string             */
-UDP_client_q            udp_client_q;
-                                    /* udp client queue             */
 WSADATA					wsa_data;	/* winsock data					*/
 
 /*----------------------------------------------------------
@@ -184,19 +180,20 @@ this->udp_skt_fd = socket( AF_INET, SOCK_DGRAM, IPPROTO_UDP );
 /*----------------------------------------------------------
 Verify a valid handle was assigned
 ----------------------------------------------------------*/
-if( this->udp_skt_fd < 0 )
+if( this->udp_skt_fd == INVALID_SOCKET )
 	{
 	err_no = WSAGetLastError();
 
-	//UTL ASSERT WITH MSG
+    err_str << "Error: Windows socket() returned error number: " << err_no;
+    fatalError( err_str.str() );
 	}
  
 /*----------------------------------------------------------
 Assign UDP server interface information
 ----------------------------------------------------------*/
 this->udp_svr_intfc.sin_family	    = AF_INET;
-this->udp_svr_intfc.sin_addr.s_addr = inet_addr( udp_SERVER_IP.c_str() );
-this->udp_svr_intfc.sin_port		= htons( udp_SERVER_PORT );
+this->udp_svr_intfc.sin_addr.s_addr = inet_addr( server_ip.c_str() );
+this->udp_svr_intfc.sin_port		= htons( server_port );
 
 /*----------------------------------------------------------
 Initialize the critical section
@@ -206,20 +203,46 @@ InitializeCriticalSection( &this->udp_critical_section );
 /*----------------------------------------------------------
 Initialize receive queue
 ----------------------------------------------------------*/
-udp_client_q.udp_client_q_init( &this->udp_client_cb.rx_data_q, UDP_BUFFER_SIZE );
+udp_client_q_init( &this->udp_client_cb.rx_data_q, UDP_BUFFER_SIZE );
 
 /*----------------------------------------------------------
 Initialize transmit queue
 ----------------------------------------------------------*/
-udp_client_q.udp_client_q_init( &this->udp_client_cb.tx_data_q, UDP_BUFFER_SIZE );
+udp_client_q_init( &this->udp_client_cb.tx_data_q, UDP_BUFFER_SIZE );
 
 /*----------------------------------------------------------
 Initialize UDP control block
 ----------------------------------------------------------*/
-udp_client_cb.rx_thrd_alive     = FALSE;
-udp_client_cb.rx_thrd_terminate = FALSE;
-udp_client_cb.tx_thrd_alive     = FALSE;
-udp_client_cb.tx_thrd_terminate = FALSE;
+this->udp_client_cb.mn_thrd_alive  = FALSE;
+this->udp_client_cb.rx_thrd_alive  = FALSE;
+this->udp_client_cb.tx_thrd_alive  = FALSE;
+this->udp_client_cb.terminate_thrd = FALSE;
+
+/*----------------------------------------------------------
+Set debug log filename
+----------------------------------------------------------*/
+sprintf_s( filename, sizeof( filename ), "dbg_log_%d.txt", hdl_idx );
+this->udp_client_cb.dbg_log.open( filename );
+
+/*----------------------------------------------------------
+Create the UDP receive thread
+----------------------------------------------------------*/
+this->udp_client_cb.h_mn_thrd = CreateThread(
+                                            NULL,
+                                            0,
+                                            &UDP_client::udp_main_thread,
+                                            this,
+                                            0,
+                                            NULL
+                                            );
+
+/*----------------------------------------------------------
+Verify the main thread was created successfully
+----------------------------------------------------------*/
+if( this->udp_client_cb.h_mn_thrd == NULL )
+    {
+    alwaysAssert();
+    }
 
 /*----------------------------------------------------------
 Create the UDP receive thread
@@ -238,7 +261,7 @@ Verify the receive thread was created successfully
 ----------------------------------------------------------*/
 if( this->udp_client_cb.h_rx_thrd == NULL )
     {
-    //UTL ASSERT
+    alwaysAssert();
     }
 
 /*----------------------------------------------------------
@@ -258,15 +281,21 @@ Verify the send thread was created successfully
 ----------------------------------------------------------*/
 if( this->udp_client_cb.h_tx_thrd == NULL )
     {
-    //UTL ASSERT
+    alwaysAssert();
     }
 
 /*----------------------------------------------------------
 Initialize client with team name
 ----------------------------------------------------------*/
+tmp_str.clear();
 tmp_str << "(init " << team_name << " (version 15.0))";
 
 this->UDP_send( tmp_str.str() );
+
+/*----------------------------------------------------------
+Set the handle index
+----------------------------------------------------------*/
+this->udp_client_cb.hdl_idx = hdl_idx;
 
 /*----------------------------------------------------------
 Set the socket open status
@@ -295,8 +324,6 @@ boolean UDP_client::UDP_retreive	/* UDP Retreive Data            */
 Local Variables
 ----------------------------------------------------------*/
 boolean                 ret_val;    /* return value                 */
-UDP_client_q            udp_client_q;
-                                    /* UDP client queue             */
 
 /*----------------------------------------------------------
 Initialization
@@ -306,7 +333,7 @@ ret_val = false;
 /*----------------------------------------------------------
 Check if data is available
 ----------------------------------------------------------*/
-if( udp_client_q.udp_client_q_dequeue( &this->udp_client_cb.rx_data_q, rx_data ) )
+if( udp_client_q_dequeue( &this->udp_client_cb.rx_data_q, rx_data ) )
     {
     ret_val = TRUE;
     }
@@ -335,25 +362,105 @@ boolean UDP_client::UDP_send	    /* UDP Send Data                */
 Local Variables
 ----------------------------------------------------------*/
 boolean                 ret_val;    /* return value                 */
-UDP_client_q            udp_client_q;
-                                    /* UDP client queue             */
 
 /*----------------------------------------------------------
-Initialization
+Add outgoing data to the TX queue
 ----------------------------------------------------------*/
-ret_val = false;
+ret_val = udp_client_q_enqueue( &this->udp_client_cb.tx_data_q, (char *)tx_data.c_str() );
 
 /*----------------------------------------------------------
-Check if data is available
+An error occurred while trying to add the item to the queue
 ----------------------------------------------------------*/
-if( udp_client_q.udp_client_q_enqueue( &this->udp_client_cb.tx_data_q, (char *)tx_data.c_str() ) )
-    {
-    ret_val = TRUE;
-    }
+fatalAssert( ret_val );
 
 return( ret_val );
 
 }	/* UDP_send() */
+
+
+/*********************************************************************
+*
+*   PROCEDURE NAME:
+*       udp_main - UDP Main Processing
+*
+*   DESCRIPTION:
+*       UDP main processing 
+*
+*********************************************************************/
+
+void UDP_client::udp_main	        /* UDP main processing          */
+	( void )
+{
+/*----------------------------------------------------------
+Local Variables
+----------------------------------------------------------*/
+string                  rx_data;    /* received data                */
+
+/*----------------------------------------------------------
+Main Processing For Individual Thread
+
+Note: Parsing and all the decision need to happen in this
+      thread.  Each client will have a unique thread to
+      handle it's own processing.
+----------------------------------------------------------*/
+if( udp_client_q_dequeue( &this->udp_client_cb.rx_data_q, &rx_data ) )
+    {
+    this->udp_client_cb.dbg_log << rx_data << endl;
+    }
+
+}   /* udp_main() */
+
+
+/*********************************************************************
+*
+*   PROCEDURE NAME:
+*       udp_main_thread - Main Processing Thread
+*
+*   DESCRIPTION:
+*       Thread to handle main processing
+*
+*********************************************************************/
+
+DWORD WINAPI UDP_client::udp_main_thread
+                                    /* main processing thread       */
+    (
+    LPVOID              lp_param    /* UDP client                   */
+    )
+{
+/*----------------------------------------------------------
+Local Variables
+----------------------------------------------------------*/
+UDP_client *            udp_client_ptr;
+                                    /* UDP client pointer           */
+
+/*----------------------------------------------------------
+Initialization
+----------------------------------------------------------*/
+udp_client_ptr = (UDP_client *)lp_param;
+
+/*----------------------------------------------------------
+Indicate thread is alive
+----------------------------------------------------------*/
+udp_client_ptr->udp_client_cb.mn_thrd_alive = TRUE;
+
+/*----------------------------------------------------------
+Loop until thread indicates termination
+----------------------------------------------------------*/
+while( !udp_client_ptr->udp_client_cb.terminate_thrd )
+    {
+    udp_client_ptr->udp_main();   
+
+    //Sleep( 10 );
+    }
+
+/*----------------------------------------------------------
+Indicate thread has been terminated
+----------------------------------------------------------*/
+udp_client_ptr->udp_client_cb.mn_thrd_alive = FALSE;
+
+return( 0 );
+
+}   /* udp_main_thread() */
 
 
 /*********************************************************************
@@ -376,8 +483,6 @@ char                    buf[ udp_SERVER_PKT_SIZE ];
                                     /* temporary buffer             */
 int						bytes_read;	/* bytes read					*/
 socklen_t				size;		/* size							*/
-UDP_client_q            udp_client_q;
-                                    /* UDP client queue             */
 
 /*----------------------------------------------------------
 Initialization
@@ -405,13 +510,19 @@ bytes_read = recvfrom(
 /*----------------------------------------------------------
 Verify the packet was received successfully
 ----------------------------------------------------------*/
-if( bytes_read > 0 )
+if( bytes_read != SOCKET_ERROR )
     {
-    udp_client_q.udp_client_q_enqueue( &this->udp_client_cb.rx_data_q, buf );
+    /*------------------------------------------------------
+    Verify there is not a queue overflow
+    ------------------------------------------------------*/
+    if( !udp_client_q_enqueue( &this->udp_client_cb.rx_data_q, buf ) )
+        {
+        alwaysAssert();
+        }
     }
 else
     {
-    //UTL ASSERT WITH MSG
+    alwaysAssert();
     }
 
 /*----------------------------------------------------------
@@ -425,7 +536,7 @@ LeaveCriticalSection( &this->udp_critical_section );
 /*********************************************************************
 *
 *   PROCEDURE NAME:
-*       udp_receive_thread - Receive Handling Thread
+*       udp_receive_thread - Receive Processing Thread
 *
 *   DESCRIPTION:
 *       Thread to handle UDP receive data
@@ -433,7 +544,7 @@ LeaveCriticalSection( &this->udp_critical_section );
 *********************************************************************/
 
 DWORD WINAPI UDP_client::udp_receive_thread
-                                    /* receive handling thread      */
+                                    /* receive processing thread    */
     (
     LPVOID              lp_param    /* UDP client                   */
     )
@@ -457,11 +568,11 @@ udp_client_ptr->udp_client_cb.rx_thrd_alive = TRUE;
 /*----------------------------------------------------------
 Loop until thread indicates termination
 ----------------------------------------------------------*/
-while( !udp_client_ptr->udp_client_cb.rx_thrd_terminate )
+while( !udp_client_ptr->udp_client_cb.terminate_thrd )
     {
-    udp_client_ptr->udp_receive();
-
     Sleep( 10 );
+
+    udp_client_ptr->udp_receive();   
     }
 
 /*----------------------------------------------------------
@@ -513,11 +624,11 @@ bytes_sent = sendto(
                    );
 
 /*----------------------------------------------------------
-Verify the packet was sent successfully
+Verify a socket error did not occur
 ----------------------------------------------------------*/
-if( bytes_sent < 0) 
+if( bytes_sent == SOCKET_ERROR ) 
 	{
-	//process_err( "Error: Writing to socket" );
+    alwaysAssert();
 	}
 
 /*----------------------------------------------------------
@@ -531,7 +642,7 @@ LeaveCriticalSection( &this->udp_critical_section );
 /*********************************************************************
 *
 *   PROCEDURE NAME:
-*       udp_transmit_thread - Transmit Handling Thread
+*       udp_transmit_thread - Transmit Processing Thread
 *
 *   DESCRIPTION:
 *       Thread to handle UDP transmit data
@@ -539,7 +650,7 @@ LeaveCriticalSection( &this->udp_critical_section );
 *********************************************************************/
 
 DWORD WINAPI UDP_client::udp_transmit_thread
-                                    /* transmit handling thread     */
+                                    /* transmit processing thread   */
     (
     LPVOID              lp_param    /* UDP client                   */
     )
@@ -550,8 +661,6 @@ Local Variables
 string                  tmp_str;    /* temporary string             */
 UDP_client *            udp_client_ptr;
                                     /* UDP client pointer           */
-UDP_client_q            udp_client_q;
-                                    /* UDP client queue             */
 
 /*----------------------------------------------------------
 Initialization
@@ -566,9 +675,9 @@ udp_client_ptr->udp_client_cb.tx_thrd_alive = TRUE;
 /*----------------------------------------------------------
 Loop until thread indicates termination
 ----------------------------------------------------------*/
-while( !udp_client_ptr->udp_client_cb.tx_thrd_terminate )
+while( !udp_client_ptr->udp_client_cb.terminate_thrd )
     {
-    if( udp_client_q.udp_client_q_dequeue( &udp_client_ptr->udp_client_cb.tx_data_q, &tmp_str ) )
+    if( udp_client_q_dequeue( &udp_client_ptr->udp_client_cb.tx_data_q, &tmp_str ) )
         {
         udp_client_ptr->udp_transmit( tmp_str );
         }

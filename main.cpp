@@ -70,46 +70,24 @@ int main							/* main program processing		*/
 /*----------------------------------------------------------
 Local Variables
 ----------------------------------------------------------*/
-UDP_client              udp_client_0;
-UDP_client              udp_client_1;
-UDP_client              udp_client_2;
-UDP_client              udp_client_3;
-UDP_client              udp_client_4;
-UDP_client              udp_client_5;
-UDP_client              udp_client_6;
-UDP_client              udp_client_7;
-UDP_client              udp_client_8;
-UDP_client              udp_client_9;
-UDP_client              udp_client_10;
-
-string                  tst;
+int                     i;
+UDP_client              udp_client[ 11 ];
 
 /*----------------------------------------------------------
 Initialization
-----------------------------------------------------------*/
-udp_client_0.UDP_open_socket( "Team1" );
-udp_client_1.UDP_open_socket( "Team1" );
-udp_client_2.UDP_open_socket( "Team1" );
-udp_client_3.UDP_open_socket( "Team1" );
-udp_client_4.UDP_open_socket( "Team1" );
-udp_client_5.UDP_open_socket( "Team1" );
-udp_client_6.UDP_open_socket( "Team1" );
-udp_client_7.UDP_open_socket( "Team1" );
-udp_client_8.UDP_open_socket( "Team1" );
-udp_client_9.UDP_open_socket( "Team1" );
-udp_client_10.UDP_open_socket( "Team1" );
 
-while( true )
+Todo: Add input parameters for IP, Port, and Teamname
+----------------------------------------------------------*/
+for( i = 0; i < 11; i++ )
+    {
+    udp_client[ i ].UDP_open_socket( "192.168.1.3", 6000, "Team1", i );
+    }
+
+while( true ) 
     {
     if( _kbhit() )
         {
         break;
-        }
-
-    if( udp_client_0.UDP_retreive( &tst ) )
-        {
-        // This is where we "Think" and parse data
-        //cout << tst << endl;
         }
     }
 

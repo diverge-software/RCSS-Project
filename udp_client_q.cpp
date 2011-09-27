@@ -67,8 +67,7 @@ using namespace std;
 *
 *********************************************************************/
 
-boolean UDP_client_q::udp_client_q_dequeue        
-                                    /* remove an element from queue */
+boolean udp_client_q_dequeue        /* remove an element from queue */
     (
     udp_client_buf_t * const
                         q_cb,       /* UDP queue control block      */
@@ -137,8 +136,7 @@ return( ret_val );
 *
 *********************************************************************/
 
-boolean UDP_client_q::udp_client_q_enqueue         
-                                    /* add an element to queue      */
+boolean udp_client_q_enqueue        /* add an element to queue      */
     (
     udp_client_buf_t * const
                         q_cb,       /* UDP queue control block      */
@@ -209,7 +207,7 @@ return( ret_val );
 *
 *********************************************************************/
 
-void UDP_client_q::udp_client_q_init/* initialize a UDP queue       */
+void udp_client_q_init              /* initialize a UDP queue       */
     (
     udp_client_buf_t * const
                         q_cb,       /* UDP queue control block      */
@@ -241,8 +239,7 @@ q_cb->overflow = FALSE;
 *
 *********************************************************************/
 
-boolean UDP_client_q::udp_client_q_is_empty         
-                                    /* return queue empty status    */
+boolean udp_client_q_is_empty       /* return queue empty status    */
     (
     udp_client_buf_t const * const
                         q_cb        /* UDP queue control block      */
