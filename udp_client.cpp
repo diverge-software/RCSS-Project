@@ -225,7 +225,7 @@ sprintf_s( filename, sizeof( filename ), "dbg_log_%d.txt", hdl_idx );
 this->udp_client_cb.dbg_log.open( filename );
 
 /*----------------------------------------------------------
-Create the UDP receive thread
+Create the UDP main thread
 ----------------------------------------------------------*/
 this->udp_client_cb.h_mn_thrd = CreateThread(
                                             NULL,
@@ -403,9 +403,31 @@ Note: Parsing and all the decision need to happen in this
       thread.  Each client will have a unique thread to
       handle it's own processing.
 ----------------------------------------------------------*/
-if( udp_client_q_dequeue( &this->udp_client_cb.rx_data_q, &rx_data ) )
+	if( udp_client_q_dequeue( &this->udp_client_cb.rx_data_q, &rx_data ) )
     {
-    this->udp_client_cb.dbg_log << rx_data << endl;
+		// Parse the message from the server, return true if successful
+		if( this->mPlayer.parseBuffer( rx_data ) )
+		{
+			// Print the current stored information
+			this->udp_client_cb.dbg_log << "##################################" << endl;
+			this->udp_client_cb.dbg_log << "##################################" << endl;
+			this->udp_client_cb.dbg_log << "########### MESSAGE ##############" << endl;
+			this->udp_client_cb.dbg_log << "##################################" << endl;
+			this->udp_client_cb.dbg_log << "##################################" << endl;
+			this->udp_client_cb.dbg_log << "Message: " << rx_data << endl;
+			this->mPlayer.printVisualHash( this->udp_client_cb.dbg_log );
+			this->mPlayer.printServerHash( this->udp_client_cb.dbg_log );
+			this->mPlayer.printPlayerTypesHash( this->udp_client_cb.dbg_log );
+			this->mPlayer.printVisiblePlayersList( this->udp_client_cb.dbg_log );
+			this->mPlayer.printAuralStruct( this->udp_client_cb.dbg_log );
+			this->mPlayer.printSenseBodyStruct( this->udp_client_cb.dbg_log );
+			this->mPlayer.printPlayerParamHash( this->udp_client_cb.dbg_log );
+		}
+		else
+		{
+			cout << "Message: " << rx_data << endl;
+			alwaysAssert();
+		}
     }
 
 }   /* udp_main() */
@@ -450,7 +472,7 @@ while( !udp_client_ptr->udp_client_cb.terminate_thrd )
     {
     udp_client_ptr->udp_main();   
 
-    //Sleep( 10 );
+    Sleep( 10 );
     }
 
 /*----------------------------------------------------------

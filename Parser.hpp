@@ -26,20 +26,20 @@ namespace Parser
 	{
 		int timestamp;
 		string sender;
-		float direction;
+		double direction;
 		string message;
 	};
 
 	struct PlayerParamStruct
 	{
-		float fValue;
+		double fValue;
 	};
 
-	/*I used a struct here to keep the interfaces consistant. I realize 
+	/*I used a struct here to keep the interfaces consistent. I realize 
 		it's not necessary since all it contains is one float. Again, consistancy.*/
 	struct PlayerTypeStruct
 	{
-		float fValue;
+		double fValue;
 	};
 
 	struct SenseBodyData
@@ -53,7 +53,7 @@ namespace Parser
 					 viewWidth should be "narrow", "normal", or "wide" */
 		} view_mode;
 		
-		float stamina[3],
+		double stamina[3],
 			  speed [2],
 			  head_angle,
 			  kick,
@@ -67,25 +67,25 @@ namespace Parser
 		         
 		struct armStruct
 		{
-			float movable, expires, target[2], count;
+			double movable, expires, target[2], count;
 		} arm;
 		
 		struct focusStruct
 		{
 			string target;
-			float count;
+			double count;
 		} focus;
 		
 		struct tackleStruct
 		{
-			float expires, count;
+			double expires, count;
 		} tackle;
 		
 		string collision;
 		
 		struct foulStruct
 		{
-			float charged;
+			double charged;
 			string card;
 		} foul;	
 	};
@@ -93,7 +93,7 @@ namespace Parser
 	struct ServerStruct
 	{
 		string sValue;
-		float fValue;
+		double fValue;
 	};
 
 	// Visual information that could pertain to any object
@@ -103,10 +103,10 @@ namespace Parser
 	{
 		int timestamp;
 
-		float distance;
-		float direction;
-		float distanceChange;
-		float directionChange;
+		double distance;
+		double direction;
+		double distanceChange;
+		double directionChange;
 	};
 
 	// Data retrieved from visual messages, but specific to players
@@ -118,12 +118,13 @@ namespace Parser
 
 		// Has data about relative position/speed/facing as well
 		VisualData visualData;
-		float bodyDirection;
-		float headDirection;
+		double bodyDirection;
+		double headDirection;
 	};
 
 	bool isBufferComplete( const string buffer );
 	void parseAuralPacket( const string auralString, AuralData & auralData );
+	void parseInitPacket( const string initString, int & uniformNumber, char & side );
 	void parsePlayerParamPacket( const string buffer, unordered_map<string, PlayerParamStruct> & playerParams );
 	void parsePlayerTypePacket( const string buffer, unordered_map<string, PlayerTypeStruct> playerTypes[] );
 	void parseSenseBodyPacket( const string inData, SenseBodyData & sbd );

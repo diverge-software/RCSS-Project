@@ -7,15 +7,14 @@ using std::endl;
 void printDebugMessage( const std::string & message )
 {
 	#ifdef DEBUG_MESSAGES_ON
-		cout << message << endl << endl;
+	cout << message << endl << endl;
 	#endif
 }
 
 void fatalError( const std::string & message )
 {
 	cerr << message << endl << endl;
-
-    system( "PAUSE" );
+	system( "PAUSE" );
 	exit( 1 );
 }
 

@@ -19,6 +19,8 @@
 #include <string>
 #include <ws2tcpip.h>
 
+#include "Player.hpp"
+
 using namespace std;
 
 /*--------------------------------------------------------------------
@@ -98,6 +100,9 @@ class UDP_client                    /* UDP Client Class             */
             );
 
     private:
+		// Handles parsing for client, will also handle decision making
+		Player mPlayer;
+
         static DWORD WINAPI udp_main_thread
             (
             LPVOID              lp_param

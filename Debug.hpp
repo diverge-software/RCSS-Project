@@ -17,19 +17,19 @@
 * Assertion Macros
 ***************************************/
 #ifdef ASSERTIONS_ON
-	// Asserts, then exits
-	#define fatalAssert( X ) if( !( X ) ) { std::cout << "Fatal assertion failed: " << #X <<  ", File: " \
-	                       << __FILE__ << ", Line: " << __LINE__ << std::endl << std::endl; exit( -1 ); }
-	// Asserts, but doesn't exit
-	#define softAssert( X ) if( !( X ) ) { std::cout << "Soft assertion failed: " << #X <<  ", File: " \
-	                         << __FILE__ << ", Line: " << __LINE__ << std::endl << std::endl; }
-	// Always asserts false, then exits
-	#define alwaysAssert() { std::cout << "Always assert here: " <<  ", File: " \
-	                          << __FILE__ << ", Line: " << __LINE__ << std::endl << std::endl; exit( -1 ); }
+// Asserts, then exits
+#define fatalAssert( X ) if( !( X ) ) { std::cout << "Fatal assertion failed: " << #X << ", File: " \
+<< __FILE__ << ", Line: " << __LINE__ << std::endl << std::endl; exit( -1 ); }
+// Asserts, but doesn't exit
+#define softAssert( X ) if( !( X ) ) { std::cout << "Soft assertion failed: " << #X << ", File: " \
+<< __FILE__ << ", Line: " << __LINE__ << std::endl << std::endl; }
+// Always asserts false, then exits
+#define alwaysAssert() { std::cout << "Always assert here: " << "File: " \
+<< __FILE__ << ", Line: " << __LINE__ << std::endl << std::endl; exit( -1 ); }
 #else
-	#define fatalAssert( X ) {}
-	#define softAssert( X ) {}
-	#define alwaysAssert() {}
+#define fatalAssert( X ) {}
+#define softAssert( X ) {}
+#define alwaysAssert() {}
 #endif
 
 /****************************************
@@ -39,3 +39,4 @@ void printDebugMessage( const std::string & message );
 void fatalError( const std::string & message );
 
 #endif
+

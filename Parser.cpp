@@ -58,6 +58,25 @@ void Parser::parseAuralPacket( const string auralString, AuralData & auralData )
 	// Get the message itself
 	val = strtok( NULL, "\"()" );
 	auralData.message = val;
+	delete [] str;
+}
+
+void Parser::parseInitPacket( const string initString, int & uniformNumber, char & side )
+{
+	char * str = new char[initString.size() + 1];
+	strcpy( str, initString.c_str() );
+
+	char * val = strtok( str, " ()" );
+
+	// Get the side you're playing from
+	val = strtok( NULL, " ()" );
+	side = val[0];
+
+	// Get the uniform number
+	val = strtok( NULL, " ()" );
+	uniformNumber = atoi( val );
+
+	delete [] str;
 }
 
 void Parser::parsePlayerParamPacket( const string buffer, unordered_map<string, PlayerParamStruct> & playerParams )
@@ -289,6 +308,7 @@ void Parser::parseServerPacket( const string buffer, unordered_map<string, Serve
 					serverStruct.sValue.push_back(buffer[i]);
 					i++;
 				}
+				serverStruct.fValue = INVALID_FLOAT_VALUE;
 				i++;
 			}
 			else 									//value must be be a floating point number; fill fValue
