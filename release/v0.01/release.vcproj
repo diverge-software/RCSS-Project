@@ -164,18 +164,18 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
-				RelativePath="..\main.cpp"
+				RelativePath="..\..\main.cpp"
 				>
 			</File>
 			<Filter
 				Name="UDP"
 				>
 				<File
-					RelativePath="..\udp_client.cpp"
+					RelativePath="..\..\udp_client.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\udp_client_q.cpp"
+					RelativePath="..\..\udp_client_q.cpp"
 					>
 				</File>
 			</Filter>
@@ -183,7 +183,7 @@
 				Name="UTL"
 				>
 				<File
-					RelativePath="..\debug.cpp"
+					RelativePath="..\..\debug.cpp"
 					>
 				</File>
 			</Filter>
@@ -191,7 +191,7 @@
 				Name="Player"
 				>
 				<File
-					RelativePath="..\Player.cpp"
+					RelativePath="..\..\Player.cpp"
 					>
 				</File>
 			</Filter>
@@ -199,7 +199,7 @@
 				Name="Parser"
 				>
 				<File
-					RelativePath="..\Parser.cpp"
+					RelativePath="..\..\Parser.cpp"
 					>
 				</File>
 			</Filter>
@@ -213,7 +213,7 @@
 				Name="UTL"
 				>
 				<File
-					RelativePath="..\debug.hpp"
+					RelativePath="..\..\debug.hpp"
 					>
 				</File>
 			</Filter>
@@ -221,11 +221,11 @@
 				Name="UDP"
 				>
 				<File
-					RelativePath="..\udp_client.hpp"
+					RelativePath="..\..\udp_client.hpp"
 					>
 				</File>
 				<File
-					RelativePath="..\udp_client_q.hpp"
+					RelativePath="..\..\udp_client_q.hpp"
 					>
 				</File>
 			</Filter>
@@ -233,7 +233,7 @@
 				Name="Parser"
 				>
 				<File
-					RelativePath="..\Parser.hpp"
+					RelativePath="..\..\Parser.hpp"
 					>
 				</File>
 			</Filter>
@@ -241,7 +241,7 @@
 				Name="Player"
 				>
 				<File
-					RelativePath="..\Player.hpp"
+					RelativePath="..\..\Player.hpp"
 					>
 				</File>
 			</Filter>
