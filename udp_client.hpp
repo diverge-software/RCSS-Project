@@ -4,7 +4,7 @@
 *       udp_client.hpp - UDP Client Processing Declarations
 *
 *---------------------------------------------------------------------
-* $Id: udp_client.hpp, v1.0, 2011-09-23 17:25:00Z, Joseph Wachtel$
+* $Id: udp_client.hpp, v1.2, 2011-09-23 17:25:00Z, Joseph Wachtel$
 * $NoKeywords$
 *********************************************************************/
 
@@ -69,98 +69,42 @@ typedef struct                      /* UDP control block type       */
                                     /* transmit thread alive        */
     } udp_client_cb_t;
 
-class UDP_client                    /* UDP Client Class             */
+/*--------------------------------------------------------------------
+                                CLASSES
+--------------------------------------------------------------------*/
+
+class UDP_client
     {
     public:
-        ~UDP_client
-            ( void );
+        ~UDP_client( void );
+        UDP_client( void );
 
-        UDP_client
-            ( void );
+        void UDP_close_socket( void );
+        void UDP_open_socket( string server_ip, unsigned int server_port,string team_name,unsigned int hdl_idx );
 
-        void UDP_close_socket
-            ( void );
-
-        void UDP_open_socket
-            (
-            string              server_ip,  
-            unsigned int        server_port,
-            string              team_name,
-            unsigned int        hdl_idx
-            );
-
-        boolean UDP_retreive	
-	        ( 
-            string * const      rx_data
-            );
-
-        boolean UDP_send
-	        ( 
-            string              tx_data
-            );
+        boolean UDP_retreive ( string * const rx_data );
+        boolean UDP_send( string tx_data );
 
     private:
-		// Handles parsing for client, will also handle decision making
-		Player mPlayer;
+        static DWORD WINAPI udp_main_thread( LPVOID lp_param );
+        static DWORD WINAPI udp_receive_thread( LPVOID lp_param );
+        static DWORD WINAPI udp_transmit_thread( LPVOID lp_param );
 
-        static DWORD WINAPI udp_main_thread
-            (
-            LPVOID              lp_param
-            );
+        void udp_main( void );
+        void udp_receive( void );
+        void udp_transmit( string tx_data );
 
-        void udp_main
-	        ( void );
+        friend boolean udp_client_q_dequeue( udp_client_buf_t * const q_cb, string * const q_data );
+        friend boolean udp_client_q_enqueue( udp_client_buf_t * const q_cb, char * const q_data );
+        friend void udp_client_q_init( udp_client_buf_t * const q_cb, unsigned int buf_size );
+        friend boolean udp_client_q_is_empty( udp_client_buf_t const * const q_cb );		
 
-        void udp_receive
-	        ( void );
-
-       static DWORD WINAPI udp_receive_thread
-            (
-            LPVOID              lp_param
-            );
-
-        void udp_transmit
-	        (
-	        string		        tx_data
-	        );
-
-        static DWORD WINAPI udp_transmit_thread
-            (
-            LPVOID              lp_param
-            );
-
+    protected:
+        Player                  m_player;
         udp_client_cb_t         udp_client_cb;
         CRITICAL_SECTION        udp_critical_section;
         SOCKET			        udp_skt_fd;		
         sockaddr_in		        udp_svr_intfc;	
-
-        friend boolean udp_client_q_dequeue
-            (
-            udp_client_buf_t * const
-                                q_cb,
-            string * const      q_data
-            );
-
-        friend boolean udp_client_q_enqueue
-            (
-            udp_client_buf_t * const
-                                q_cb,
-            char * const        q_data
-            );
-
-        friend void udp_client_q_init
-            (
-            udp_client_buf_t * const
-                                q_cb,
-            unsigned int        buf_size
-            );
-
-        friend boolean udp_client_q_is_empty
-            (
-            udp_client_buf_t const * const
-                                q_cb
-            );
-
         static const unsigned   udp_SERVER_PKT_SIZE;    
     };
 
