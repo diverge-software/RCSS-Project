@@ -6,6 +6,45 @@
 using std::cout;
 using std::endl;
 
+// Initialize internal structs to invalid values
+Player::Player()
+{
+	auralData.timestamp = -1;
+	auralData.sender = INVALID_SENDER_NAME;
+	auralData.direction = INVALID_FLOAT_VALUE;
+	auralData.message = INVALID_STRING_VALUE;
+
+	senseBodyData.timestamp = -1;
+	senseBodyData.view_mode.viewQuality = INVALID_STRING_VALUE;
+	senseBodyData.view_mode.viewWidth = INVALID_STRING_VALUE;
+	senseBodyData.stamina[0] = INVALID_FLOAT_VALUE;
+	senseBodyData.stamina[1] = INVALID_FLOAT_VALUE;
+	senseBodyData.stamina[2] = INVALID_FLOAT_VALUE;
+	senseBodyData.speed[0] = INVALID_FLOAT_VALUE;
+	senseBodyData.speed[1] = INVALID_FLOAT_VALUE;
+	senseBodyData.head_angle = INVALID_FLOAT_VALUE;
+	senseBodyData.kick = INVALID_FLOAT_VALUE;
+	senseBodyData.dash = INVALID_FLOAT_VALUE;
+	senseBodyData.turn = INVALID_FLOAT_VALUE;
+	senseBodyData.say = INVALID_FLOAT_VALUE;
+	senseBodyData.turn_neck = INVALID_FLOAT_VALUE;
+	senseBodyData.catchCount = INVALID_FLOAT_VALUE;
+	senseBodyData.move = INVALID_FLOAT_VALUE;
+	senseBodyData.change_view = INVALID_FLOAT_VALUE;
+	senseBodyData.arm.movable = INVALID_FLOAT_VALUE;
+	senseBodyData.arm.expires = INVALID_FLOAT_VALUE;
+	senseBodyData.arm.target[0] = INVALID_FLOAT_VALUE;
+	senseBodyData.arm.target[1] = INVALID_FLOAT_VALUE;
+	senseBodyData.arm.count = INVALID_FLOAT_VALUE;
+	senseBodyData.focus.target = INVALID_STRING_VALUE;
+	senseBodyData.focus.count = INVALID_FLOAT_VALUE;
+	senseBodyData.tackle.expires = INVALID_FLOAT_VALUE;
+	senseBodyData.tackle.count = INVALID_FLOAT_VALUE;
+	senseBodyData.collision = INVALID_STRING_VALUE;
+	senseBodyData.foul.charged = INVALID_FLOAT_VALUE;
+	senseBodyData.foul.card = INVALID_STRING_VALUE;
+}
+
 // Decide the buffer type and pass to respective parsing function
 bool Player::parseBuffer(const string buffer)
 {

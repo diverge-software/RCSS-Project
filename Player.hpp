@@ -15,6 +15,7 @@ using namespace Parser;
 class Player
 {
 	public:
+		Player();
 		// parseBuffer should eventually be a private member
 		bool parseBuffer( const string buffer );
 

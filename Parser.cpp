@@ -1,4 +1,5 @@
 #include "Parser.hpp"
+#include "Debug.hpp"
 #include <iostream>
 
 using namespace std;
@@ -28,16 +29,17 @@ bool Parser::isBufferComplete( const string buffer )
 void Parser::parseAuralPacket( const string auralString, AuralData & auralData )
 {
 	char * str = new char[auralString.size() + 1];
-	strcpy( str, auralString.c_str() );
+	strcpy_s( str, auralString.size() + 1, auralString.c_str() );
 
-	char * val = strtok( str, " ()" );
+	char * nextToken;
+	char * val = strtok_s( str, " ()", &nextToken );
 
 	// Get the time that the message was sent
-	val = strtok( NULL, " ()" );
+	val = strtok_s( NULL, " ()", &nextToken );
 	auralData.timestamp = atoi( val );
 
 	// Get the sender
-	val = strtok( NULL, " ()" );
+	val = strtok_s( NULL, " ()", &nextToken );
 	if( !strcmp( val, "online_coach_left" ) ||
 		!strcmp( val, "online_coach_left" ) ||
 		!strcmp( val, "coach" ) ||
@@ -56,7 +58,7 @@ void Parser::parseAuralPacket( const string auralString, AuralData & auralData )
 	}
 
 	// Get the message itself
-	val = strtok( NULL, "\"()" );
+	val = strtok_s( NULL, "\"()", &nextToken );
 	auralData.message = val;
 	delete [] str;
 }
@@ -64,16 +66,17 @@ void Parser::parseAuralPacket( const string auralString, AuralData & auralData )
 void Parser::parseInitPacket( const string initString, int & uniformNumber, char & side )
 {
 	char * str = new char[initString.size() + 1];
-	strcpy( str, initString.c_str() );
+	strcpy_s( str, initString.size() + 1, initString.c_str() );
 
-	char * val = strtok( str, " ()" );
+	char * nextToken;
+	char * val = strtok_s( str, " ()", &nextToken );
 
 	// Get the side you're playing from
-	val = strtok( NULL, " ()" );
+	val = strtok_s( NULL, " ()", &nextToken );
 	side = val[0];
 
 	// Get the uniform number
-	val = strtok( NULL, " ()" );
+	val = strtok_s( NULL, " ()", &nextToken );
 	uniformNumber = atoi( val );
 
 	delete [] str;
@@ -84,7 +87,7 @@ void Parser::parsePlayerParamPacket( const string buffer, unordered_map<string, 
 	PlayerParamStruct playerParamStruct;
 	string key, temp;
 	/*Have id; now we're ready to parse the rest of the buffer*/
-	for(int i=14; i < buffer.size(); i++)
+	for( unsigned int i=14; i < buffer.size(); i++ )
 	{
 		key.clear();
 		temp.clear();
@@ -156,20 +159,21 @@ void Parser::parseSenseBodyPacket( const string inData, SenseBodyData & sbd )
 {	
 	// Convert the server data from string to c_string
 	char * str = new char[inData.size()+1];
-	strcpy (str, inData.c_str());
+	strcpy_s( str, inData.size()+1, inData.c_str() );
 
 	// begin separating the string into tokens
-	char *val;
+	char * nextToken;
+	char * val;
 	
-	val = strtok(str, " ()");
+	val = strtok_s( str, " ()", &nextToken );
 	
 	// the first token that comes after "sense_body" is a time stamp
 	// get it and store it in the hash table
-	val = strtok(NULL, " ()");
+	val = strtok_s( NULL, " ()", &nextToken);
 	sbd.timestamp = atoi(val);
 
 	//get the next val
-	val = strtok(NULL, " ()");
+	val = strtok_s( NULL, " ()", &nextToken );
 	
 	// as long as you haven't reached the end of the string of server data
 	while(val !=NULL && val != NULL)
@@ -178,102 +182,102 @@ void Parser::parseSenseBodyPacket( const string inData, SenseBodyData & sbd )
 		// get the value and store it in the hash table with the corresponding val
 		if(strcmp(val, "head_angle") == 0)
 		{
-			sbd.head_angle = atof(strtok(NULL, " ()"));
+			sbd.head_angle = atof( strtok_s( NULL, " ()", &nextToken ) );
 		}
 		else if(strcmp(val, "kick") == 0)
 		{
-			sbd.kick = atof(strtok(NULL, " ()"));
+			sbd.kick = atof( strtok_s( NULL, " ()", &nextToken ) );
 		}
 		else if(strcmp(val, "dash") == 0)
 		{
-			sbd.dash = atof(strtok(NULL, " ()"));
+			sbd.dash = atof( strtok_s( NULL, " ()", &nextToken ) );
 		}
 		else if(strcmp(val, "turn") == 0)
 		{
-			sbd.turn = atof(strtok(NULL, " ()"));
+			sbd.turn = atof( strtok_s( NULL, " ()", &nextToken ) );
 		}
 		else if(strcmp(val, "say") == 0)
 		{
-			sbd.say = atof(strtok(NULL, " ()"));
+			sbd.say = atof( strtok_s( NULL, " ()", &nextToken ) );
 		}
 		else if(strcmp(val, "turn_neck") == 0)
 		{
-			sbd.turn_neck = atof(strtok(NULL, " ()"));
+			sbd.turn_neck = atof( strtok_s( NULL, " ()", &nextToken ) );
 		}
 		else if(strcmp(val, "catch") == 0)
 		{
-			sbd.catchCount = atof(strtok(NULL, " ()"));
+			sbd.catchCount = atof( strtok_s( NULL, " ()", &nextToken ) );
 		}
 		else if(strcmp(val, "move") == 0)
 		{
-			sbd.move = atof(strtok(NULL, " ()"));
+			sbd.move = atof( strtok_s( NULL, " ()", &nextToken ) );
 		}
 		else if(strcmp(val, "change_view") == 0)
 		{
-			sbd.change_view = atof(strtok(NULL, " ()"));
+			sbd.change_view = atof( strtok_s( NULL, " ()", &nextToken ) );
 		}
 		else if(strcmp(val, "view_mode") == 0)
 		{
-			sbd.view_mode.viewQuality = strtok(NULL, " ()");
-			sbd.view_mode.viewWidth = strtok(NULL, " ()");
+			sbd.view_mode.viewQuality = strtok_s( NULL, " ()", &nextToken );
+			sbd.view_mode.viewWidth = strtok_s( NULL, " ()", &nextToken );
 		}
 		else if(strcmp(val, "stamina") == 0)
 		{
 			for(int i = 0; i < 3; i++)
 			{
-				sbd.stamina[i] = atof(strtok(NULL, " ()"));
+				sbd.stamina[i] = atof( strtok_s( NULL, " ()", &nextToken ) );
 			}
 		}
 		else if (strcmp(val, "arm") == 0)
 		{
-			val = strtok(NULL, " ()");
-			sbd.arm.movable = atof(strtok(NULL, " ()"));
-			val = strtok(NULL, " ()");
-			sbd.arm.expires = atof(strtok(NULL, " ()"));
-			val = strtok(NULL, " ()");
-			sbd.arm.target[0] = atof(strtok(NULL, " ()"));
-			sbd.arm.target[1] = atof(strtok(NULL, " ()"));
-			val = strtok(NULL, " ()");
-			sbd.arm.count = atof(strtok(NULL, " ()"));
+			val = strtok_s( NULL, " ()", &nextToken );
+			sbd.arm.movable = atof( strtok_s( NULL, " ()", &nextToken ) );
+			val = strtok_s( NULL, " ()", &nextToken );
+			sbd.arm.expires = atof( strtok_s( NULL, " ()", &nextToken ) );
+			val = strtok_s( NULL, " ()", &nextToken );
+			sbd.arm.target[0] = atof( strtok_s( NULL, " ()", &nextToken ) );
+			sbd.arm.target[1] = atof( strtok_s( NULL, " ()", &nextToken ) );
+			val = strtok_s( NULL, " ()", &nextToken );
+			sbd.arm.count = atof( strtok_s( NULL, " ()", &nextToken ) );
 		}
 		else if (strcmp(val, "speed") == 0)
 		{
 			for(int i = 0; i < 2 ; i++)
 			{
-				sbd.speed[i] = atof(strtok(NULL, " ()"));
+				sbd.speed[i] = atof( strtok_s( NULL, " ()", &nextToken ) );
 			}
 		}
 		else if (strcmp(val, "tackle") == 0)
 		{
-			strtok(NULL, " ()");
-			sbd.tackle.expires = atof(strtok(NULL, " ()"));
-			strtok(NULL, " ()");
-			sbd.tackle.count = atof(strtok(NULL, " ()"));
+			strtok_s( NULL, " ()", &nextToken );
+			sbd.tackle.expires = atof( strtok_s( NULL, " ()", &nextToken ) );
+			strtok_s( NULL, " ()", &nextToken );
+			sbd.tackle.count = atof( strtok_s( NULL, " ()", &nextToken ) );
 		}
 		else if (strcmp(val, "focus") == 0)
 		{
-			val = strtok(NULL, " ()");
-			sbd.focus.target = strtok(NULL, " ()");
-			val = strtok(NULL, " ()");
-			sbd.focus.count = atof(strtok(NULL, " ()"));
+			val = strtok_s( NULL, " ()", &nextToken );
+			sbd.focus.target = strtok_s( NULL, " ()", &nextToken );
+			val = strtok_s( NULL, " ()", &nextToken );
+			sbd.focus.count = atof( strtok_s( NULL, " ()", &nextToken ) );
 		}
 		else if (strcmp(val, "collision") == 0)
 		{
-			sbd.collision = strtok(NULL, " ()");
+			sbd.collision = strtok_s( NULL, " ()", &nextToken );
 		}
 		else if (strcmp(val,"foul") == 0)
 		{
-			strtok(NULL, " ()");
-			sbd.foul.charged = atof(strtok(NULL, " ()"));
-			strtok(NULL, " ()");
-			sbd.foul.card = strtok(NULL, " ()");
+			strtok_s( NULL, " ()", &nextToken );
+			sbd.foul.charged = atof( strtok_s( NULL, " ()", &nextToken ) );
+			strtok_s( NULL, " ()", &nextToken );
+			sbd.foul.card = strtok_s( NULL, " ()", &nextToken );
 		}
 		else
 		{
-			cout << "this key is not recognized.\n";
+			alwaysAssert();
 		}
 
-		val = strtok(NULL, " ()");
+		val = strtok_s( NULL, " ()", &nextToken );
 	}
 
 	delete [] str;
@@ -289,6 +293,9 @@ void Parser::parseServerPacket( const string buffer, unordered_map<string, Serve
 	
 	for(int i=14; i<length-1; i++)					//loop through entire string
 	{
+		serverStruct.sValue = INVALID_STRING_VALUE;
+		serverStruct.fValue = INVALID_FLOAT_VALUE;
+
 		if(buffer[i] == '(')						//found a new token
 		{
 			i++; 									//increment i to next character in buffer
@@ -308,7 +315,6 @@ void Parser::parseServerPacket( const string buffer, unordered_map<string, Serve
 					serverStruct.sValue.push_back(buffer[i]);
 					i++;
 				}
-				serverStruct.fValue = INVALID_FLOAT_VALUE;
 				i++;
 			}
 			else 									//value must be be a floating point number; fill fValue
@@ -342,14 +348,14 @@ void Parser::parseVisualPacket( const string visualString, unordered_map<string,
 	visualHash.clear();
 	visiblePlayers.clear();
 
-	int i = visualString.find( "(", 1 );    // Find the first ( after (see...
+	unsigned int i = visualString.find( "(", 1 );    // Find the first ( after (see...
 	string key;
 	string dummyString;    // Holds values we read then convert into more meaningful form
 	VisualData dummyVisualData;
 	VisiblePlayer dummyPlayerData;
 
 	// Get timestamp
-	sscanf( visualString.c_str(), "%*s %d %*s", &dummyVisualData.timestamp );
+	sscanf_s( visualString.c_str(), "%*s %d %*s", &dummyVisualData.timestamp );
 
 	while( i < visualString.length() )
 	{
@@ -383,18 +389,19 @@ void Parser::parseVisualPacket( const string visualString, unordered_map<string,
 			dummyPlayerData.isGoalie = false;
 
 			char * str = new char[key.size() + 1];
-			strcpy( str, key.c_str() );
+			strcpy_s( str, key.size() + 1, key.c_str() );
 
-			char * val = strtok( str, " " );    // Get past the 'p'
+			char * nextToken;
+			char * val = strtok_s( str, " ", &nextToken );    // Get past the 'p'
 
 			if( key.find( "\"" ) != -1 )
 			{
-				val = strtok( NULL, "\"" );
+				val = strtok_s( NULL, "\"", &nextToken );
 				dummyPlayerData.teamName = val;
 			}
 
 			// Now handle the uniform number
-			val = strtok( NULL, " \"" );
+			val = strtok_s( NULL, " \"", &nextToken );
 			if( val != NULL && !isalpha( val[0] ) )
 			{
 				dummyPlayerData.uniformNumber = atoi( val );
@@ -404,7 +411,7 @@ void Parser::parseVisualPacket( const string visualString, unordered_map<string,
 				dummyPlayerData.isGoalie = true;
 			}
 
-			val = strtok( NULL, " " );
+			val = strtok_s( NULL, " ", &nextToken );
 			if( val != NULL && !strcmp( val, "goalie" ) )
 			{
 				dummyPlayerData.isGoalie = true;
