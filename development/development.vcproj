@@ -187,6 +187,22 @@
 					>
 				</File>
 			</Filter>
+			<Filter
+				Name="Player"
+				>
+				<File
+					RelativePath="..\Player.cpp"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="Parser"
+				>
+				<File
+					RelativePath="..\Parser.cpp"
+					>
+				</File>
+			</Filter>
 		</Filter>
 		<Filter
 			Name="Header Files"
@@ -210,6 +226,22 @@
 				</File>
 				<File
 					RelativePath="..\udp_client_q.hpp"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="Parser"
+				>
+				<File
+					RelativePath="..\Parser.hpp"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="Player"
+				>
+				<File
+					RelativePath="..\Player.hpp"
 					>
 				</File>
 			</Filter>
