@@ -7,7 +7,7 @@
 *       Performs UDP interface processing
 *
 *---------------------------------------------------------------------
-* $Id: udp_client.cpp, v1.0, 2011-09-23 17:25:00Z, Joseph Wachtel$
+* $Id: udp_client.cpp, v1.2, 2011-09-23 17:25:00Z, Joseph Wachtel$
 * $NoKeywords$
 *********************************************************************/
 
@@ -397,38 +397,57 @@ Local Variables
 string                  rx_data;    /* received data                */
 
 /*----------------------------------------------------------
+Enter the critical section to ensure threads will not
+attempt to concurrently access the same data 
+----------------------------------------------------------*/
+EnterCriticalSection( &this->udp_critical_section );
+
+/*----------------------------------------------------------
 Main Processing For Individual Thread
 
 Note: Parsing and all the decision need to happen in this
       thread.  Each client will have a unique thread to
       handle it's own processing.
 ----------------------------------------------------------*/
-	if( udp_client_q_dequeue( &this->udp_client_cb.rx_data_q, &rx_data ) )
+if( udp_client_q_dequeue( &this->udp_client_cb.rx_data_q, &rx_data ) )
     {
-		// Parse the message from the server, return true if successful
-		if( this->mPlayer.parseBuffer( rx_data ) )
+    /*------------------------------------------------------
+    Attempt to parse the UDP message
+    ------------------------------------------------------*/
+	if( this->m_player.parseBuffer( rx_data ) )
 		{
-			// Print the current stored information
-			this->udp_client_cb.dbg_log << "##################################" << endl;
-			this->udp_client_cb.dbg_log << "##################################" << endl;
-			this->udp_client_cb.dbg_log << "########### MESSAGE ##############" << endl;
-			this->udp_client_cb.dbg_log << "##################################" << endl;
-			this->udp_client_cb.dbg_log << "##################################" << endl;
-			this->udp_client_cb.dbg_log << "Message: " << rx_data << endl;
-			this->mPlayer.printVisualHash( this->udp_client_cb.dbg_log );
-			this->mPlayer.printServerHash( this->udp_client_cb.dbg_log );
-			this->mPlayer.printPlayerTypesHash( this->udp_client_cb.dbg_log );
-			this->mPlayer.printVisiblePlayersList( this->udp_client_cb.dbg_log );
-			this->mPlayer.printAuralStruct( this->udp_client_cb.dbg_log );
-			this->mPlayer.printSenseBodyStruct( this->udp_client_cb.dbg_log );
-			this->mPlayer.printPlayerParamHash( this->udp_client_cb.dbg_log );
+        /*------------------------------------------------------
+        Print the parsed data to the debug log
+        ------------------------------------------------------*/
+	    this->udp_client_cb.dbg_log << "##################################" << endl;
+	    this->udp_client_cb.dbg_log << "##################################" << endl;
+	    this->udp_client_cb.dbg_log << "########### MESSAGE ##############" << endl;
+	    this->udp_client_cb.dbg_log << "##################################" << endl;
+	    this->udp_client_cb.dbg_log << "##################################" << endl;
+	    this->udp_client_cb.dbg_log << "Message: " << rx_data << endl;
+	    this->m_player.printVisualHash( this->udp_client_cb.dbg_log );
+	    this->m_player.printServerHash( this->udp_client_cb.dbg_log );
+	    this->m_player.printPlayerTypesHash( this->udp_client_cb.dbg_log );
+	    this->m_player.printVisiblePlayersList( this->udp_client_cb.dbg_log );
+	    this->m_player.printAuralStruct( this->udp_client_cb.dbg_log );
+	    this->m_player.printSenseBodyStruct( this->udp_client_cb.dbg_log );
+	    this->m_player.printPlayerParamHash( this->udp_client_cb.dbg_log );
 		}
-		else
+
+    /*------------------------------------------------------
+    Parsing of the received message failed
+    ------------------------------------------------------*/
+	else
 		{
-			cout << "Message: " << rx_data << endl;
-			alwaysAssert();
+		cout << "Message: " << rx_data << endl;
+		alwaysAssert();
 		}
     }
+
+/*----------------------------------------------------------
+Leave the critical section
+----------------------------------------------------------*/
+LeaveCriticalSection( &this->udp_critical_section );
 
 }   /* udp_main() */
 
@@ -512,8 +531,8 @@ Initialization
 size = sizeof( this->udp_svr_intfc );
 
 /*----------------------------------------------------------
-Enter the critical section to ensure this thread processes
-with interruption
+Enter the critical section to ensure threads will not
+attempt to concurrently access the same data 
 ----------------------------------------------------------*/
 EnterCriticalSection( &this->udp_critical_section );
 
@@ -628,8 +647,8 @@ Local Variables
 int					    bytes_sent;	/* bytes sent					*/
 
 /*----------------------------------------------------------
-Enter the critical section to ensure this thread processes
-with interruption
+Enter the critical section to ensure threads will not
+attempt to concurrently access the same data 
 ----------------------------------------------------------*/
 EnterCriticalSection( &this->udp_critical_section );
 
