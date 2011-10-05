@@ -52,6 +52,12 @@ typedef struct                      /* UDP control block type       */
     HANDLE              h_mn_thrd;  /* main thread handle           */
     HANDLE              h_rx_thrd;  /* receive thread handle        */
     HANDLE              h_tx_thrd;  /* transmit thread handle       */
+    HANDLE              h_completion_prt;
+    HANDLE              h_rd_evnt;
+    
+    char                buffer[ 8192 ];
+    
+    WSAOVERLAPPED       overlapped;
 
     unsigned int        hdl_idx;    /* handle index                 */
 
@@ -97,14 +103,17 @@ class UDP_client
         friend boolean udp_client_q_dequeue( udp_client_buf_t * const q_cb, string * const q_data );
         friend boolean udp_client_q_enqueue( udp_client_buf_t * const q_cb, char * const q_data );
         friend void udp_client_q_init( udp_client_buf_t * const q_cb, unsigned int buf_size );
-        friend boolean udp_client_q_is_empty( udp_client_buf_t const * const q_cb );		
+        friend boolean udp_client_q_is_empty( udp_client_buf_t const * const q_cb );
+
+        static void CALLBACK CompletionROUTINE( DWORD dwError, DWORD cbTransferred, LPWSAOVERLAPPED lpOverlapped, DWORD dwFlags );
 
     protected:
         Player                  m_player;
         udp_client_cb_t         udp_client_cb;
         CRITICAL_SECTION        udp_critical_section;
         SOCKET			        udp_skt_fd;		
-        sockaddr_in		        udp_svr_intfc;	
+        sockaddr_in		        udp_svr_intfc;
+        sockaddr_in		        local_addr;	
         static const unsigned   udp_SERVER_PKT_SIZE;    
     };
 

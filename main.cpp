@@ -78,7 +78,7 @@ Initialization
 
 Todo: Add input parameters for IP, Port, and Teamname
 ----------------------------------------------------------*/
-for( i = 0; i < 11; i++ )
+for( i = 0; i < 1; i++ )
     {
     udp_client[ i ].UDP_open_socket( "192.168.1.3", 6000, "Team1", i );
     }

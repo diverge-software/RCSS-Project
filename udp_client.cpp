@@ -25,6 +25,8 @@
 
 using namespace std;
 
+#pragma comment(lib, "ws2_32.lib")
+
 /*--------------------------------------------------------------------
                           LITERAL CONSTANTS
 --------------------------------------------------------------------*/
@@ -55,6 +57,9 @@ const unsigned          UDP_client::udp_SERVER_PKT_SIZE = 8192;
 /*--------------------------------------------------------------------
                               PROCEDURES
 --------------------------------------------------------------------*/
+
+static void process_wsa_err         /* process WSA error            */
+    ( void );
 
 
 /*********************************************************************
@@ -175,11 +180,22 @@ WSAStartup( MAKEWORD( 2, 2 ), &wsa_data );
 /*----------------------------------------------------------
 Attempt to create a socket
 ----------------------------------------------------------*/
-this->udp_skt_fd = socket( AF_INET, SOCK_DGRAM, IPPROTO_UDP );
+//this->udp_skt_fd = socket( AF_INET, SOCK_DGRAM, IPPROTO_UDP );
+
+SecureZeroMemory((PVOID)&this->udp_client_cb.overlapped, sizeof(WSAOVERLAPPED));
+//this->udp_client_cb.overlapped.hEvent = WSACreateEvent();
+   // if (this->udp_client_cb.overlapped.hEvent == NULL)
+      //  {
+     //   alwaysAssert();
+      //  }
 
 /*----------------------------------------------------------
 Verify a valid handle was assigned
 ----------------------------------------------------------*/
+           this->udp_skt_fd = WSASocket(AF_INET, SOCK_DGRAM, IPPROTO_UDP, NULL, 0,
+                  WSA_FLAG_OVERLAPPED);
+
+
 if( this->udp_skt_fd == INVALID_SOCKET )
 	{
 	err_no = WSAGetLastError();
@@ -243,6 +259,68 @@ if( this->udp_client_cb.h_mn_thrd == NULL )
     {
     alwaysAssert();
     }
+
+int nRet = 0;
+int err;
+BOOL fFlag = TRUE;
+//this->udp_client_cb.h_rd_evnt = CreateEvent(NULL,TRUE,TRUE,NULL); 
+
+	//nRet = setsockopt(this->udp_skt_fd,SOL_SOCKET,SO_REUSEADDR, (char *)&fFlag, sizeof(BOOL));
+	if (nRet == SOCKET_ERROR) 
+	{
+		printf ("setsockopt() SO_REUSEADDR failed, Err: %d\n",WSAGetLastError());
+	}
+
+	//nRet = setsockopt(this->udp_skt_fd,SOL_SOCKET,SO_EXCLUSIVEADDRUSE, (char *)&fFlag, sizeof(BOOL));
+
+char *ip;
+struct hostent *localHost;
+
+        localHost = gethostbyname("");
+    ip = inet_ntoa(*(struct in_addr *) *localHost->h_addr_list);
+
+    this->local_addr.sin_family = AF_INET;
+    this->local_addr.sin_port = htons( server_port + 1000 );
+    this->local_addr.sin_addr.s_addr = htonl( INADDR_ANY );
+
+	nRet = bind( this->udp_skt_fd,(sockaddr *) &this->local_addr,sizeof(this->local_addr));
+
+	if (nRet == SOCKET_ERROR) 
+	    {
+        process_wsa_err();
+	    }
+
+//this->udp_client_cb.h_completion_prt = CreateIoCompletionPort ( INVALID_HANDLE_VALUE, NULL, 0, 10 );
+
+//if ( !this->udp_client_cb.h_completion_prt )
+	//{
+   // alwaysAssert();
+	//}
+
+//Associate this socket to this I/O completion port
+//CreateIoCompletionPort ( (HANDLE)this->udp_skt_fd, this->udp_client_cb.h_completion_prt, (DWORD)this->udp_skt_fd, 10 );
+	
+	//
+	// Start off an asynchronous read on the socket.
+	//
+	
+//	this->udp_client_cb.overlapped.hEvent       = this->udp_client_cb.h_rd_evnt;
+//	this->udp_client_cb.overlapped.Internal		= 0;
+//	this->udp_client_cb.overlapped.Offset		= 0;
+
+    //char tst[ 9000 ];
+    //DWORD    nbytes;
+    //boolean b;
+
+   // b = ReadFile( (HANDLE)this->udp_skt_fd, &tst, sizeof(tst), &nbytes, &this->udp_client_cb.overlapped );
+//b = 0;
+    //err = GetLastError();
+	    //if (!b && GetLastError() != ERROR_IO_PENDING )
+	 //   {
+        //    cout << "error" << GetLastError();
+		    //alwaysAssert();
+	  //  }
+	
 
 /*----------------------------------------------------------
 Create the UDP receive thread
@@ -425,13 +503,13 @@ if( udp_client_q_dequeue( &this->udp_client_cb.rx_data_q, &rx_data ) )
 	    this->udp_client_cb.dbg_log << "##################################" << endl;
 	    this->udp_client_cb.dbg_log << "##################################" << endl;
 	    this->udp_client_cb.dbg_log << "Message: " << rx_data << endl;
-	    this->m_player.printVisualHash( this->udp_client_cb.dbg_log );
-	    this->m_player.printServerHash( this->udp_client_cb.dbg_log );
-	    this->m_player.printPlayerTypesHash( this->udp_client_cb.dbg_log );
-	    this->m_player.printVisiblePlayersList( this->udp_client_cb.dbg_log );
-	    this->m_player.printAuralStruct( this->udp_client_cb.dbg_log );
-	    this->m_player.printSenseBodyStruct( this->udp_client_cb.dbg_log );
-	    this->m_player.printPlayerParamHash( this->udp_client_cb.dbg_log );
+	    //this->m_player.printVisualHash( this->udp_client_cb.dbg_log );
+	    //this->m_player.printServerHash( this->udp_client_cb.dbg_log );
+	    //this->m_player.printPlayerTypesHash( this->udp_client_cb.dbg_log );
+	    //this->m_player.printVisiblePlayersList( this->udp_client_cb.dbg_log );
+	    //this->m_player.printAuralStruct( this->udp_client_cb.dbg_log );
+	    //this->m_player.printSenseBodyStruct( this->udp_client_cb.dbg_log );
+	    //this->m_player.printPlayerParamHash( this->udp_client_cb.dbg_log );
 		}
 
     /*------------------------------------------------------
@@ -504,6 +582,35 @@ return( 0 );
 }   /* udp_main_thread() */
 
 
+void CALLBACK UDP_client::CompletionROUTINE
+    (
+    DWORD dwError, 
+    DWORD cbTransferred, 
+    LPWSAOVERLAPPED lpOverlapped, 
+    DWORD dwFlags
+    )
+
+{
+UDP_client * clnt = (UDP_client *)lpOverlapped->Pointer;
+//udp_client_cb.buffer;
+/*----------------------------------------------------------
+Enter the critical section to ensure threads will not
+attempt to concurrently access the same data 
+----------------------------------------------------------*/
+EnterCriticalSection( &clnt->udp_critical_section );
+
+if( !udp_client_q_enqueue( &clnt->udp_client_cb.rx_data_q, clnt->udp_client_cb.buffer ) )
+    {
+    alwaysAssert();
+    }
+
+/*----------------------------------------------------------
+Leave the critical section
+----------------------------------------------------------*/
+LeaveCriticalSection( &clnt->udp_critical_section );
+
+}
+
 /*********************************************************************
 *
 *   PROCEDURE NAME:
@@ -528,17 +635,11 @@ socklen_t				size;		/* size							*/
 /*----------------------------------------------------------
 Initialization
 ----------------------------------------------------------*/
-size = sizeof( this->udp_svr_intfc );
-
-/*----------------------------------------------------------
-Enter the critical section to ensure threads will not
-attempt to concurrently access the same data 
-----------------------------------------------------------*/
-EnterCriticalSection( &this->udp_critical_section );
+//size = sizeof( this->udp_svr_intfc );
 
 /*----------------------------------------------------------
 Read from UDP socket
-----------------------------------------------------------*/
+----------------------------------------------------------
 bytes_read = recvfrom( 
                      this->udp_skt_fd, 
                      buf, 
@@ -546,16 +647,57 @@ bytes_read = recvfrom(
                      0, 
                      (sockaddr *)&this->udp_svr_intfc, 
                      &size 
-                     );
+                     );*/
+
+int rc;
+struct sockaddr_in SenderAddr;
+DWORD BytesRecv = 0;
+DWORD Flags = 0;
+WSABUF DataBuf;
+//int SenderAddrSize = sizeof (this->udp_svr_intfc);
+int err;
+
+/*----------------------------------------------------------
+Enter the critical section to ensure threads will not
+attempt to concurrently access the same data 
+----------------------------------------------------------*/
+EnterCriticalSection( &this->udp_critical_section );
+
+DataBuf.buf = this->udp_client_cb.buffer;
+DataBuf.len = 8192;
+
+
+this->udp_client_cb.overlapped.Pointer = this;
+
+rc = WSARecvFrom(this->udp_skt_fd,
+                      &DataBuf,
+                      1,
+                      NULL,
+                      &Flags,
+                      NULL,
+                      NULL, &this->udp_client_cb.overlapped, &UDP_client::CompletionROUTINE );
+
+
+if( rc == SOCKET_ERROR )
+    {
+    err = WSAGetLastError();
+
+    if (WSAGetLastError() != WSA_IO_PENDING)
+        {
+        alwaysAssert();
+        }
+
+    
+    }
 
 /*----------------------------------------------------------
 Verify the packet was received successfully
-----------------------------------------------------------*/
+----------------------------------------------------------
 if( bytes_read != SOCKET_ERROR )
-    {
+    {*/
     /*------------------------------------------------------
     Verify there is not a queue overflow
-    ------------------------------------------------------*/
+    ------------------------------------------------------
     if( !udp_client_q_enqueue( &this->udp_client_cb.rx_data_q, buf ) )
         {
         alwaysAssert();
@@ -564,7 +706,7 @@ if( bytes_read != SOCKET_ERROR )
 else
     {
     alwaysAssert();
-    }
+    }*/
 
 /*----------------------------------------------------------
 Leave the critical section
@@ -611,9 +753,10 @@ Loop until thread indicates termination
 ----------------------------------------------------------*/
 while( !udp_client_ptr->udp_client_cb.terminate_thrd )
     {
-    Sleep( 10 );
+   // Sleep( 10 );
 
     udp_client_ptr->udp_receive();   
+    SleepEx( 100, TRUE );
     }
 
 /*----------------------------------------------------------
@@ -734,3 +877,65 @@ udp_client_ptr->udp_client_cb.tx_thrd_alive = FALSE;
 return( 0 );
 
 }   /* udp_transmit_thread() */
+
+
+/*********************************************************************
+*
+*   PROCEDURE NAME:
+*       process_wsa_err - Process WSA Error
+*
+*   DESCRIPTION:
+*       Process Winsock API error
+*
+*********************************************************************/
+
+static void process_wsa_err         /* process WSA error            */
+    ( void )
+{
+/*----------------------------------------------------------
+Local Variables
+----------------------------------------------------------*/
+int                     err_code;   /* error code                   */
+LPVOID                  msg_buf;    /* message buffer               */
+
+/*----------------------------------------------------------
+Get last Winsock API error code
+----------------------------------------------------------*/
+err_code = WSAGetLastError();
+
+/*----------------------------------------------------------
+Attempt to format the error code into a message string
+----------------------------------------------------------*/
+if( FormatMessage(
+                 FORMAT_MESSAGE_ALLOCATE_BUFFER | 
+                 FORMAT_MESSAGE_FROM_SYSTEM |
+                 FORMAT_MESSAGE_IGNORE_INSERTS,
+                 NULL,
+                 err_code,
+                 NULL,
+                 (LPTSTR)&msg_buf,
+                 0, 
+                 NULL 
+                 ) == 0 )
+    {
+    LocalFree( msg_buf );
+    alwaysAssert();
+    }
+
+/*----------------------------------------------------------
+Display the error message
+----------------------------------------------------------*/
+cout << "WSA Error " << err_code << ": " << (LPTSTR)msg_buf << endl;
+
+/*----------------------------------------------------------
+Free the local buffer
+----------------------------------------------------------*/
+LocalFree( msg_buf );
+
+/*----------------------------------------------------------
+Execute assertion
+----------------------------------------------------------*/
+system( "PAUSE" );
+alwaysAssert();
+
+}   /* process_wsa_err() */
