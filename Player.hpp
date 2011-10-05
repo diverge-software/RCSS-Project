@@ -10,7 +10,7 @@
 using namespace std;
 using namespace Parser;
 
-#define NUM_PLAYER_TYPES 10
+#define NUM_PLAYER_TYPES 17
 
 class Player
 {
