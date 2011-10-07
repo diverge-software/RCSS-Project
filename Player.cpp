@@ -79,6 +79,11 @@ bool Player::parseBuffer(const string buffer)
 		{
 			parsePlayerParamPacket( buffer, this->playerParams );
 		}
+		else if( !buffer.compare( 0, 6, "(error" ) )
+		{
+            cout << "Error parsing this: " << buffer << endl;
+			alwaysAssert();
+		}
 		else
 		{
 			cout << "Error parsing this: " << buffer << endl;
