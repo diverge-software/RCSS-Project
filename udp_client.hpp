@@ -54,6 +54,7 @@ typedef struct                      /* UDP control block type       */
     HANDLE              h_tx_thrd;  /* transmit thread handle       */
     HANDLE              h_completion_prt;
     HANDLE              h_rd_evnt;
+    HANDLE              h_mn_evnt;
     
     char                buffer[ 8192 ];
     

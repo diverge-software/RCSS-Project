@@ -233,6 +233,7 @@ this->udp_client_cb.mn_thrd_alive  = FALSE;
 this->udp_client_cb.rx_thrd_alive  = FALSE;
 this->udp_client_cb.tx_thrd_alive  = FALSE;
 this->udp_client_cb.terminate_thrd = FALSE;
+memset( &this->udp_client_cb.buffer, 0x00, sizeof( this->udp_client_cb.buffer ) );
 
 /*----------------------------------------------------------
 Set debug log filename
@@ -263,7 +264,7 @@ if( this->udp_client_cb.h_mn_thrd == NULL )
 int nRet = 0;
 int err;
 BOOL fFlag = TRUE;
-//this->udp_client_cb.h_rd_evnt = CreateEvent(NULL,TRUE,TRUE,NULL); 
+this->udp_client_cb.h_mn_evnt = CreateEvent(NULL,FALSE,FALSE,NULL); 
 
 	//nRet = setsockopt(this->udp_skt_fd,SOL_SOCKET,SO_REUSEADDR, (char *)&fFlag, sizeof(BOOL));
 	if (nRet == SOCKET_ERROR) 
@@ -273,14 +274,8 @@ BOOL fFlag = TRUE;
 
 	//nRet = setsockopt(this->udp_skt_fd,SOL_SOCKET,SO_EXCLUSIVEADDRUSE, (char *)&fFlag, sizeof(BOOL));
 
-char *ip;
-struct hostent *localHost;
-
-        localHost = gethostbyname("");
-    ip = inet_ntoa(*(struct in_addr *) *localHost->h_addr_list);
-
     this->local_addr.sin_family = AF_INET;
-    this->local_addr.sin_port = htons( server_port + 1000 );
+    this->local_addr.sin_port = htons( server_port + 100 + hdl_idx );
     this->local_addr.sin_addr.s_addr = htonl( INADDR_ANY );
 
 	nRet = bind( this->udp_skt_fd,(sockaddr *) &this->local_addr,sizeof(this->local_addr));
@@ -520,6 +515,11 @@ if( udp_client_q_dequeue( &this->udp_client_cb.rx_data_q, &rx_data ) )
 		cout << "Message: " << rx_data << endl;
 		alwaysAssert();
 		}
+
+    if( udp_client_q_is_empty( &this->udp_client_cb.tx_data_q ) )
+        {
+        UDP_send( "(move 0 0)" );
+        }
     }
 
 /*----------------------------------------------------------
@@ -566,10 +566,12 @@ udp_client_ptr->udp_client_cb.mn_thrd_alive = TRUE;
 Loop until thread indicates termination
 ----------------------------------------------------------*/
 while( !udp_client_ptr->udp_client_cb.terminate_thrd )
-    {
+    {//magic number
+    WaitForSingleObjectEx( udp_client_ptr->udp_client_cb.h_mn_evnt, 100000, TRUE );
+    
     udp_client_ptr->udp_main();   
 
-    Sleep( 10 );
+    //Sleep( 10 );
     }
 
 /*----------------------------------------------------------
@@ -603,6 +605,11 @@ if( !udp_client_q_enqueue( &clnt->udp_client_cb.rx_data_q, clnt->udp_client_cb.b
     {
     alwaysAssert();
     }
+
+ResetEvent( clnt->udp_client_cb.h_mn_evnt );
+
+SetEvent( clnt->udp_client_cb.h_mn_evnt );
+
 
 /*----------------------------------------------------------
 Leave the critical section
@@ -654,9 +661,9 @@ struct sockaddr_in SenderAddr;
 DWORD BytesRecv = 0;
 DWORD Flags = 0;
 WSABUF DataBuf;
-//int SenderAddrSize = sizeof (this->udp_svr_intfc);
+int SenderAddrSize = sizeof (this->udp_svr_intfc);
 int err;
-
+bool tst;
 /*----------------------------------------------------------
 Enter the critical section to ensure threads will not
 attempt to concurrently access the same data 
@@ -666,16 +673,17 @@ EnterCriticalSection( &this->udp_critical_section );
 DataBuf.buf = this->udp_client_cb.buffer;
 DataBuf.len = 8192;
 
-
 this->udp_client_cb.overlapped.Pointer = this;
+
+tst = WSAGetOverlappedResult( this->udp_skt_fd, &this->udp_client_cb.overlapped, &BytesRecv, FALSE, &Flags );
 
 rc = WSARecvFrom(this->udp_skt_fd,
                       &DataBuf,
                       1,
                       NULL,
                       &Flags,
-                      NULL,
-                      NULL, &this->udp_client_cb.overlapped, &UDP_client::CompletionROUTINE );
+                      (sockaddr *)&this->udp_svr_intfc,
+                      &SenderAddrSize, &this->udp_client_cb.overlapped, &UDP_client::CompletionROUTINE );
 
 
 if( rc == SOCKET_ERROR )
@@ -684,7 +692,7 @@ if( rc == SOCKET_ERROR )
 
     if (WSAGetLastError() != WSA_IO_PENDING)
         {
-        alwaysAssert();
+        process_wsa_err();
         }
 
     
@@ -754,9 +762,9 @@ Loop until thread indicates termination
 while( !udp_client_ptr->udp_client_cb.terminate_thrd )
     {
    // Sleep( 10 );
-
+SleepEx( 100, TRUE );
     udp_client_ptr->udp_receive();   
-    SleepEx( 100, TRUE );
+    
     }
 
 /*----------------------------------------------------------
@@ -801,7 +809,7 @@ Send on UDP socket
 bytes_sent = sendto( 
                    this->udp_skt_fd, 
                    tx_data.c_str(), 
-                   tx_data.length(), 
+                   tx_data.length() + 1, //comment on why +1
                    0, 
                    (sockaddr *)&this->udp_svr_intfc, 
                    (socklen_t)sizeof( this->udp_svr_intfc ) 
@@ -865,7 +873,8 @@ while( !udp_client_ptr->udp_client_cb.terminate_thrd )
         {
         udp_client_ptr->udp_transmit( tmp_str );
         }
-
+    //using timing information, we could probably make this more accurate, to ensure it happens every 100ms
+    //ie: when did the transmit actually occur, then do 100 - that time to get the real time to sleep
     Sleep( 100 );
     }
 
