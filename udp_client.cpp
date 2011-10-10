@@ -7,7 +7,7 @@
 *       Performs UDP interface processing
 *
 *---------------------------------------------------------------------
-* $Id: udp_client.cpp, v1.2, 2011-09-23 17:25:00Z, Joseph Wachtel$
+* $Id: udp_client.cpp, v1.3, 2011-10-07 17:25:00Z, Joseph Wachtel$
 * $NoKeywords$
 *********************************************************************/
 
@@ -46,9 +46,6 @@ using namespace std;
 /*--------------------------------------------------------------------
                               VARIABLES
 --------------------------------------------------------------------*/
-
-const unsigned          UDP_client::udp_SERVER_PKT_SIZE = 8192;
-                                    /* UDP server packet size       */
 
 /*--------------------------------------------------------------------
                                 MACROS
@@ -163,11 +160,18 @@ void UDP_client::UDP_open_socket    /* Open UDP Socket              */
     )
 {
 /*----------------------------------------------------------
+Local Constants
+----------------------------------------------------------*/
+#define MAX_FILENAME_SIZE ( 50 )    /* maximum filename size        */
+#define WSA_VER_H         ( 2  )    /* winsock version number high  */
+#define WSA_VER_L         ( 2  )    /* winsock version number low   */
+
+/*----------------------------------------------------------
 Local Variables
 ----------------------------------------------------------*/
 int						err_no;		/* error number					*/
 ostringstream           err_str;    /* error string                 */
-char                    filename[ 50 ];
+char                    filename[ MAX_FILENAME_SIZE ];
                                     /* filename                     */
 ostringstream           tmp_str;    /* temporary string             */
 WSADATA					wsa_data;	/* winsock data					*/
@@ -175,33 +179,25 @@ WSADATA					wsa_data;	/* winsock data					*/
 /*----------------------------------------------------------
 Initiate Winsock DLL
 ----------------------------------------------------------*/
-WSAStartup( MAKEWORD( 2, 2 ), &wsa_data );
+WSAStartup( MAKEWORD( WSA_VER_H, WSA_VER_L ), &wsa_data );
+
+/*----------------------------------------------------------
+Initialize Overlapped structure
+----------------------------------------------------------*/
+SecureZeroMemory( (PVOID)&this->udp_client_cb.overlapped, sizeof( WSAOVERLAPPED ) );
 
 /*----------------------------------------------------------
 Attempt to create a socket
 ----------------------------------------------------------*/
-//this->udp_skt_fd = socket( AF_INET, SOCK_DGRAM, IPPROTO_UDP );
-
-SecureZeroMemory((PVOID)&this->udp_client_cb.overlapped, sizeof(WSAOVERLAPPED));
-//this->udp_client_cb.overlapped.hEvent = WSACreateEvent();
-   // if (this->udp_client_cb.overlapped.hEvent == NULL)
-      //  {
-     //   alwaysAssert();
-      //  }
+this->udp_skt_fd = WSASocket( AF_INET, SOCK_DGRAM, IPPROTO_UDP, NULL, 0, WSA_FLAG_OVERLAPPED );
 
 /*----------------------------------------------------------
 Verify a valid handle was assigned
 ----------------------------------------------------------*/
-           this->udp_skt_fd = WSASocket(AF_INET, SOCK_DGRAM, IPPROTO_UDP, NULL, 0,
-                  WSA_FLAG_OVERLAPPED);
-
-
 if( this->udp_skt_fd == INVALID_SOCKET )
 	{
-	err_no = WSAGetLastError();
-
-    err_str << "Error: Windows socket() returned error number: " << err_no;
-    fatalError( err_str.str() );
+    process_wsa_err();
+    alwaysAssert();
 	}
  
 /*----------------------------------------------------------
@@ -229,11 +225,11 @@ udp_client_q_init( &this->udp_client_cb.tx_data_q, UDP_BUFFER_SIZE );
 /*----------------------------------------------------------
 Initialize UDP control block
 ----------------------------------------------------------*/
+memset( &this->udp_client_cb.buffer, 0x00, sizeof( this->udp_client_cb.buffer ) );
 this->udp_client_cb.mn_thrd_alive  = FALSE;
 this->udp_client_cb.rx_thrd_alive  = FALSE;
 this->udp_client_cb.tx_thrd_alive  = FALSE;
 this->udp_client_cb.terminate_thrd = FALSE;
-memset( &this->udp_client_cb.buffer, 0x00, sizeof( this->udp_client_cb.buffer ) );
 
 /*----------------------------------------------------------
 Set debug log filename
@@ -261,61 +257,47 @@ if( this->udp_client_cb.h_mn_thrd == NULL )
     alwaysAssert();
     }
 
-int nRet = 0;
-int err;
-BOOL fFlag = TRUE;
-this->udp_client_cb.h_mn_evnt = CreateEvent(NULL,FALSE,FALSE,NULL); 
+/*----------------------------------------------------------
+Create the main event
 
-	//nRet = setsockopt(this->udp_skt_fd,SOL_SOCKET,SO_REUSEADDR, (char *)&fFlag, sizeof(BOOL));
-	if (nRet == SOCKET_ERROR) 
-	{
-		printf ("setsockopt() SO_REUSEADDR failed, Err: %d\n",WSAGetLastError());
-	}
+Note: This allows the main thread to sleep until this
+      event is set.  This maximizes efficiency and ensures
+      processing only occurs when needed
+----------------------------------------------------------*/
+this->udp_client_cb.h_mn_evnt = CreateEvent( NULL, false, false, NULL );
 
-	//nRet = setsockopt(this->udp_skt_fd,SOL_SOCKET,SO_EXCLUSIVEADDRUSE, (char *)&fFlag, sizeof(BOOL));
+/*----------------------------------------------------------
+Verify the main event was created successfully
+----------------------------------------------------------*/
+if( this->udp_client_cb.h_mn_evnt == NULL )
+    {
+    alwaysAssert();
+    }
 
-    this->local_addr.sin_family = AF_INET;
-    this->local_addr.sin_port = htons( server_port + 100 + hdl_idx );
-    this->local_addr.sin_addr.s_addr = htonl( INADDR_ANY );
+/*----------------------------------------------------------
+Assign local address interface information
 
-	nRet = bind( this->udp_skt_fd,(sockaddr *) &this->local_addr,sizeof(this->local_addr));
+Note: This is required to use the bind() function that
+      allows the use of the asynchronous overlapped I/O
+      structure.  The port must be unique
+----------------------------------------------------------*/
+this->udp_lcl_intfc.sin_family      = AF_INET;
+this->udp_lcl_intfc.sin_port        = htons( server_port + hdl_idx + 100 );
+this->udp_lcl_intfc.sin_addr.s_addr = htonl( INADDR_ANY );
 
-	if (nRet == SOCKET_ERROR) 
-	    {
-        process_wsa_err();
-	    }
+/*----------------------------------------------------------
+Bind the remote address to the local address and port
+----------------------------------------------------------*/
+err_no = bind( this->udp_skt_fd, (sockaddr *)&this->udp_lcl_intfc, sizeof( this->udp_lcl_intfc ) );
 
-//this->udp_client_cb.h_completion_prt = CreateIoCompletionPort ( INVALID_HANDLE_VALUE, NULL, 0, 10 );
-
-//if ( !this->udp_client_cb.h_completion_prt )
-	//{
-   // alwaysAssert();
-	//}
-
-//Associate this socket to this I/O completion port
-//CreateIoCompletionPort ( (HANDLE)this->udp_skt_fd, this->udp_client_cb.h_completion_prt, (DWORD)this->udp_skt_fd, 10 );
-	
-	//
-	// Start off an asynchronous read on the socket.
-	//
-	
-//	this->udp_client_cb.overlapped.hEvent       = this->udp_client_cb.h_rd_evnt;
-//	this->udp_client_cb.overlapped.Internal		= 0;
-//	this->udp_client_cb.overlapped.Offset		= 0;
-
-    //char tst[ 9000 ];
-    //DWORD    nbytes;
-    //boolean b;
-
-   // b = ReadFile( (HANDLE)this->udp_skt_fd, &tst, sizeof(tst), &nbytes, &this->udp_client_cb.overlapped );
-//b = 0;
-    //err = GetLastError();
-	    //if (!b && GetLastError() != ERROR_IO_PENDING )
-	 //   {
-        //    cout << "error" << GetLastError();
-		    //alwaysAssert();
-	  //  }
-	
+/*----------------------------------------------------------
+Verify the bind was successful
+----------------------------------------------------------*/
+if( err_no == SOCKET_ERROR ) 
+    {
+    process_wsa_err();
+    alwaysAssert();
+    }	
 
 /*----------------------------------------------------------
 Create the UDP receive thread
@@ -363,7 +345,7 @@ Initialize client with team name
 tmp_str.clear();
 tmp_str << "(init " << team_name << " (version 15.0))";
 
-this->UDP_send( tmp_str.str() );
+this->udp_send( tmp_str.str() );
 
 /*----------------------------------------------------------
 Set the handle index
@@ -381,74 +363,64 @@ this->udp_client_cb.socket_open = TRUE;
 /*********************************************************************
 *
 *   PROCEDURE NAME:
-*       UDP_retreive - Retreive UDP Data
+*       udp_completion_routine - UDP Completion Routine
 *
 *   DESCRIPTION:
-*       Retreive UDP data from queue if available
+*       Completion routine that is called once a complete UDP packet
+*       has been received
+*
+*   Note:
+*       All Windows CALLBACK's are required to be static
 *
 *********************************************************************/
 
-boolean UDP_client::UDP_retreive	/* UDP Retreive Data            */
-	( 
-    string * const      rx_data     /* received data                */
+void CALLBACK UDP_client::udp_completion_routine
+                                    /* UDP completion routine       */
+    (
+    DWORD               err_no,     /* error number                 */ 
+    DWORD               bytes_xfer, /* bytes transfered             */
+    LPWSAOVERLAPPED     overlapped, /* overlapped structure         */ 
+    DWORD               flags       /* flags                        */   
     )
 {
 /*----------------------------------------------------------
 Local Variables
 ----------------------------------------------------------*/
-boolean                 ret_val;    /* return value                 */
+UDP_client *            udp_client_ptr;
+                                    /* UDP client pointer           */
 
 /*----------------------------------------------------------
-Initialization
+Assign the void pointer which contains the class "this"
+pointer to the local pointer
 ----------------------------------------------------------*/
-ret_val = false;
+udp_client_ptr = (UDP_client *)overlapped->Pointer;
 
 /*----------------------------------------------------------
-Check if data is available
+Enter the critical section to ensure threads will not
+attempt to concurrently access the same data 
 ----------------------------------------------------------*/
-if( udp_client_q_dequeue( &this->udp_client_cb.rx_data_q, rx_data ) )
+EnterCriticalSection( &udp_client_ptr->udp_critical_section );
+
+/*----------------------------------------------------------
+Attempt to add the received packet to the queue
+----------------------------------------------------------*/
+if( !udp_client_q_enqueue( &udp_client_ptr->udp_client_cb.rx_data_q, udp_client_ptr->udp_client_cb.buffer ) )
     {
-    ret_val = TRUE;
+    alwaysAssert();
     }
 
-return( ret_val );
-
-}	/* UDP_retreive() */
-
-
-/*********************************************************************
-*
-*   PROCEDURE NAME:
-*       UDP_send - Send UDP Data
-*
-*   DESCRIPTION:
-*       Send UDP data when socket is available
-*
-*********************************************************************/
-
-boolean UDP_client::UDP_send	    /* UDP Send Data                */
-	( 
-    string              tx_data     /* transmit data                */
-    )
-{
 /*----------------------------------------------------------
-Local Variables
+Set the main event to wake the main thread from it's 
+suspended state
 ----------------------------------------------------------*/
-boolean                 ret_val;    /* return value                 */
+SetEvent( udp_client_ptr->udp_client_cb.h_mn_evnt );
 
 /*----------------------------------------------------------
-Add outgoing data to the TX queue
+Leave the critical section
 ----------------------------------------------------------*/
-ret_val = udp_client_q_enqueue( &this->udp_client_cb.tx_data_q, (char *)tx_data.c_str() );
+LeaveCriticalSection( &udp_client_ptr->udp_critical_section );
 
-/*----------------------------------------------------------
-An error occurred while trying to add the item to the queue
-----------------------------------------------------------*/
-fatalAssert( ret_val );
-
-return( ret_val );
-
-}	/* UDP_send() */
+}   /* udp_completion_routine() */
 
 
 /*********************************************************************
@@ -498,13 +470,13 @@ if( udp_client_q_dequeue( &this->udp_client_cb.rx_data_q, &rx_data ) )
 	    this->udp_client_cb.dbg_log << "##################################" << endl;
 	    this->udp_client_cb.dbg_log << "##################################" << endl;
 	    this->udp_client_cb.dbg_log << "Message: " << rx_data << endl;
-	    //this->m_player.printVisualHash( this->udp_client_cb.dbg_log );
-	    //this->m_player.printServerHash( this->udp_client_cb.dbg_log );
-	    //this->m_player.printPlayerTypesHash( this->udp_client_cb.dbg_log );
-	    //this->m_player.printVisiblePlayersList( this->udp_client_cb.dbg_log );
-	    //this->m_player.printAuralStruct( this->udp_client_cb.dbg_log );
-	    //this->m_player.printSenseBodyStruct( this->udp_client_cb.dbg_log );
-	    //this->m_player.printPlayerParamHash( this->udp_client_cb.dbg_log );
+	    this->m_player.printVisualHash( this->udp_client_cb.dbg_log );
+	    this->m_player.printServerHash( this->udp_client_cb.dbg_log );
+	    this->m_player.printPlayerTypesHash( this->udp_client_cb.dbg_log );
+	    this->m_player.printVisiblePlayersList( this->udp_client_cb.dbg_log );
+	    this->m_player.printAuralStruct( this->udp_client_cb.dbg_log );
+	    this->m_player.printSenseBodyStruct( this->udp_client_cb.dbg_log );
+	    this->m_player.printPlayerParamHash( this->udp_client_cb.dbg_log );
 		}
 
     /*------------------------------------------------------
@@ -518,7 +490,7 @@ if( udp_client_q_dequeue( &this->udp_client_cb.rx_data_q, &rx_data ) )
 
     if( udp_client_q_is_empty( &this->udp_client_cb.tx_data_q ) )
         {
-        UDP_send( "(move 0 0)" );
+        udp_send( "(move 0 0)" );
         }
     }
 
@@ -538,12 +510,17 @@ LeaveCriticalSection( &this->udp_critical_section );
 *   DESCRIPTION:
 *       Thread to handle main processing
 *
+*   Note:
+*       This function, called by CreateThread(), is required to be
+*       static.  This function calls a non-static function which is
+*       specific to each client
+*
 *********************************************************************/
 
 DWORD WINAPI UDP_client::udp_main_thread
                                     /* main processing thread       */
     (
-    LPVOID              lp_param    /* UDP client                   */
+    LPVOID              udp_client  /* UDP client                   */
     )
 {
 /*----------------------------------------------------------
@@ -553,9 +530,10 @@ UDP_client *            udp_client_ptr;
                                     /* UDP client pointer           */
 
 /*----------------------------------------------------------
-Initialization
+Assign the passed UDP client to the local pointer.  This
+is required due to the requirement of the static function
 ----------------------------------------------------------*/
-udp_client_ptr = (UDP_client *)lp_param;
+udp_client_ptr = (UDP_client *)udp_client;
 
 /*----------------------------------------------------------
 Indicate thread is alive
@@ -566,12 +544,15 @@ udp_client_ptr->udp_client_cb.mn_thrd_alive = TRUE;
 Loop until thread indicates termination
 ----------------------------------------------------------*/
 while( !udp_client_ptr->udp_client_cb.terminate_thrd )
-    {//magic number
-    WaitForSingleObjectEx( udp_client_ptr->udp_client_cb.h_mn_evnt, 100000, TRUE );
-    
-    udp_client_ptr->udp_main();   
-
-    //Sleep( 10 );
+    {
+    /*------------------------------------------------------
+    WaitForSingleObjectEx suspends the thread until 
+    the main event occurs.  By using this method, no CPU
+    cycles are wasted as the event is only set when a packet
+    had been received and processed
+    ------------------------------------------------------*/
+    WaitForSingleObjectEx( udp_client_ptr->udp_client_cb.h_mn_evnt, INFINITE, TRUE );
+    udp_client_ptr->udp_main();
     }
 
 /*----------------------------------------------------------
@@ -583,40 +564,6 @@ return( 0 );
 
 }   /* udp_main_thread() */
 
-
-void CALLBACK UDP_client::CompletionROUTINE
-    (
-    DWORD dwError, 
-    DWORD cbTransferred, 
-    LPWSAOVERLAPPED lpOverlapped, 
-    DWORD dwFlags
-    )
-
-{
-UDP_client * clnt = (UDP_client *)lpOverlapped->Pointer;
-//udp_client_cb.buffer;
-/*----------------------------------------------------------
-Enter the critical section to ensure threads will not
-attempt to concurrently access the same data 
-----------------------------------------------------------*/
-EnterCriticalSection( &clnt->udp_critical_section );
-
-if( !udp_client_q_enqueue( &clnt->udp_client_cb.rx_data_q, clnt->udp_client_cb.buffer ) )
-    {
-    alwaysAssert();
-    }
-
-ResetEvent( clnt->udp_client_cb.h_mn_evnt );
-
-SetEvent( clnt->udp_client_cb.h_mn_evnt );
-
-
-/*----------------------------------------------------------
-Leave the critical section
-----------------------------------------------------------*/
-LeaveCriticalSection( &clnt->udp_critical_section );
-
-}
 
 /*********************************************************************
 *
@@ -634,87 +581,71 @@ void UDP_client::udp_receive	    /* UDP receive processing       */
 /*----------------------------------------------------------
 Local Variables
 ----------------------------------------------------------*/
-char                    buf[ udp_SERVER_PKT_SIZE ];
-                                    /* temporary buffer             */
-int						bytes_read;	/* bytes read					*/
-socklen_t				size;		/* size							*/
+int                     err_no;     /* error number                 */
+DWORD                   flags;      /* function flags               */
+int     				size;		/* size							*/
+WSABUF                  tmp_buf;    /* temporary buffer             */
 
 /*----------------------------------------------------------
 Initialization
 ----------------------------------------------------------*/
-//size = sizeof( this->udp_svr_intfc );
+flags = false;
+size  = sizeof( this->udp_svr_intfc );
 
-/*----------------------------------------------------------
-Read from UDP socket
-----------------------------------------------------------
-bytes_read = recvfrom( 
-                     this->udp_skt_fd, 
-                     buf, 
-                     udp_SERVER_PKT_SIZE, 
-                     0, 
-                     (sockaddr *)&this->udp_svr_intfc, 
-                     &size 
-                     );*/
-
-int rc;
-struct sockaddr_in SenderAddr;
-DWORD BytesRecv = 0;
-DWORD Flags = 0;
-WSABUF DataBuf;
-int SenderAddrSize = sizeof (this->udp_svr_intfc);
-int err;
-bool tst;
 /*----------------------------------------------------------
 Enter the critical section to ensure threads will not
 attempt to concurrently access the same data 
 ----------------------------------------------------------*/
 EnterCriticalSection( &this->udp_critical_section );
 
-DataBuf.buf = this->udp_client_cb.buffer;
-DataBuf.len = 8192;
+/*----------------------------------------------------------
+Assign asynchronous I/O buffer to temporary Winsock API
+buffer which is compatible with the WSARecvFrom() function
 
-this->udp_client_cb.overlapped.Pointer = this;
-
-tst = WSAGetOverlappedResult( this->udp_skt_fd, &this->udp_client_cb.overlapped, &BytesRecv, FALSE, &Flags );
-
-rc = WSARecvFrom(this->udp_skt_fd,
-                      &DataBuf,
-                      1,
-                      NULL,
-                      &Flags,
-                      (sockaddr *)&this->udp_svr_intfc,
-                      &SenderAddrSize, &this->udp_client_cb.overlapped, &UDP_client::CompletionROUTINE );
-
-
-if( rc == SOCKET_ERROR )
-    {
-    err = WSAGetLastError();
-
-    if (WSAGetLastError() != WSA_IO_PENDING)
-        {
-        process_wsa_err();
-        }
-
-    
-    }
+Note: This buffer must be preserved through thread cycles
+----------------------------------------------------------*/
+tmp_buf.buf = this->udp_client_cb.buffer;
+tmp_buf.len = UDP_SRVR_PKT_SIZE;
 
 /*----------------------------------------------------------
-Verify the packet was received successfully
-----------------------------------------------------------
-if( bytes_read != SOCKET_ERROR )
-    {*/
-    /*------------------------------------------------------
-    Verify there is not a queue overflow
-    ------------------------------------------------------
-    if( !udp_client_q_enqueue( &this->udp_client_cb.rx_data_q, buf ) )
+Assign the class "this" pointer to the available pointer
+in the overlapped structure.  Since the completion routine
+for the asynchronous I/O is required to be static, this
+allows the class pointer to be used inside the routine
+----------------------------------------------------------*/
+this->udp_client_cb.overlapped.Pointer = this;
+
+/*----------------------------------------------------------
+Receive from the asynchronous I/O socket.  Once the socket
+had received a full packet, only then will it call the
+completion routine, otherwise the thread is put to sleep.
+----------------------------------------------------------*/
+err_no = WSARecvFrom( 
+                    this->udp_skt_fd,
+                    &tmp_buf,
+                    1,
+                    NULL,
+                    &flags,
+                    (sockaddr *)&this->udp_svr_intfc,
+                    &size, 
+                    &this->udp_client_cb.overlapped, 
+                    &UDP_client::udp_completion_routine 
+                    );
+
+/*----------------------------------------------------------
+Check if the asynchronous I/O operation has completed or
+if another error has occured
+----------------------------------------------------------*/
+if( err_no == SOCKET_ERROR )
+    {
+    err_no = WSAGetLastError();
+
+    if( WSAGetLastError() != WSA_IO_PENDING )
         {
+        process_wsa_err();
         alwaysAssert();
         }
     }
-else
-    {
-    alwaysAssert();
-    }*/
 
 /*----------------------------------------------------------
 Leave the critical section
@@ -732,12 +663,17 @@ LeaveCriticalSection( &this->udp_critical_section );
 *   DESCRIPTION:
 *       Thread to handle UDP receive data
 *
+*   Note:
+*       This function, called by CreateThread(), is required to be
+*       static.  This function calls a non-static function which is
+*       specific to each client
+*
 *********************************************************************/
 
 DWORD WINAPI UDP_client::udp_receive_thread
                                     /* receive processing thread    */
     (
-    LPVOID              lp_param    /* UDP client                   */
+    LPVOID              udp_client  /* UDP client                   */
     )
 {
 /*----------------------------------------------------------
@@ -747,9 +683,10 @@ UDP_client *            udp_client_ptr;
                                     /* UDP client pointer           */
 
 /*----------------------------------------------------------
-Initialization
+Assign the passed UDP client to the local pointer.  This
+is required due to the requirement of the static function
 ----------------------------------------------------------*/
-udp_client_ptr = (UDP_client *)lp_param;
+udp_client_ptr = (UDP_client *)udp_client;
 
 /*----------------------------------------------------------
 Indicate thread is alive
@@ -761,10 +698,14 @@ Loop until thread indicates termination
 ----------------------------------------------------------*/
 while( !udp_client_ptr->udp_client_cb.terminate_thrd )
     {
-   // Sleep( 10 );
-SleepEx( 100, TRUE );
+    /*------------------------------------------------------
+    SleepEx will put the thread to sleep and will wake up if
+    the time has expired, or an asynchronous I/O operation
+    has been completed
+    ------------------------------------------------------*/
+    SleepEx( 1000, TRUE );
+
     udp_client_ptr->udp_receive();   
-    
     }
 
 /*----------------------------------------------------------
@@ -775,6 +716,41 @@ udp_client_ptr->udp_client_cb.rx_thrd_alive = FALSE;
 return( 0 );
 
 }   /* udp_receive_thread() */
+
+
+/*********************************************************************
+*
+*   PROCEDURE NAME:
+*       UDP_send - Send UDP Data
+*
+*   DESCRIPTION:
+*       Send UDP data when socket is available
+*
+*********************************************************************/
+
+boolean UDP_client::udp_send	    /* UDP send data                */
+	( 
+    string              tx_str      /* transmit string              */
+    )
+{
+/*----------------------------------------------------------
+Local Variables
+----------------------------------------------------------*/
+boolean                 ret_val;    /* return value                 */
+
+/*----------------------------------------------------------
+Add outgoing data to the TX queue
+----------------------------------------------------------*/
+ret_val = udp_client_q_enqueue( &this->udp_client_cb.tx_data_q, (char *)tx_str.c_str() );
+
+/*----------------------------------------------------------
+An error occurred while trying to add the item to the queue
+----------------------------------------------------------*/
+fatalAssert( ret_val );
+
+return( ret_val );
+
+}	/* udp_send() */
 
 
 /*********************************************************************
@@ -805,11 +781,14 @@ EnterCriticalSection( &this->udp_critical_section );
 
 /*----------------------------------------------------------
 Send on UDP socket
+
+Note: Length must be + 1 because the NULL terminated
+      character must be included in the server message
 ----------------------------------------------------------*/
 bytes_sent = sendto( 
                    this->udp_skt_fd, 
                    tx_data.c_str(), 
-                   tx_data.length() + 1, //comment on why +1
+                   tx_data.length() + 1,
                    0, 
                    (sockaddr *)&this->udp_svr_intfc, 
                    (socklen_t)sizeof( this->udp_svr_intfc ) 
@@ -839,12 +818,17 @@ LeaveCriticalSection( &this->udp_critical_section );
 *   DESCRIPTION:
 *       Thread to handle UDP transmit data
 *
+*   Note:
+*       This function, called by CreateThread(), is required to be
+*       static.  This function calls a non-static function which is
+*       specific to each client
+*
 *********************************************************************/
 
 DWORD WINAPI UDP_client::udp_transmit_thread
                                     /* transmit processing thread   */
     (
-    LPVOID              lp_param    /* UDP client                   */
+    LPVOID              udp_client  /* UDP client                   */
     )
 {
 /*----------------------------------------------------------
@@ -855,9 +839,10 @@ UDP_client *            udp_client_ptr;
                                     /* UDP client pointer           */
 
 /*----------------------------------------------------------
-Initialization
+Assign the passed UDP client to the local pointer.  This
+is required due to the requirement of the static function
 ----------------------------------------------------------*/
-udp_client_ptr = (UDP_client *)lp_param;
+udp_client_ptr = (UDP_client *)udp_client;
 
 /*----------------------------------------------------------
 Indicate thread is alive
@@ -873,8 +858,7 @@ while( !udp_client_ptr->udp_client_cb.terminate_thrd )
         {
         udp_client_ptr->udp_transmit( tmp_str );
         }
-    //using timing information, we could probably make this more accurate, to ensure it happens every 100ms
-    //ie: when did the transmit actually occur, then do 100 - that time to get the real time to sleep
+
     Sleep( 100 );
     }
 
@@ -927,6 +911,9 @@ if( FormatMessage(
                  NULL 
                  ) == 0 )
     {
+    /*------------------------------------------------------
+    An error occured while trying to format the message
+    ------------------------------------------------------*/
     LocalFree( msg_buf );
     alwaysAssert();
     }
@@ -940,11 +927,5 @@ cout << "WSA Error " << err_code << ": " << (LPTSTR)msg_buf << endl;
 Free the local buffer
 ----------------------------------------------------------*/
 LocalFree( msg_buf );
-
-/*----------------------------------------------------------
-Execute assertion
-----------------------------------------------------------*/
-system( "PAUSE" );
-alwaysAssert();
 
 }   /* process_wsa_err() */

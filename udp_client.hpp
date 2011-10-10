@@ -4,7 +4,7 @@
 *       udp_client.hpp - UDP Client Processing Declarations
 *
 *---------------------------------------------------------------------
-* $Id: udp_client.hpp, v1.2, 2011-09-23 17:25:00Z, Joseph Wachtel$
+* $Id: udp_client.hpp, v1.3, 2011-10-07 17:25:00Z, Joseph Wachtel$
 * $NoKeywords$
 *********************************************************************/
 
@@ -27,7 +27,8 @@ using namespace std;
                           LITERAL CONSTANTS
 --------------------------------------------------------------------*/
 
-#define UDP_BUFFER_SIZE ( 100 )     /* UDP buffer size              */
+#define UDP_BUFFER_SIZE   ( 100  )  /* UDP buffer size              */
+#define UDP_SRVR_PKT_SIZE ( 8192 )  /* UDP server packet size       */
 
 /*--------------------------------------------------------------------
                                  TYPES
@@ -52,14 +53,12 @@ typedef struct                      /* UDP control block type       */
     HANDLE              h_mn_thrd;  /* main thread handle           */
     HANDLE              h_rx_thrd;  /* receive thread handle        */
     HANDLE              h_tx_thrd;  /* transmit thread handle       */
-    HANDLE              h_completion_prt;
-    HANDLE              h_rd_evnt;
-    HANDLE              h_mn_evnt;
+    HANDLE              h_mn_evnt;  /* main event handle            */
     
-    char                buffer[ 8192 ];
-    
-    WSAOVERLAPPED       overlapped;
+    char                buffer[ UDP_SRVR_PKT_SIZE ];
+                                    /* asynchronous I/O buffer      */
 
+    WSAOVERLAPPED       overlapped; /* overlapped structure         */
     unsigned int        hdl_idx;    /* handle index                 */
 
     udp_client_buf_t    rx_data_q;  /* receive data queue           */
@@ -87,16 +86,15 @@ class UDP_client
         UDP_client( void );
 
         void UDP_close_socket( void );
-        void UDP_open_socket( string server_ip, unsigned int server_port,string team_name,unsigned int hdl_idx );
-
-        boolean UDP_retreive ( string * const rx_data );
-        boolean UDP_send( string tx_data );
+        void UDP_open_socket( string server_ip, unsigned int server_port, string team_name, unsigned int hdl_idx );
 
     private:
-        static DWORD WINAPI udp_main_thread( LPVOID lp_param );
-        static DWORD WINAPI udp_receive_thread( LPVOID lp_param );
-        static DWORD WINAPI udp_transmit_thread( LPVOID lp_param );
+        static void CALLBACK udp_completion_routine( DWORD err_no, DWORD bytes_xfer, LPWSAOVERLAPPED overlapped, DWORD flags );
+        static DWORD WINAPI udp_main_thread( LPVOID udp_client );
+        static DWORD WINAPI udp_receive_thread( LPVOID udp_client );
+        static DWORD WINAPI udp_transmit_thread( LPVOID udp_client );
 
+        boolean udp_send( string tx_str );
         void udp_main( void );
         void udp_receive( void );
         void udp_transmit( string tx_data );
@@ -106,15 +104,13 @@ class UDP_client
         friend void udp_client_q_init( udp_client_buf_t * const q_cb, unsigned int buf_size );
         friend boolean udp_client_q_is_empty( udp_client_buf_t const * const q_cb );
 
-        static void CALLBACK CompletionROUTINE( DWORD dwError, DWORD cbTransferred, LPWSAOVERLAPPED lpOverlapped, DWORD dwFlags );
-
     protected:
         Player                  m_player;
         udp_client_cb_t         udp_client_cb;
         CRITICAL_SECTION        udp_critical_section;
         SOCKET			        udp_skt_fd;		
         sockaddr_in		        udp_svr_intfc;
-        sockaddr_in		        local_addr;	
+        sockaddr_in		        udp_lcl_intfc;	
         static const unsigned   udp_SERVER_PKT_SIZE;    
     };
 
