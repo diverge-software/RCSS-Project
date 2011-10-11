@@ -133,7 +133,7 @@ bool Player::parseBuffer(const string buffer)
 
 			// Remove the oldest visible player list if necessary,
 			// then push the new one onto the back
-			if( mPlayerListQueue.size() >= MAX_QUEUE_SIZE )
+			if( mPlayerListQueue.size() > MAX_QUEUE_SIZE )
 			{
 				mPlayerListQueue.pop();
 			}
@@ -141,7 +141,7 @@ bool Player::parseBuffer(const string buffer)
 
 			// Remove the oldest visual data hash if necessary,
 			// then push the new one onto the back
-			if( mVisualDataQueue.size() >= MAX_QUEUE_SIZE )
+			if( mVisualDataQueue.size() > MAX_QUEUE_SIZE )
 			{
 				mVisualDataQueue.pop();
 			}
@@ -154,7 +154,7 @@ bool Player::parseBuffer(const string buffer)
 
 			// Remove the oldest sense body struct if necessary,
 			// then push the new one onto the back
-			if( mSenseBodyDataQueue.size() >= MAX_QUEUE_SIZE )
+			if( mSenseBodyDataQueue.size() > MAX_QUEUE_SIZE )
 			{
 				mSenseBodyDataQueue.pop();
 			}
@@ -167,7 +167,7 @@ bool Player::parseBuffer(const string buffer)
 
 			// Remove the oldest aural data struct if necessary,
 			// then push the new one onto the back
-			if( mAuralDataQueue.size() >= MAX_QUEUE_SIZE )
+			if( mAuralDataQueue.size() > MAX_QUEUE_SIZE )
 			{
 				mAuralDataQueue.pop();
 			}
