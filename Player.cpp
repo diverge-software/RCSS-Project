@@ -6,14 +6,33 @@
 using std::cout;
 using std::endl;
 
+// Used for stationary flags
+#define RIGHT_LINE_X 50.0f
+#define LEFT_LINE_X -50.0f
+#define RIGHT_BOUNDARY_X 55.0f
+#define LEFT_BOUNDARY_X -55.0f
+#define TOP_LINE_Y 40.0f
+#define BOTTOM_LINE_Y -40.0f
+#define TOP_BOUNDARY_Y 45.0f
+#define BOTTOM_BOUNDARY_Y -45.0f
+#define PENALTY_RIGHT ( RIGHT_LINE_X - 18.0f )
+#define PENALTY_LEFT ( LEFT_LINE_X + 18.0f )
+#define PENALTY_TOP 22.0f
+#define PENALTY_BOTTOM -22.0f
+#define GOALPOST_TOP_Y 10.0f
+#define GOALPOST_BOTTOM_Y -10.0f
+
 // Initialize internal structs to invalid values
 Player::Player()
 {
+	AuralData auralData;
 	auralData.timestamp = -1;
 	auralData.sender = INVALID_SENDER_NAME;
 	auralData.direction = INVALID_FLOAT_VALUE;
 	auralData.message = INVALID_STRING_VALUE;
+	mAuralDataQueue.push( auralData );
 
+	SenseBodyData senseBodyData;
 	senseBodyData.timestamp = -1;
 	senseBodyData.view_mode.viewQuality = INVALID_STRING_VALUE;
 	senseBodyData.view_mode.viewWidth = INVALID_STRING_VALUE;
@@ -43,6 +62,61 @@ Player::Player()
 	senseBodyData.collision = INVALID_STRING_VALUE;
 	senseBodyData.foul.charged = INVALID_FLOAT_VALUE;
 	senseBodyData.foul.card = INVALID_STRING_VALUE;
+	mSenseBodyDataQueue.push( senseBodyData );
+
+	mStationaryFlags["g l"] = Vector2f( LEFT_LINE_X, 0 );
+	mStationaryFlags["g r"] = Vector2f( RIGHT_LINE_X, 0 );
+	mStationaryFlags["f c"] = Vector2f( 0.0f, 0.0f );
+	mStationaryFlags["f c t"] = Vector2f( 0.0f, TOP_LINE_Y );
+	mStationaryFlags["f c b"] = Vector2f( 0.0f, BOTTOM_LINE_Y );
+	mStationaryFlags["f l t"] = Vector2f( LEFT_LINE_X, TOP_LINE_Y );
+	mStationaryFlags["f l b"] = Vector2f( LEFT_LINE_X, BOTTOM_LINE_Y );
+	mStationaryFlags["f r t"] = Vector2f( RIGHT_LINE_X, TOP_LINE_Y );
+	mStationaryFlags["f r b"] = Vector2f( RIGHT_LINE_X, BOTTOM_LINE_Y );
+	mStationaryFlags["f p l t"] = Vector2f( PENALTY_LEFT, PENALTY_TOP );
+	mStationaryFlags["f p l b"] = Vector2f( PENALTY_LEFT, PENALTY_BOTTOM );
+	mStationaryFlags["f p r t"] = Vector2f( PENALTY_RIGHT, PENALTY_TOP );
+	mStationaryFlags["f p r b"] = Vector2f( PENALTY_RIGHT, PENALTY_BOTTOM );
+	mStationaryFlags["f g l t"] = Vector2f( LEFT_LINE_X, GOALPOST_TOP_Y );
+	mStationaryFlags["f g l b"] = Vector2f( LEFT_LINE_X, GOALPOST_BOTTOM_Y );
+	mStationaryFlags["f g r t"] = Vector2f( RIGHT_LINE_X, GOALPOST_TOP_Y );
+	mStationaryFlags["f g r b"] = Vector2f( RIGHT_LINE_X, GOALPOST_BOTTOM_Y );
+	mStationaryFlags["f l 0"] = Vector2f( LEFT_BOUNDARY_X, 0.0f );
+	mStationaryFlags["f r 0"] = Vector2f( RIGHT_BOUNDARY_X, 0.0f );
+	mStationaryFlags["f t 0"] = Vector2f( 0.0f, TOP_BOUNDARY_Y );
+	mStationaryFlags["f b 0"] = Vector2f( 0.0f, BOTTOM_BOUNDARY_Y );
+	mStationaryFlags["f t l 10"] = Vector2f( -10.0f, TOP_BOUNDARY_Y );
+	mStationaryFlags["f t l 20"] = Vector2f( -20.0f, TOP_BOUNDARY_Y );
+	mStationaryFlags["f t l 30"] = Vector2f( -30.0f, TOP_BOUNDARY_Y );
+	mStationaryFlags["f t l 40"] = Vector2f( -40.0f, TOP_BOUNDARY_Y );
+	mStationaryFlags["f t l 50"] = Vector2f( -50.0f, TOP_BOUNDARY_Y );
+	mStationaryFlags["f t r 10"] = Vector2f( 10.0f, TOP_BOUNDARY_Y );
+	mStationaryFlags["f t r 20"] = Vector2f( 20.0f, TOP_BOUNDARY_Y );
+	mStationaryFlags["f t r 30"] = Vector2f( 30.0f, TOP_BOUNDARY_Y );
+	mStationaryFlags["f t r 40"] = Vector2f( 40.0f, TOP_BOUNDARY_Y );
+	mStationaryFlags["f t r 50"] = Vector2f( 50.0f, TOP_BOUNDARY_Y );
+	mStationaryFlags["f b l 10"] = Vector2f( -10.0f, BOTTOM_BOUNDARY_Y );
+	mStationaryFlags["f b l 20"] = Vector2f( -20.0f, BOTTOM_BOUNDARY_Y );
+	mStationaryFlags["f b l 30"] = Vector2f( -30.0f, BOTTOM_BOUNDARY_Y );
+	mStationaryFlags["f b l 40"] = Vector2f( -40.0f, BOTTOM_BOUNDARY_Y );
+	mStationaryFlags["f b l 50"] = Vector2f( -50.0f, BOTTOM_BOUNDARY_Y );
+	mStationaryFlags["f b r 10"] = Vector2f( 10.0f, BOTTOM_BOUNDARY_Y );
+	mStationaryFlags["f b r 20"] = Vector2f( 20.0f, BOTTOM_BOUNDARY_Y );
+	mStationaryFlags["f b r 30"] = Vector2f( 30.0f, BOTTOM_BOUNDARY_Y );
+	mStationaryFlags["f b r 40"] = Vector2f( 40.0f, BOTTOM_BOUNDARY_Y );
+	mStationaryFlags["f b r 50"] = Vector2f( 50.0f, BOTTOM_BOUNDARY_Y );
+	mStationaryFlags["f l t 10"] = Vector2f( LEFT_BOUNDARY_X, 10.0f );
+	mStationaryFlags["f l t 20"] = Vector2f( LEFT_BOUNDARY_X, 20.0f );
+	mStationaryFlags["f l t 30"] = Vector2f( LEFT_BOUNDARY_X, 30.0f );
+	mStationaryFlags["f l b 10"] = Vector2f( LEFT_BOUNDARY_X, -10.0f );
+	mStationaryFlags["f l b 20"] = Vector2f( LEFT_BOUNDARY_X, -20.0f );
+	mStationaryFlags["f l b 30"] = Vector2f( LEFT_BOUNDARY_X, -30.0f );
+	mStationaryFlags["f r t 10"] = Vector2f( RIGHT_BOUNDARY_X, 10.0f );
+	mStationaryFlags["f r t 20"] = Vector2f( RIGHT_BOUNDARY_X, 20.0f );
+	mStationaryFlags["f r t 30"] = Vector2f( RIGHT_BOUNDARY_X, 30.0f );
+	mStationaryFlags["f r b 10"] = Vector2f( RIGHT_BOUNDARY_X, -10.0f );
+	mStationaryFlags["f r b 20"] = Vector2f( RIGHT_BOUNDARY_X, -20.0f );
+	mStationaryFlags["f r b 30"] = Vector2f( RIGHT_BOUNDARY_X, -30.0f );
 }
 
 // Decide the buffer type and pass to respective parsing function
@@ -53,15 +127,51 @@ bool Player::parseBuffer(const string buffer)
 		// Things parsed more often are put near top
 		if( !buffer.compare( 0, 4, "(see" ) )
 		{
-			parseVisualPacket( buffer, this->visualData, this->playerList );
+			vector<VisiblePlayer> playerList;
+			unordered_map<string, VisualData> visualData;
+			parseVisualPacket( buffer, visualData, playerList );
+
+			// Remove the oldest visible player list if necessary,
+			// then push the new one onto the back
+			if( mPlayerListQueue.size() >= MAX_QUEUE_SIZE )
+			{
+				mPlayerListQueue.pop();
+			}
+			mPlayerListQueue.push( playerList );
+
+			// Remove the oldest visual data hash if necessary,
+			// then push the new one onto the back
+			if( mVisualDataQueue.size() >= MAX_QUEUE_SIZE )
+			{
+				mVisualDataQueue.pop();
+			}
+			mVisualDataQueue.push( visualData );
 		}
 		else if( !buffer.compare( 0, 11, "(sense_body" ) )
 		{
-			parseSenseBodyPacket( buffer, this->senseBodyData );
+			SenseBodyData senseBodyData;
+			parseSenseBodyPacket( buffer, senseBodyData );
+
+			// Remove the oldest sense body struct if necessary,
+			// then push the new one onto the back
+			if( mSenseBodyDataQueue.size() >= MAX_QUEUE_SIZE )
+			{
+				mSenseBodyDataQueue.pop();
+			}
+			mSenseBodyDataQueue.push( senseBodyData );
 		}
 		else if( !buffer.compare( 0, 5, "(hear" ) )
 		{
-			parseAuralPacket( buffer, this->auralData );
+			AuralData auralData;
+			parseAuralPacket( buffer, auralData );
+
+			// Remove the oldest aural data struct if necessary,
+			// then push the new one onto the back
+			if( mAuralDataQueue.size() >= MAX_QUEUE_SIZE )
+			{
+				mAuralDataQueue.pop();
+			}
+			mAuralDataQueue.push( auralData );
 		}
 		else if( !buffer.compare( 0, 5, "(init" ) )
 		{
@@ -69,15 +179,15 @@ bool Player::parseBuffer(const string buffer)
 		}
 		else if( !buffer.compare( 0, 13, "(server_param" ) )
 		{
-			parseServerPacket( buffer, this->serverInfo );
+			parseServerPacket( buffer, this->mServerInfo );
 		}
 		else if( !buffer.compare( 0, 12, "(player_type" ) ) 
 		{
-			parsePlayerTypePacket( buffer, this->playerTypes );
+			parsePlayerTypePacket( buffer, this->mPlayerTypes );
 		}
 		else if( !buffer.compare( 0, 13, "(player_param" ) )
 		{
-			parsePlayerParamPacket( buffer, this->playerParams );
+			parsePlayerParamPacket( buffer, this->mPlayerParams );
 		}
 		else if( !buffer.compare( 0, 6, "(error" ) )
 		{
@@ -98,11 +208,15 @@ bool Player::parseBuffer(const string buffer)
 	}	
 }
 
-void Player::printVisualHash( ostream & os )
+void Player::printNewestVisualHash( ostream & os )
 {
 	os << "############################################" << endl;
 	os << "##            Visual Information          ##" << endl;
 	os << "############################################" << endl;
+
+	// Get the most recent element and print it
+	unordered_map<string, VisualData> visualData = mVisualDataQueue.back();
+
 	for( unordered_map<string, VisualData>::const_iterator it = visualData.begin(); it != visualData.end(); ++it )
 	{
 		os << "[\"" << it->first << "\", " << it->second.distance << ", " << it->second.direction;
@@ -122,7 +236,7 @@ void Player::printServerHash( ostream & os )
 	os << "############################################" << endl;
 	os << "##            Server Information          ##" << endl;
 	os << "############################################" << endl;
-	for( unordered_map<string, ServerStruct>::const_iterator it = serverInfo.begin(); it != serverInfo.end(); ++it )
+	for( unordered_map<string, ServerStruct>::const_iterator it = mServerInfo.begin(); it != mServerInfo.end(); ++it )
 	{
 		if( it->second.fValue == INVALID_FLOAT_VALUE )
 		{
@@ -143,18 +257,22 @@ void Player::printPlayerTypesHash( ostream & os )
 	for( int i = 0; i < NUM_PLAYER_TYPES; i++ )
 	{
 		os << "PLAYER TYPE #" << i << endl;
-		for( unordered_map<string, PlayerTypeStruct>::const_iterator it = playerTypes[i].begin(); it != playerTypes[i].end(); ++it )
+		for( unordered_map<string, PlayerTypeStruct>::const_iterator it = mPlayerTypes[i].begin(); it != mPlayerTypes[i].end(); ++it )
 		{
 			os << "[\"" << it->first << "\", " << it->second.fValue << "]" << endl;
 		}
 	}
 }
 
-void Player::printVisiblePlayersList( ostream & os )
+void Player::printNewestVisiblePlayersList( ostream & os )
 {
 	os << "############################################" << endl;
 	os << "##            Player Information          ##" << endl;
 	os << "############################################" << endl;
+
+	// Get the most recent player list and print it
+	vector<VisiblePlayer> playerList = mPlayerListQueue.back();
+
 	for( unsigned int i = 0; i < playerList.size(); i++ )
 	{
 		os << "[p, teamName = ";
@@ -197,11 +315,14 @@ void Player::printVisiblePlayersList( ostream & os )
 	}
 }
 
-void Player::printAuralStruct( ostream & os )
+void Player::printNewestAuralStruct( ostream & os )
 {
 	os << "############################################" << endl;
 	os << "##            Aural Information           ##" << endl;
 	os << "############################################" << endl;
+
+	// Get the most recent auralData and print it
+	AuralData auralData = mAuralDataQueue.back();
 
 	os << "Time: " << auralData.timestamp << endl;
 
@@ -217,11 +338,15 @@ void Player::printAuralStruct( ostream & os )
 	os << "Message: " << auralData.message << endl;
 }
 
-void Player::printSenseBodyStruct( ostream & os )
+void Player::printNewestSenseBodyStruct( ostream & os )
 {
 	os << "############################################" << endl;
 	os << "##          Sense Body Information        ##" << endl;
 	os << "############################################" << endl;
+
+	// Get most recent sense body data and print it
+	SenseBodyData senseBodyData = mSenseBodyDataQueue.back();
+
 	os << "timestamp" << ": " << senseBodyData.timestamp << endl;
 	
 	os << "view_mode" << ": " << senseBodyData.view_mode.viewQuality << " "
@@ -277,7 +402,7 @@ void Player::printPlayerParamHash( ostream & os )
 	os << "############################################" << endl;
 	for( int i = 0; i < 10; i++ )
 	{
-		for( unordered_map<string, PlayerParamStruct>::const_iterator it = playerParams.begin(); it != playerParams.end(); ++it )
+		for( unordered_map<string, PlayerParamStruct>::const_iterator it = mPlayerParams.begin(); it != mPlayerParams.end(); ++it )
 		{
 			os << "[\"" << it->first << "\", " << it->second.fValue << "]" << endl;
 		}

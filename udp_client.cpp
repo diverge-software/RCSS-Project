@@ -470,12 +470,12 @@ if( udp_client_q_dequeue( &this->udp_client_cb.rx_data_q, &rx_data ) )
 	    this->udp_client_cb.dbg_log << "##################################" << endl;
 	    this->udp_client_cb.dbg_log << "##################################" << endl;
 	    this->udp_client_cb.dbg_log << "Message: " << rx_data << endl;
-	    this->m_player.printVisualHash( this->udp_client_cb.dbg_log );
+	    this->m_player.printNewestVisualHash( this->udp_client_cb.dbg_log );
+		this->m_player.printNewestVisiblePlayersList( this->udp_client_cb.dbg_log );
+	    this->m_player.printNewestAuralStruct( this->udp_client_cb.dbg_log );
+	    this->m_player.printNewestSenseBodyStruct( this->udp_client_cb.dbg_log );
 	    this->m_player.printServerHash( this->udp_client_cb.dbg_log );
 	    this->m_player.printPlayerTypesHash( this->udp_client_cb.dbg_log );
-	    this->m_player.printVisiblePlayersList( this->udp_client_cb.dbg_log );
-	    this->m_player.printAuralStruct( this->udp_client_cb.dbg_log );
-	    this->m_player.printSenseBodyStruct( this->udp_client_cb.dbg_log );
 	    this->m_player.printPlayerParamHash( this->udp_client_cb.dbg_log );
 		}
 
