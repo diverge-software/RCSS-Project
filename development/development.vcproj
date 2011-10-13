@@ -173,10 +173,6 @@
 					RelativePath="..\udp_client.cpp"
 					>
 				</File>
-				<File
-					RelativePath="..\udp_client_q.cpp"
-					>
-				</File>
 			</Filter>
 			<Filter
 				Name="UTL"
@@ -191,6 +187,10 @@
 				>
 				<File
 					RelativePath="..\Player.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\Vector2f.cpp"
 					>
 				</File>
 			</Filter>
@@ -223,10 +223,6 @@
 					RelativePath="..\udp_client.hpp"
 					>
 				</File>
-				<File
-					RelativePath="..\udp_client_q.hpp"
-					>
-				</File>
 			</Filter>
 			<Filter
 				Name="Parser"
@@ -241,6 +237,10 @@
 				>
 				<File
 					RelativePath="..\Player.hpp"
+					>
+				</File>
+				<File
+					RelativePath="..\Vector2f.hpp"
 					>
 				</File>
 			</Filter>
