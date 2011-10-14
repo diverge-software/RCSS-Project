@@ -7,7 +7,7 @@
 *       Performs Main Program Processing
 *
 *---------------------------------------------------------------------
-* $Id: main.cpp, v1.0, 2011-09-23 17:25:00Z, Joseph Wachtel$
+* $Id: main.cpp, v1.4, 2011-10-11 17:25:00Z, Joseph Wachtel$
 * $NoKeywords$
 *********************************************************************/
 
@@ -71,6 +71,7 @@ int main							/* main program processing		*/
 Local Variables
 ----------------------------------------------------------*/
 int                     i;
+ostringstream           tmp_str;
 UDP_client              udp_client[ 11 ];
 
 /*----------------------------------------------------------
@@ -78,8 +79,11 @@ Initialization
 
 Todo: Add input parameters for IP, Port, and Teamname
 ----------------------------------------------------------*/
-for( i = 0; i < 5; i++ )
+for( i = 0; i < 11; i++ )
     {
+    tmp_str.str( "" );
+    tmp_str << "dbg_log_" << i << ".txt";
+    udp_client[ i ].UDP_dbg_log_enbl( tmp_str.str() );
     udp_client[ i ].UDP_open_socket( "192.168.1.3", 6000, "Team1", i );
     }
 

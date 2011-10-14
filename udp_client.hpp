@@ -4,7 +4,7 @@
 *       udp_client.hpp - UDP Client Processing Declarations
 *
 *---------------------------------------------------------------------
-* $Id: udp_client.hpp, v1.3, 2011-10-07 17:25:00Z, Joseph Wachtel$
+* $Id: udp_client.hpp, v1.4, 2011-10-11 17:25:00Z, Joseph Wachtel$
 * $NoKeywords$
 *********************************************************************/
 
@@ -16,6 +16,8 @@
 --------------------------------------------------------------------*/
 
 #include <fstream>
+#include <iostream>
+#include <sstream>
 #include <string>
 #include <ws2tcpip.h>
 
@@ -27,52 +29,44 @@ using namespace std;
                           LITERAL CONSTANTS
 --------------------------------------------------------------------*/
 
-#define UDP_BUFFER_SIZE   ( 100  )  /* UDP buffer size              */
 #define UDP_SRVR_PKT_SIZE ( 8192 )  /* UDP server packet size       */
 
 /*--------------------------------------------------------------------
                                  TYPES
 --------------------------------------------------------------------*/
 
-typedef struct                      /* UDP client buffer type       */
-    {
-    string              buffer[ UDP_BUFFER_SIZE ];
-                                    /* buffer                       */
-    unsigned int        start;      /* start position               */
-    unsigned int        stop;       /* stop position                */
-    unsigned int        avail;      /* number of available slots    */
-    unsigned int        buf_mask;   /* buffer mask                  */
-    boolean             overflow;   /* buffer overflow              */
-    } udp_client_buf_t;
-
 typedef struct                      /* UDP control block type       */
-    {
-    ofstream            dbg_log;    /* debug log                    */
-    boolean             socket_open;/* socket open                  */
-
-    HANDLE              h_mn_thrd;  /* main thread handle           */
-    HANDLE              h_rx_thrd;  /* receive thread handle        */
-    HANDLE              h_tx_thrd;  /* transmit thread handle       */
-    HANDLE              h_mn_evnt;  /* main event handle            */
-    
+    {  
     char                buffer[ UDP_SRVR_PKT_SIZE ];
                                     /* asynchronous I/O buffer      */
-
+    ofstream            dbg_log;    /* debug log output file stream */
+    boolean             dbg_log_enbl;
+                                    /* debug logging enabled        */
+    ostringstream       dbg_log_ss; /* debug log string stream      */
+    HANDLE              h_rx_thrd;  /* receive thread handle        */
+    HANDLE              h_tx_thrd;  /* transmit thread handle       */
+    HANDLE              h_wt_thrd;  /* write thread handle          */
+    unsigned int        hdl_idx;    /* handle index                 */  
+    sockaddr_in         lcl_intfc;  /* local socket interface       */
     WSAOVERLAPPED       overlapped; /* overlapped structure         */
-    unsigned int        hdl_idx;    /* handle index                 */
-
-    udp_client_buf_t    rx_data_q;  /* receive data queue           */
-    udp_client_buf_t    tx_data_q;  /* transmit data queue          */
-
-    boolean             terminate_thrd;
-                                    /* terminate thread             */
-
-    boolean             mn_thrd_alive;
-                                    /* main thread alive            */
+    CRITICAL_SECTION    rx_crit_sec;/* receive critical section     */
     boolean             rx_thrd_alive; 
                                     /* receive thread alive         */
+    SOCKET              socket;     /* UDP socket                   */
+    boolean             socket_open;/* socket open                  */
+    boolean             stop_tx_thrd;
+                                    /* stop transmit thread         */
+    boolean             stop_rx_thrd;
+                                    /* stop receive thread          */
+    boolean             stop_wt_thrd;
+                                    /* stop write thread            */
+    sockaddr_in         svr_intfc;  /* server socket interface      */
+    CRITICAL_SECTION    tx_crit_sec;/* transmit critical section    */
+    string              tx_data;    /* data to transmit             */
     boolean             tx_thrd_alive; 
                                     /* transmit thread alive        */
+    boolean             wt_thrd_alive;
+                                    /* write thread alive           */
     } udp_client_cb_t;
 
 /*--------------------------------------------------------------------
@@ -85,32 +79,26 @@ class UDP_client
         ~UDP_client( void );
         UDP_client( void );
 
+        void UDP_dbg_log_dsbl( void );
+        void UDP_dbg_log_enbl( string filename );
         void UDP_close_socket( void );
         void UDP_open_socket( string server_ip, unsigned int server_port, string team_name, unsigned int hdl_idx );
 
     private:
         static void CALLBACK udp_completion_routine( DWORD err_no, DWORD bytes_xfer, LPWSAOVERLAPPED overlapped, DWORD flags );
-        static DWORD WINAPI udp_main_thread( LPVOID udp_client );
         static DWORD WINAPI udp_receive_thread( LPVOID udp_client );
         static DWORD WINAPI udp_transmit_thread( LPVOID udp_client );
+        static DWORD WINAPI udp_write_thread( LPVOID udp_client );
 
-        boolean udp_send( string tx_str );
-        void udp_main( void );
+        void udp_send( string tx_str );
         void udp_receive( void );
         void udp_transmit( string tx_data );
-
-        friend boolean udp_client_q_dequeue( udp_client_buf_t * const q_cb, string * const q_data );
-        friend boolean udp_client_q_enqueue( udp_client_buf_t * const q_cb, char * const q_data );
-        friend void udp_client_q_init( udp_client_buf_t * const q_cb, unsigned int buf_size );
-        friend boolean udp_client_q_is_empty( udp_client_buf_t const * const q_cb );
+        void udp_write( void );
 
     protected:
         Player                  m_player;
-        udp_client_cb_t         udp_client_cb;
-        CRITICAL_SECTION        udp_critical_section;
-        SOCKET			        udp_skt_fd;		
-        sockaddr_in		        udp_svr_intfc;
-        sockaddr_in		        udp_lcl_intfc;	
+        udp_client_cb_t         m_client_cb;
+     
         static const unsigned   udp_SERVER_PKT_SIZE;    
     };
 
