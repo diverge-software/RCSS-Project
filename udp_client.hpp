@@ -4,7 +4,7 @@
 *       udp_client.hpp - UDP Client Processing Declarations
 *
 *---------------------------------------------------------------------
-* $Id: udp_client.hpp, v1.4, 2011-10-11 17:25:00Z, Joseph Wachtel$
+* $Id: udp_client.hpp, v1.5, 2011-10-11 17:25:00Z, Joseph Wachtel$
 * $NoKeywords$
 *********************************************************************/
 
@@ -62,7 +62,7 @@ typedef struct                      /* UDP control block type       */
                                     /* stop write thread            */
     sockaddr_in         svr_intfc;  /* server socket interface      */
     CRITICAL_SECTION    tx_crit_sec;/* transmit critical section    */
-    string              tx_data;    /* data to transmit             */
+    queue<string>       tx_data_q;  /* transmit data queue          */
     boolean             tx_thrd_alive; 
                                     /* transmit thread alive        */
     boolean             wt_thrd_alive;
@@ -92,7 +92,7 @@ class UDP_client
 
         void udp_send( string tx_str );
         void udp_receive( void );
-        void udp_transmit( string tx_data );
+        void udp_transmit();
         void udp_write( void );
 
     protected:

@@ -7,7 +7,7 @@
 *       Performs UDP interface processing
 *
 *---------------------------------------------------------------------
-* $Id: udp_client.cpp, v1.4, 2011-10-11 17:25:00Z, Joseph Wachtel$
+* $Id: udp_client.cpp, v1.5, 2011-10-11 17:25:00Z, Joseph Wachtel$
 * $NoKeywords$
 *********************************************************************/
 
@@ -135,7 +135,6 @@ memset( &this->m_client_cb.lcl_intfc, 0x00, sizeof( this->m_client_cb.lcl_intfc 
 memset( &this->m_client_cb.svr_intfc, 0x00, sizeof( this->m_client_cb.svr_intfc ) );
 this->m_client_cb.dbg_log_ss.clear();
 this->m_client_cb.dbg_log_ss.str( "" );
-this->m_client_cb.tx_data.clear();
 this->m_client_cb.h_rx_thrd     = NULL;
 this->m_client_cb.h_tx_thrd     = NULL;
 this->m_client_cb.h_wt_thrd     = NULL;
@@ -700,7 +699,7 @@ return( 0 );
 
 void UDP_client::udp_send	        /* UDP send data                */
 	( 
-    string              tx_str      /* convert to enum              */
+    string              tx_str      /* transmit string              */
     )
 {
 /*----------------------------------------------------------
@@ -710,9 +709,13 @@ attempt to concurrently access the same data
 EnterCriticalSection( &this->m_client_cb.tx_crit_sec );
 
 /*----------------------------------------------------------
-Todo: Will add enumuration with valid send commands
+Add server command to queue.  This must be a queue to allow
+more than one command to be sent in a single cycle which is
+allowed for the "turn neck" client control command.  The 
+calling function is responsible for determing which commands
+are allowed to be combined
 ----------------------------------------------------------*/
-this->m_client_cb.tx_data = tx_str;
+this->m_client_cb.tx_data_q.push( tx_str );
 
 /*----------------------------------------------------------
 Leave the critical section
@@ -733,14 +736,13 @@ LeaveCriticalSection( &this->m_client_cb.tx_crit_sec );
 *********************************************************************/
 
 void UDP_client::udp_transmit       /* UDP transmit processing		*/
-	(
-	string		        tx_data		/* transmit data  			    */
-	)
+	( void )
 {
 /*----------------------------------------------------------
 Local Variables
 ----------------------------------------------------------*/
 int					    bytes_sent;	/* bytes sent					*/
+string                  tx_str;     /* transmit string              */
 
 /*----------------------------------------------------------
 Enter the critical section to ensure threads will not
@@ -749,32 +751,33 @@ attempt to concurrently access the same data
 EnterCriticalSection( &this->m_client_cb.tx_crit_sec );
 
 /*----------------------------------------------------------
-Send on UDP socket
+Send on UDP socket until transmit queue has been emptied
 
 Note: Length must be + 1 because the NULL terminated
       character must be included in the server message
 ----------------------------------------------------------*/
-bytes_sent = sendto( 
-                   this->m_client_cb.socket, 
-                   tx_data.c_str(), 
-                   tx_data.length() + 1,
-                   0, 
-                   (sockaddr *)&this->m_client_cb.svr_intfc, 
-                   (socklen_t)sizeof( this->m_client_cb.svr_intfc ) 
-                   );
+while( !this->m_client_cb.tx_data_q.empty() )
+    {
+    tx_str = this->m_client_cb.tx_data_q.front();
+    this->m_client_cb.tx_data_q.pop();
 
-/*----------------------------------------------------------
-Verify a socket error did not occur
-----------------------------------------------------------*/
-if( bytes_sent == SOCKET_ERROR ) 
-	{
-    alwaysAssert();
-	}
+    bytes_sent = sendto( 
+                       this->m_client_cb.socket, 
+                       tx_str.c_str(), 
+                       tx_str.length() + 1,
+                       0, 
+                       (sockaddr *)&this->m_client_cb.svr_intfc, 
+                       (socklen_t)sizeof( this->m_client_cb.svr_intfc ) 
+                       );
 
-/*----------------------------------------------------------
-Clear the string to ensure no stale data remains
-----------------------------------------------------------*/
-this->m_client_cb.tx_data.clear();
+    /*----------------------------------------------------------
+    Verify a socket error did not occur
+    ----------------------------------------------------------*/
+    if( bytes_sent == SOCKET_ERROR ) 
+	    {
+        alwaysAssert();
+	    }
+    }
 
 /*----------------------------------------------------------
 Leave the critical section
@@ -827,9 +830,9 @@ Loop until thread indicates termination
 ----------------------------------------------------------*/
 while( !udp_client_ptr->m_client_cb.stop_tx_thrd )
     {
-    if( !udp_client_ptr->m_client_cb.tx_data.empty() )
+    if( !udp_client_ptr->m_client_cb.tx_data_q.empty() )
         {
-        udp_client_ptr->udp_transmit( udp_client_ptr->m_client_cb.tx_data );
+        udp_client_ptr->udp_transmit();
         }
 
     Sleep( 100 );
