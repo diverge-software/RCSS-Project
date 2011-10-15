@@ -88,7 +88,9 @@ class Player
 		* @param objName Name of the object under consideration. E.g. "b" for ball.
 		* @param currentTimestamp Timestamp of latest data, used for linear estimation.
 		* @pre objName should be a valid identifier for a game object.
-		* @post The contents of the hash will be printed to the output stream.
+		* @post None.
+		* @return Returns the position of the object, and will return a vector with invalid
+		* float values if the object cannot be found and its position cannot be estimated.
 		*/
 		Vector2f getObjectPosition( string objName, int currentTimestamp ) const;
 
