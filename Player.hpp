@@ -1,5 +1,5 @@
 /** @file Player.hpp
-* Represents a 2-dimensional vector.
+* Represents a player on the field.
 * @author Keeler Russell, Jared Mar, Corbin Charpentier
 * @date Oct 13, 2011
 */
