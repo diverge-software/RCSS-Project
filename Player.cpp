@@ -7,20 +7,20 @@ using std::cout;
 using std::endl;
 
 // Used for stationary flags
-#define RIGHT_LINE_X 50.0f
-#define LEFT_LINE_X -50.0f
-#define RIGHT_BOUNDARY_X 55.0f
-#define LEFT_BOUNDARY_X -55.0f
-#define TOP_LINE_Y 40.0f
-#define BOTTOM_LINE_Y -40.0f
-#define TOP_BOUNDARY_Y 45.0f
-#define BOTTOM_BOUNDARY_Y -45.0f
-#define PENALTY_RIGHT ( RIGHT_LINE_X - 18.0f )
-#define PENALTY_LEFT ( LEFT_LINE_X + 18.0f )
-#define PENALTY_TOP 22.0f
-#define PENALTY_BOTTOM -22.0f
-#define GOALPOST_TOP_Y 10.0f
-#define GOALPOST_BOTTOM_Y -10.0f
+#define RIGHT_LINE_X		50.0f
+#define LEFT_LINE_X			-50.0f
+#define RIGHT_BOUNDARY_X	55.0f
+#define LEFT_BOUNDARY_X		-55.0f
+#define TOP_LINE_Y			40.0f
+#define BOTTOM_LINE_Y		-40.0f
+#define TOP_BOUNDARY_Y		45.0f
+#define BOTTOM_BOUNDARY_Y	-45.0f
+#define PENALTY_RIGHT		( RIGHT_LINE_X - 18.0f )
+#define PENALTY_LEFT		( LEFT_LINE_X + 18.0f )
+#define PENALTY_TOP			22.0f
+#define PENALTY_BOTTOM		-22.0f
+#define GOALPOST_TOP_Y		10.0f
+#define GOALPOST_BOTTOM_Y	-10.0f
 
 // Initialize internal structs to invalid values
 Player::Player()
@@ -30,7 +30,7 @@ Player::Player()
 	auralData.sender = INVALID_SENDER_NAME;
 	auralData.direction = INVALID_FLOAT_VALUE;
 	auralData.message = INVALID_STRING_VALUE;
-	mAuralDataQueue.push( auralData );
+	mAuralDataQueue.push_back( auralData );
 
 	SenseBodyData senseBodyData;
 	senseBodyData.timestamp = -1;
@@ -62,7 +62,7 @@ Player::Player()
 	senseBodyData.collision = INVALID_STRING_VALUE;
 	senseBodyData.foul.charged = INVALID_FLOAT_VALUE;
 	senseBodyData.foul.card = INVALID_STRING_VALUE;
-	mSenseBodyDataQueue.push( senseBodyData );
+	mSenseBodyDataQueue.push_back( senseBodyData );
 
 	mStationaryFlags["g l"] = Vector2f( LEFT_LINE_X, 0 );
 	mStationaryFlags["g r"] = Vector2f( RIGHT_LINE_X, 0 );
@@ -133,19 +133,19 @@ bool Player::parseBuffer(const string buffer)
 
 			// Remove the oldest visible player list if necessary,
 			// then push the new one onto the back
-			if( mPlayerListQueue.size() > MAX_QUEUE_SIZE )
+			if( mPlayerListQueue.size() >= MAX_QUEUE_SIZE )
 			{
-				mPlayerListQueue.pop();
+				mPlayerListQueue.pop_front();
 			}
-			mPlayerListQueue.push( playerList );
+			mPlayerListQueue.push_back( playerList );
 
 			// Remove the oldest visual data hash if necessary,
 			// then push the new one onto the back
-			if( mVisualDataQueue.size() > MAX_QUEUE_SIZE )
+			if( mVisualDataQueue.size() >= MAX_QUEUE_SIZE )
 			{
-				mVisualDataQueue.pop();
+				mVisualDataQueue.pop_front();
 			}
-			mVisualDataQueue.push( visualData );
+			mVisualDataQueue.push_back( visualData );
 		}
 		else if( !buffer.compare( 0, 11, "(sense_body" ) )
 		{
@@ -154,11 +154,11 @@ bool Player::parseBuffer(const string buffer)
 
 			// Remove the oldest sense body struct if necessary,
 			// then push the new one onto the back
-			if( mSenseBodyDataQueue.size() > MAX_QUEUE_SIZE )
+			if( mSenseBodyDataQueue.size() >= MAX_QUEUE_SIZE )
 			{
-				mSenseBodyDataQueue.pop();
+				mSenseBodyDataQueue.pop_front();
 			}
-			mSenseBodyDataQueue.push( senseBodyData );
+			mSenseBodyDataQueue.push_back( senseBodyData );
 		}
 		else if( !buffer.compare( 0, 5, "(hear" ) )
 		{
@@ -167,11 +167,11 @@ bool Player::parseBuffer(const string buffer)
 
 			// Remove the oldest aural data struct if necessary,
 			// then push the new one onto the back
-			if( mAuralDataQueue.size() > MAX_QUEUE_SIZE )
+			if( mAuralDataQueue.size() >= MAX_QUEUE_SIZE )
 			{
-				mAuralDataQueue.pop();
+				mAuralDataQueue.pop_front();
 			}
-			mAuralDataQueue.push( auralData );
+			mAuralDataQueue.push_back( auralData );
 		}
 		else if( !buffer.compare( 0, 5, "(init" ) )
 		{
@@ -208,7 +208,7 @@ bool Player::parseBuffer(const string buffer)
 	}	
 }
 
-void Player::printNewestVisualHash( ostream & os )
+void Player::printNewestVisualHash( ostream & os ) const
 {
 	os << "############################################" << endl;
 	os << "##            Visual Information          ##" << endl;
@@ -231,7 +231,7 @@ void Player::printNewestVisualHash( ostream & os )
 	}
 }
 
-void Player::printServerHash( ostream & os )
+void Player::printServerHash( ostream & os ) const
 {
 	os << "############################################" << endl;
 	os << "##            Server Information          ##" << endl;
@@ -249,7 +249,7 @@ void Player::printServerHash( ostream & os )
 	}
 }
 
-void Player::printPlayerTypesHash( ostream & os )
+void Player::printPlayerTypesHash( ostream & os ) const
 {
 	os << "############################################" << endl;
 	os << "##         Player Type Information        ##" << endl;
@@ -264,7 +264,7 @@ void Player::printPlayerTypesHash( ostream & os )
 	}
 }
 
-void Player::printNewestVisiblePlayersList( ostream & os )
+void Player::printNewestVisiblePlayersList( ostream & os ) const
 {
 	os << "############################################" << endl;
 	os << "##            Player Information          ##" << endl;
@@ -315,7 +315,7 @@ void Player::printNewestVisiblePlayersList( ostream & os )
 	}
 }
 
-void Player::printNewestAuralStruct( ostream & os )
+void Player::printNewestAuralStruct( ostream & os ) const
 {
 	os << "############################################" << endl;
 	os << "##            Aural Information           ##" << endl;
@@ -338,7 +338,7 @@ void Player::printNewestAuralStruct( ostream & os )
 	os << "Message: " << auralData.message << endl;
 }
 
-void Player::printNewestSenseBodyStruct( ostream & os )
+void Player::printNewestSenseBodyStruct( ostream & os ) const
 {
 	os << "############################################" << endl;
 	os << "##          Sense Body Information        ##" << endl;
@@ -395,10 +395,10 @@ void Player::printNewestSenseBodyStruct( ostream & os )
 	                       << senseBodyData.foul.card << endl;
 }
 
-void Player::printPlayerParamHash( ostream & os )
+void Player::printPlayerParamHash( ostream & os ) const
 {
 	os << "############################################" << endl;
-	os << "##         Player Param Information        ##" << endl;
+	os << "##         Player Param Information       ##" << endl;
 	os << "############################################" << endl;
 	for( int i = 0; i < 10; i++ )
 	{
@@ -407,4 +407,56 @@ void Player::printPlayerParamHash( ostream & os )
 			os << "[\"" << it->first << "\", " << it->second.fValue << "]" << endl;
 		}
 	}
+}
+
+Vector2f Player::getObjectPosition( string objName, int currentTimestamp ) const
+{
+	// If the object is a flag, we already know its position, so return it
+	if( objName[0] == 'f' || objName[0] == 'g' )
+	{
+		unordered_map<string, Vector2f>::const_iterator it = mStationaryFlags.find( objName );
+		if( it != mStationaryFlags.end() )
+		{
+			return it->second;
+		}
+		else
+		{
+			cout << "Unknown flag name: " << objName << endl;
+			alwaysAssert();
+		}
+	}
+
+	// Could be in most recent visual data hash, try searching there
+	unordered_map<string, VisualData> latestVisualHash = mVisualDataQueue.back();
+	unordered_map<string, VisualData>::const_iterator latestIt = latestVisualHash.begin();
+	if( latestIt->second.timestamp == currentTimestamp )
+	{
+		unordered_map<string, VisualData>::const_iterator it = latestVisualHash.find( objName );
+		if( it != latestVisualHash.end() )
+		{
+			return it->second.absLocation;
+		}
+	}
+
+	// Otherwise, we need to estimate its position
+	// Traverse backwards through the queue, since the newest data is toward the back
+	Vector2f result( INVALID_FLOAT_VALUE, INVALID_FLOAT_VALUE );
+	for( unsigned int i = mVisualDataQueue.size() - 1; i >= 0; i-- )
+	{
+		// Try to find the object in the currently considered visualHash
+		unordered_map<string, VisualData>::const_iterator findIter = mVisualDataQueue[i].find( objName );
+		// If it has been found, then estimate the position of the object
+		if( findIter != mVisualDataQueue[i].end() )
+		{
+			int oldTimestamp = findIter->second.timestamp;
+			Vector2f oldPosition = findIter->second.absLocation;
+			Vector2f oldVelocity = findIter->second.absVelocity;
+
+			// Use linear estimation, although the server seems to exhibit friction
+			result = oldPosition + oldVelocity * ( currentTimestamp - oldTimestamp );
+			break;
+		}
+	}
+
+	return result;
 }

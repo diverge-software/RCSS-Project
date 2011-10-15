@@ -12,13 +12,13 @@
 #include <string>
 #include <cstdlib>
 #include <unordered_map>
-#include <queue>
+#include <deque>
 
 using namespace std;
 using namespace Parser;
 
-#define NUM_PLAYER_TYPES 17
-#define MAX_QUEUE_SIZE 10
+#define NUM_PLAYER_TYPES	17
+#define MAX_QUEUE_SIZE		10
 
 /** @class Player
 * A class which represents a player: memory, sensory processing, and thinking.
@@ -45,50 +45,59 @@ class Player
 		* @pre None.
 		* @post The contents of the hash will be printed to the output stream.
 		*/
-		void printNewestVisualHash( ostream & os );
+		void printNewestVisualHash( ostream & os ) const;
 		/* Prints the most recently stored list of visible players to the specified output stream.
 		* @param os The output stream to write to.
 		* @pre None.
 		* @post The contents of the visible player vector will be printed to the output stream.
 		*/
-		void printNewestVisiblePlayersList( ostream & os );
+		void printNewestVisiblePlayersList( ostream & os ) const;
 		/* Prints the most recently stored aural information struct to the specified output stream.
 		* @param os The output stream to write to.
 		* @pre None.
 		* @post The contents of the aural struct will be printed to the output stream.
 		*/
-		void printNewestAuralStruct( ostream & os );
+		void printNewestAuralStruct( ostream & os ) const;
 		/* Prints the most recently stored sense body information struct to the specified output stream.
 		* @param os The output stream to write to.
 		* @pre None.
 		* @post The contents of the sense body struct will be printed to the output stream.
 		*/
-		void printNewestSenseBodyStruct( ostream & os );
+		void printNewestSenseBodyStruct( ostream & os ) const;
 		/* Prints the contents of the server information hash to the specified output stream.
 		* @param os The output stream to write to.
 		* @pre None.
 		* @post The contents of the hash will be printed to the output stream.
 		*/
-		void printServerHash( ostream & os );
+		void printServerHash( ostream & os ) const;
 		/* Prints the contents of the player types hash to the specified output stream.
 		* @param os The output stream to write to.
 		* @pre None.
 		* @post The contents of the hash will be printed to the output stream.
 		*/
-		void printPlayerTypesHash( ostream & os );
+		void printPlayerTypesHash( ostream & os ) const;
 		/* Prints the contents of the palyer parameter hash to the specified output stream.
 		* @param os The output stream to write to.
 		* @pre None.
 		* @post The contents of the hash will be printed to the output stream.
 		*/
-		void printPlayerParamHash( ostream & os );
+		void printPlayerParamHash( ostream & os ) const;
+
+		/* Retrieves the position of the object from the visual data, estimating its position
+		* linearly based on past data if necessary.
+		* @param objName Name of the object under consideration. E.g. "b" for ball.
+		* @param currentTimestamp Timestamp of latest data, used for linear estimation.
+		* @pre objName should be a valid identifier for a game object.
+		* @post The contents of the hash will be printed to the output stream.
+		*/
+		Vector2f getObjectPosition( string objName, int currentTimestamp ) const;
 
 	private:
 		// Sensory data passed from the server
-		queue<AuralData>                          mAuralDataQueue;
-		queue<SenseBodyData>                      mSenseBodyDataQueue;
-		queue<vector<VisiblePlayer>>              mPlayerListQueue;
-		queue<unordered_map<string, VisualData>>  mVisualDataQueue;
+		deque<AuralData>                          mAuralDataQueue;
+		deque<SenseBodyData>                      mSenseBodyDataQueue;
+		deque<vector<VisiblePlayer>>              mPlayerListQueue;
+		deque<unordered_map<string, VisualData>>  mVisualDataQueue;
 
 		// Initialization data passed from the server
 		int uniformNumber;

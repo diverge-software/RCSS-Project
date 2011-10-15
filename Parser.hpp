@@ -15,18 +15,20 @@
 #include <string.h>
 #include <cstdlib>
 
+#include "Vector2f.hpp"
+
 using std::string;
 using std::vector;
 using std::tr1::unordered_map;
 
 namespace Parser
 {
-	#define INVALID_FLOAT_VALUE -50000.0
-	#define INVALID_UNIFORM_NUMBER -1
-	#define INVALID_STRING_VALUE "INVALID STRING"
-	#define INVALID_TEAM_NAME INVALID_STRING_VALUE
-	#define INVALID_SENDER_NAME INVALID_STRING_VALUE
-	#define INVALID_DIRECTION -50000.0
+	#define INVALID_FLOAT_VALUE		-50000.0
+	#define INVALID_UNIFORM_NUMBER	-1
+	#define INVALID_STRING_VALUE	"INVALID STRING"
+	#define INVALID_TEAM_NAME		INVALID_STRING_VALUE
+	#define INVALID_SENDER_NAME		INVALID_STRING_VALUE
+	#define INVALID_DIRECTION		-50000.0
 
 	struct AuralData
 	{
@@ -59,6 +61,9 @@ namespace Parser
 					 viewWidth should be "narrow", "normal", or "wide" */
 		} view_mode;
 		
+		Vector2f absLocation;
+		Vector2f velocity;
+
 		double stamina[3],
 			  speed [2],
 			  head_angle,
@@ -113,6 +118,9 @@ namespace Parser
 		double direction;
 		double distanceChange;
 		double directionChange;
+
+		Vector2f absLocation;
+		Vector2f absVelocity;
 	};
 
 	// Data retrieved from visual messages, but specific to players

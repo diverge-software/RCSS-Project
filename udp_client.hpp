@@ -20,6 +20,7 @@
 #include <sstream>
 #include <string>
 #include <ws2tcpip.h>
+#include <queue>
 
 #include "Player.hpp"
 
