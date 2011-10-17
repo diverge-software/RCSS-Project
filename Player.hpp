@@ -94,7 +94,16 @@ class Player
 		*/
 		Vector2f getObjectPosition( string objName, int currentTimestamp ) const;
 
-	private:
+		
+
+		/* Sets team name
+		 * @param teamname name of team
+		 * @pre None
+		 * @post Private member teamName is set to appropriate team name	
+		 */
+		void setTeamName(string teamname);
+
+	private:	
 		// Sensory data passed from the server
 		deque<AuralData>                          mAuralDataQueue;
 		deque<SenseBodyData>                      mSenseBodyDataQueue;
@@ -104,10 +113,20 @@ class Player
 		// Initialization data passed from the server
 		int uniformNumber;
 		char side;    // Which side you're playing from, left or right
+		string teamName;
 		unordered_map<string, PlayerTypeStruct>   mPlayerTypes[NUM_PLAYER_TYPES];
 		unordered_map<string, ServerStruct>       mServerInfo;
 		unordered_map<string, PlayerParamStruct>  mPlayerParams;
 		unordered_map<string, Vector2f>           mStationaryFlags;
+
+		/* Determines for client-player if a particular teammate can be passed to or if an opponent is in range to intercept
+		 * @param teammate A struct containing all visible information about teammate in question
+		 * @param opponnents A vector containing structs of an opponents visual information
+	     * @pre None
+		 * @post Client-Player knows who it can or cannot pass to a particular player
+		 * @return True if teammate is passable (open), False if teammate is not
+		 */
+		bool isTeammateOpenForPass(VisiblePlayer teammate) const;
 };
 	
 #endif

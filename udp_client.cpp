@@ -281,6 +281,8 @@ void UDP_client::UDP_open_socket    /* Open UDP Socket              */
     unsigned int        hdl_idx     /* handle index                 */
     )
 {
+//set teamName
+m_player.setTeamName(team_name);
 /*----------------------------------------------------------
 Local Constants
 ----------------------------------------------------------*/

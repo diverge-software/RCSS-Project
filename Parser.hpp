@@ -14,6 +14,7 @@
 #include <unordered_map>
 #include <string.h>
 #include <cstdlib>
+#include <cmath>
 
 #include "Vector2f.hpp"
 
@@ -23,6 +24,7 @@ using std::tr1::unordered_map;
 
 namespace Parser
 {
+	#define PI 3.14159265
 	#define INVALID_FLOAT_VALUE		-50000.0
 	#define INVALID_UNIFORM_NUMBER	-1
 	#define INVALID_STRING_VALUE	"INVALID STRING"
@@ -54,6 +56,9 @@ namespace Parser
 	{
 		int timestamp;
 
+		//flag indicating absolute coords and velocity have not yet been calculated
+		bool absCalculated;
+
 		struct viewModeStruct
 		{
 			string viewQuality, viewWidth;
@@ -62,7 +67,7 @@ namespace Parser
 		} view_mode;
 		
 		Vector2f absLocation;
-		Vector2f velocity;
+		Vector2f absVelocity;
 
 		double stamina[3],
 			  speed [2],
@@ -205,6 +210,37 @@ namespace Parser
 	*/
 	void parseVisualPacket( const string visualString, unordered_map<string, VisualData> & visualHash,
 							vector<VisiblePlayer> & visiblePlayers );
+
+	/** Converts the relative data in visualHash, visiblePlayers, and senseBodyData to absolute coordinates.
+	* @param visualHash A hash table of visual data parsed from a (see ...) message.
+	* @param visiblePlayers A vector of visible players parsed from a (see ...) message.
+	* @param senseBodyData A structure of sense body data parsed from a (sense_body ...) message.
+	* @param stationaryFlags A hash table mapping flag identifiers to their absolute positions on the field.
+	* @pre All of the parameters must have valid data in them.
+	* @post The visualHash, visiblePlayers list, and senseBodyData struct will now have their relative
+	* positioning data converted to absolute coordinates, then stored.
+	*/
+	void convertToAbsoluteCoordsAndVelocity( unordered_map<string, VisualData> &visualHash, 
+							vector<VisiblePlayer> &visiblePlayers, SenseBodyData &senseBodyData,
+							unordered_map<string, Vector2f> &stationaryFlags);
+
+	/* Sums two angles to find the absolute angle between relative to the x-axis
+	 * @param absAngle Angle of client-player relative to the x-axis
+	 * @param refAngle Angle of object relative to absAngle
+	 * @pre None
+	 * @post None
+	 * @return Returns double containing absolute angle of object
+	 */
+	double getAbsoluteAngle(double absAngle, double refAngle);
+
+	/* Fills vector containing all the players of either team, opposition or unidentified
+	 * @param target Takes 't', 'o', or 'u' for players on team, opposition, or unidentified, respectively 
+	 * @param visiblePlayesr Vector of VisiblePlayers to look in 
+	 * @pre None
+	 * @post None
+	 * @return Returns a vector that contains teammates, opposing team, or unidentified players 
+	 */
+	vector<VisiblePlayer> getPlayerIdentities(char target, string teamName, const vector<VisiblePlayer> &visiblePlayers);
 }
 
 #endif
