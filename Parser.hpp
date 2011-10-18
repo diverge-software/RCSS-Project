@@ -24,7 +24,7 @@ using std::tr1::unordered_map;
 
 namespace Parser
 {
-	#define PI 3.14159265
+	#define PI						3.14159265
 	#define INVALID_FLOAT_VALUE		-50000.0
 	#define INVALID_UNIFORM_NUMBER	-1
 	#define INVALID_STRING_VALUE	"INVALID STRING"
@@ -32,6 +32,9 @@ namespace Parser
 	#define INVALID_SENDER_NAME		INVALID_STRING_VALUE
 	#define INVALID_DIRECTION		-50000.0
 
+	/** @class AuralData
+	* Holds data parsed from "(hear ...)" messages from the server.
+	*/
 	struct AuralData
 	{
 		int timestamp;
@@ -40,18 +43,29 @@ namespace Parser
 		string message;
 	};
 
+	/** @class PlayerParamStruct
+	* Holds a float; used for each parameter in the "(player_param ...)" message
+	* from the server. Struct wrapping float done for consistency with ServerStruct.
+	*/
 	struct PlayerParamStruct
 	{
 		double fValue;
 	};
 
-	/*I used a struct here to keep the interfaces consistent. I realize 
-		it's not necessary since all it contains is one float. Again, consistancy.*/
+	/** @class PlayerTypeStruct
+	* Holds a float; used for each parameter in the "(player_type ...)" message
+	* from the server. Struct wrapping float done for consistency with ServerStruct.
+	*/
 	struct PlayerTypeStruct
 	{
 		double fValue;
 	};
 
+	/** @class SenseBodyData
+	* Holds information parsed from "(sense_body ...)" messages from the server.
+	* Also holds the absolute position and velocity of the player. This must be
+	* calculated from the information transmitted by the server.
+	*/
 	struct SenseBodyData
 	{
 		int timestamp;
@@ -106,15 +120,22 @@ namespace Parser
 		} foul;	
 	};
 
+	/** @class SeverStruct
+	* Holds a float and a string; one will be invalid while the other is valid, depending
+	* on the parameter of the "(server_param ...)" message that this corresponds to.
+	*/
 	struct ServerStruct
 	{
 		string sValue;
 		double fValue;
 	};
 
-	// Visual information that could pertain to any object
-	// Visible players include this struct, but player-specific
-	// information is stored elsewhere
+	/** @class VisualData
+	* Holds information parsed from "(see ...)" messages from the server, non-player objects
+	* in particular. Player object information is stored elsewhere. Also holds the absolute
+	* position and velocity of the objects, such as the ball. This must be calculated from the
+	* information transmitted by the server.
+	*/
 	struct VisualData
 	{
 		int timestamp;
@@ -128,7 +149,11 @@ namespace Parser
 		Vector2f absVelocity;
 	};
 
-	// Data retrieved from visual messages, but specific to players
+	/** @class VisiblePlayer
+	* Holds information parsed from "(see ...)" messages from the server, for player objects
+	* in particular. Note that this also stores a VisualData struct with information about its
+	* position, velocity, etc.
+	*/
 	struct VisiblePlayer
 	{
 		std::string teamName;
