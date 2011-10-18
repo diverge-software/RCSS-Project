@@ -224,7 +224,7 @@ namespace Parser
 							vector<VisiblePlayer> &visiblePlayers, SenseBodyData &senseBodyData,
 							unordered_map<string, Vector2f> &stationaryFlags);
 
-	/* Sums two angles to find the absolute angle between relative to the x-axis
+	/** Sums two angles to find the absolute angle between relative to the x-axis
 	 * @param absAngle Angle of client-player relative to the x-axis
 	 * @param refAngle Angle of object relative to absAngle
 	 * @pre None
@@ -233,14 +233,30 @@ namespace Parser
 	 */
 	double getAbsoluteAngle(double absAngle, double refAngle);
 
-	/* Fills vector containing all the players of either team, opposition or unidentified
-	 * @param target Takes 't', 'o', or 'u' for players on team, opposition, or unidentified, respectively 
-	 * @param visiblePlayesr Vector of VisiblePlayers to look in 
-	 * @pre None
-	 * @post None
-	 * @return Returns a vector that contains teammates, opposing team, or unidentified players 
+	/** Fills vector with visible teammates.
+	 * @param teamName Name of the allied team.
+	 * @param visiblePlayers Vector of VisiblePlayers to look in.
+	 * @pre None.
+	 * @post None.
+	 * @return Returns a vector that contains teammates.
 	 */
-	vector<VisiblePlayer> getPlayerIdentities(char target, string teamName, const vector<VisiblePlayer> &visiblePlayers);
+	vector<VisiblePlayer> getTeammateIdentities( string teamName, const vector<VisiblePlayer> & visiblePlayers );
+	/** Fills vector with visible opponents.
+	 * @param teamName Name of the allied team.
+	 * @param visiblePlayers Vector of VisiblePlayers to look in.
+	 * @pre None.
+	 * @post None.
+	 * @return Returns a vector that contains opponents.
+	 */
+	vector<VisiblePlayer> getOpponentIdentities( string teamName, const vector<VisiblePlayer> & visiblePlayers );
+	/** Fills vector with visible, but unidentified, players.
+	 * @param teamName Name of the allied team.
+	 * @param visiblePlayers Vector of VisiblePlayers to look in.
+	 * @pre None.
+	 * @post None.
+	 * @return Returns a vector that contains unidentified players.
+	 */
+	vector<VisiblePlayer> getUnidentifiedIdentities( string teamName, const vector<VisiblePlayer> & visiblePlayers );
 }
 
 #endif

@@ -696,50 +696,48 @@ double Parser::getAbsoluteAngle(double absAngle, double refAngle)
 	return absoluteAngleSum;
 }
 
-vector<Parser::VisiblePlayer> Parser::getPlayerIdentities(char target, string teamName, const vector<VisiblePlayer> &visiblePlayers)
+vector<Parser::VisiblePlayer> Parser::getTeammateIdentities( string teamName, const vector<VisiblePlayer> & visiblePlayers )
 {
-	vector<Parser::VisiblePlayer> playerList;
+	vector<Parser::VisiblePlayer> teammateList;
 
-	//build vector of teammates
-	if(target = 't')
+	for( unsigned int i = 0; i < visiblePlayers.size(); i++ )
 	{
-		for(unsigned int i=0; i < visiblePlayers.size(); i++)
+		if( visiblePlayers[i].teamName != teamName )
 		{
-			if(visiblePlayers[i].teamName == teamName)
-			{
-				playerList.push_back(visiblePlayers[i]);
-			}
+			teammateList.push_back( visiblePlayers[i] );
 		}
 	}
-	//build vector of opponents
-	else if(target = 'o')
+
+	return teammateList;
+}
+
+vector<Parser::VisiblePlayer> Parser::getOpponentIdentities( string teamName, const vector<VisiblePlayer> & visiblePlayers )
+{
+	vector<Parser::VisiblePlayer> opponentList;
+
+	for( unsigned int i = 0; i < visiblePlayers.size(); i++ )
 	{
-		for(unsigned int i=0; i < visiblePlayers.size(); i++)
+		if( visiblePlayers[i].teamName != teamName &&
+			visiblePlayers[i].teamName != INVALID_TEAM_NAME )
 		{
-			if( (visiblePlayers[i].teamName != teamName) 
-				 && (visiblePlayers[i].teamName != INVALID_TEAM_NAME) )
-			{
-				playerList.push_back(visiblePlayers[i]);
-			}
+			opponentList.push_back( visiblePlayers[i] );
 		}
 	}
-	//build vector of unidentified players
-	else if(target = 'u')
+
+	return opponentList;
+}
+
+vector<Parser::VisiblePlayer> Parser::getUnidentifiedIdentities( string teamName, const vector<VisiblePlayer> & visiblePlayers )
+{
+	vector<Parser::VisiblePlayer> unidentifiedList;
+
+	for( unsigned int i = 0; i < visiblePlayers.size(); i++ )
 	{
-		for(unsigned int i=0; i < visiblePlayers.size(); i++)
+		if( visiblePlayers[i].teamName == INVALID_TEAM_NAME )
 		{
-			if(visiblePlayers[i].teamName == INVALID_TEAM_NAME)
-			{
-				playerList.push_back(visiblePlayers[i]);
-			}
+			unidentifiedList.push_back( visiblePlayers[i] );
 		}
 	}
-	//else passed target value is wrong
-	else
-	{
-		cout << "Target value  should be 't', 'o', or 'u', not '" << target << "'." << endl;
-		alwaysAssert();
-	}
-	
-	return playerList;
+
+	return unidentifiedList;
 }

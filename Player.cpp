@@ -137,13 +137,34 @@ bool Player::parseBuffer(const string buffer)
 				convertToAbsoluteCoordsAndVelocity( visualData, playerList, mSenseBodyDataQueue.back(), mStationaryFlags);
 			}
 
-			// Remove the oldest visible player list if necessary,
+					deque<vector<VisiblePlayer>>			  mTeammateListQueue;
+		deque<vector<VisiblePlayer>>			  mOpponentListQueue;
+		deque<vector<VisiblePlayer>>			  mUnidentifiedPlayerListQueue;
+			vector<VisiblePlayer> teammates = getTeammateIdentities( this->teamName, playerList );
+			vector<VisiblePlayer> opponents = getOpponentIdentities( this->teamName, playerList );
+			vector<VisiblePlayer> unidentified = getUnidentifiedIdentities( this->teamName, playerList );
+
+			// Remove the oldest visible teamamte list if necessary,
 			// then push the new one onto the back
-			if( mPlayerListQueue.size() >= MAX_QUEUE_SIZE )
+			if( mTeammateListQueue.size() >= MAX_QUEUE_SIZE )
 			{
-				mPlayerListQueue.pop_front();
+				mTeammateListQueue.pop_front();
 			}
-			mPlayerListQueue.push_back( playerList );
+			mTeammateListQueue.push_back( teammates );
+			// Remove the oldest visible opponent list if necessary,
+			// then push the new one onto the back
+			if( mOpponentListQueue.size() >= MAX_QUEUE_SIZE )
+			{
+				mOpponentListQueue.pop_front();
+			}
+			mOpponentListQueue.push_back( opponents );
+			// Remove the oldest visible unidentified list if necessary,
+			// then push the new one onto the back
+			if( mUnidentifiedPlayerListQueue.size() >= MAX_QUEUE_SIZE )
+			{
+				mUnidentifiedPlayerListQueue.pop_front();
+			}
+			mUnidentifiedPlayerListQueue.push_back( unidentified );
 
 			// Remove the oldest visual data hash if necessary,
 			// then push the new one onto the back
@@ -276,47 +297,53 @@ void Player::printNewestVisiblePlayersList( ostream & os ) const
 	os << "##            Player Information          ##" << endl;
 	os << "############################################" << endl;
 
+	vector<VisiblePlayer> players[3];
 	// Get the most recent player list and print it
-	vector<VisiblePlayer> playerList = mPlayerListQueue.back();
+	players[0] = mTeammateListQueue.back();
+	players[1] = mOpponentListQueue.back();
+	players[2] = mUnidentifiedPlayerListQueue.back();
 
-	for( unsigned int i = 0; i < playerList.size(); i++ )
+	for( int i = 0; i < 3; i++ )
 	{
-		os << "[p, teamName = ";
-		if( playerList[i].teamName != INVALID_TEAM_NAME )
+		for( unsigned int j = 0; j < players[i].size(); j++ )
 		{
-			os << playerList[i].teamName;
-		}
-		else
-		{
-			os << "UNKNOWN";
-		}
-		if( playerList[i].uniformNumber != INVALID_UNIFORM_NUMBER )
-		{
-			os << ", uniform = " << playerList[i].uniformNumber;
-		}
-		else
-		{
-			os << ", uniform = UNKNOWN";
-		}
-		if( playerList[i].isGoalie )
-		{
-			os << ", is goalie";
-		}
-
-		os << ", " << playerList[i].visualData.distance << ", " << playerList[i].visualData.direction;
-
-		if( playerList[i].visualData.directionChange != INVALID_FLOAT_VALUE )
-		{
-			os << ", " << playerList[i].visualData.distanceChange << ", " << playerList[i].visualData.directionChange;
-			if( playerList[i].bodyDirection != INVALID_FLOAT_VALUE )
+			os << "[p, teamName = ";
+			if( players[i][j].teamName != INVALID_TEAM_NAME )
 			{
-				os << ", " << playerList[i].bodyDirection << ", " << playerList[i].headDirection;
+				os << players[i][j].teamName;
 			}
-			os << "]" << endl;
-		}
-		else
-		{
-			os << "]" << endl;
+			else
+			{
+				os << "UNKNOWN";
+			}
+			if( players[i][j].uniformNumber != INVALID_UNIFORM_NUMBER )
+			{
+				os << ", uniform = " << players[i][j].uniformNumber;
+			}
+			else
+			{
+				os << ", uniform = UNKNOWN";
+			}
+			if( players[i][j].isGoalie )
+			{
+				os << ", is goalie";
+			}
+
+			os << ", " << players[i][j].visualData.distance << ", " << players[i][j].visualData.direction;
+
+			if( players[i][j].visualData.directionChange != INVALID_FLOAT_VALUE )
+			{
+				os << ", " << players[i][j].visualData.distanceChange << ", " << players[i][j].visualData.directionChange;
+				if( players[i][j].bodyDirection != INVALID_FLOAT_VALUE )
+				{
+					os << ", " << players[i][j].bodyDirection << ", " << players[i][j].headDirection;
+				}
+				os << "]" << endl;
+			}
+			else
+			{
+				os << "]" << endl;
+			}
 		}
 	}
 }
@@ -473,7 +500,7 @@ bool Player::isTeammateOpenForPass(VisiblePlayer teammate) const
 {
 	//NOTE: for effeciency, in the future opponents will be determined before isTEammateOpenForPass is called
 	//		isTeammateOpenForPass will have another parameter to pass in opponents. 
-	vector<VisiblePlayer> opponents = getPlayerIdentities('o', this->teamName, mPlayerListQueue.back());
+	vector<VisiblePlayer> opponents = mOpponentListQueue.back();
 
 	//determine if an opponent is in position to intercept
 	for(unsigned int i=0; i < opponents.size(); i++)

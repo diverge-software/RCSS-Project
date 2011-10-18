@@ -93,9 +93,6 @@ class Player
 		* float values if the object cannot be found and its position cannot be estimated.
 		*/
 		Vector2f getObjectPosition( string objName, int currentTimestamp ) const;
-
-		
-
 		/* Sets team name
 		 * @param teamname name of team
 		 * @pre None
@@ -107,7 +104,9 @@ class Player
 		// Sensory data passed from the server
 		deque<AuralData>                          mAuralDataQueue;
 		deque<SenseBodyData>                      mSenseBodyDataQueue;
-		deque<vector<VisiblePlayer>>              mPlayerListQueue;
+		deque<vector<VisiblePlayer>>			  mTeammateListQueue;
+		deque<vector<VisiblePlayer>>			  mOpponentListQueue;
+		deque<vector<VisiblePlayer>>			  mUnidentifiedPlayerListQueue;
 		deque<unordered_map<string, VisualData>>  mVisualDataQueue;
 
 		// Initialization data passed from the server
