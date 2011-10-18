@@ -494,28 +494,6 @@ Vector2f Player::getObjectPosition( string objName, int currentTimestamp ) const
 	return result;
 }
 
-
-
-bool Player::isTeammateOpenForPass(VisiblePlayer teammate) const
-{
-	//NOTE: for effeciency, in the future opponents will be determined before isTEammateOpenForPass is called
-	//		isTeammateOpenForPass will have another parameter to pass in opponents. 
-	vector<VisiblePlayer> opponents = mOpponentListQueue.back();
-
-	//determine if an opponent is in position to intercept
-	for(unsigned int i=0; i < opponents.size(); i++)
-	{
-		if( (opponents[i].visualData.distance <= teammate.visualData.distance)
-			 && (opponents[i].visualData.direction <= 5)
-			 && (opponents[i].visualData.direction >= -5) )
-		{		
-			return false;
-		}
-	}
-
-	return true;	
-}
-
 void Player::setTeamName(string teamname)
 {
 	teamName = teamname;

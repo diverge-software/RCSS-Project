@@ -8,6 +8,7 @@
 
 #include "Parser.hpp"
 #include "Vector2f.hpp"
+#include "Brain.h"
 #include <iostream>
 #include <string>
 #include <cstdlib>
@@ -16,6 +17,7 @@
 
 using namespace std;
 using namespace Parser;
+using namespace Brain;
 
 #define NUM_PLAYER_TYPES	17
 #define MAX_QUEUE_SIZE		10
@@ -117,15 +119,6 @@ class Player
 		unordered_map<string, ServerStruct>       mServerInfo;
 		unordered_map<string, PlayerParamStruct>  mPlayerParams;
 		unordered_map<string, Vector2f>           mStationaryFlags;
-
-		/* Determines for client-player if a particular teammate can be passed to or if an opponent is in range to intercept
-		 * @param teammate A struct containing all visible information about teammate in question
-		 * @param opponnents A vector containing structs of an opponents visual information
-	     * @pre None
-		 * @post Client-Player knows who it can or cannot pass to a particular player
-		 * @return True if teammate is passable (open), False if teammate is not
-		 */
-		bool isTeammateOpenForPass(VisiblePlayer teammate) const;
 };
 	
 #endif
