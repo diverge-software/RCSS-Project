@@ -514,7 +514,7 @@ if( udp_client_ptr->m_player.parseBuffer( udp_client_ptr->m_client_cb.buffer ) )
     udp_client_ptr->m_client_cb.dbg_log_ss << "##################################" << endl;
     udp_client_ptr->m_client_cb.dbg_log_ss << "Message: " << udp_client_ptr->m_client_cb.buffer << endl;
 
-    //this->m_player.printNewestVisualHash( this->udp_client_cb.dbg_log );
+    //udp_client_ptr->m_player.printNewestVisualHash( udp_client_ptr->m_client_cb.dbg_log_ss );
 	//this->m_player.printNewestVisiblePlayersList( this->udp_client_cb.dbg_log );
     //this->m_player.printNewestAuralStruct( this->udp_client_cb.dbg_log );
     //this->m_player.printNewestSenseBodyStruct( this->udp_client_cb.dbg_log );
@@ -522,7 +522,13 @@ if( udp_client_ptr->m_player.parseBuffer( udp_client_ptr->m_client_cb.buffer ) )
     //this->m_player.printPlayerTypesHash( this->udp_client_cb.dbg_log );
     //this->m_player.printPlayerParamHash( this->udp_client_cb.dbg_log );
 
-    //replace with queue
+    /*------------------------------------------------------
+    Todo: When the Decision_Processing() is implemented, 
+    this will be modified to return a queue.  The queue will
+    be overwritten each time, so the server will only send 
+    the most recent commands.  This will ensure the command
+    being sent is based on the most recent data
+    ------------------------------------------------------*/
     tx_str = makePlayersRunAroundOnField( udp_client_ptr->m_client_cb.hdl_idx );
 	
     if( !tx_str.empty() )
