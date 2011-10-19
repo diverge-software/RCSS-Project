@@ -21,12 +21,12 @@ bool Brain::isTeammateOpenForPass(VisiblePlayer teammate, vector<VisiblePlayer> 
 	return true;	
 }
 
-Vector2f Brain::getFuturePlayerPos(Vector2f cPos, Vector2f cVec, double tInterval, double ballDecay)
+Vector2f Brain::getFuturePlayerPos(Vector2f cPos, Vector2f cVec, double tInterval)
 {
 	return cPos + cVec * tInterval;
 }
 
-Vector2f Brain::getFutureBallPos(Vector2f cPos, Vector2f cVec, double tInterval, double ballDecal)
+Vector2f Brain::getFutureBallPos(Vector2f cPos, Vector2f cVec, double tInterval, double ballDecay)
 {
 	return cPos + cVec * pow(ballDecay, tInterval-1); 
 }

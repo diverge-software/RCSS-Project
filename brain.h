@@ -44,7 +44,7 @@ namespace Brain
 	 * @post Client-Player knows future of position a player
 	 * @return returns future position as a vector
 	 */
-	Vector2f getFuturePlayerPos(Vector2f cPos, Vector2f cVec, double tInterval, double ballDecay);
+	Vector2f getFuturePlayerPos(Vector2f cPos, Vector2f cVec, double tInterval);
 	
 	/** Determines future position of a player given its current position and velocity 
      * @param cPos
@@ -53,7 +53,7 @@ namespace Brain
 	 * @post Client-Player knows future of position a player
 	 * @return returns future position as a vector
 	 */
-	Vector2f getFutureBallPos(Vector2f cPos, Vector2f cVec, double tInterval, double ballDecal);	
+	Vector2f getFutureBallPos(Vector2f cPos, Vector2f cVec, double tInterval, double ballDecay);	
 }
 
 #endif

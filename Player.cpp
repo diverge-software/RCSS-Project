@@ -328,6 +328,11 @@ void Player::printNewestVisiblePlayersList( ostream & os ) const
 			{
 				os << ", is goalie";
 			}
+			
+			os << ", absLocation[0]" << players[i][j].visualData.absLocation[0]
+		       << ", absLocation[1]" << players[i][j].visualData.absLocation[1]
+			   << ", absVelocity[0]" << players[i][j].visualData.absVelocity[0]
+			   << ", absVelocity[1]" << players[i][j].visualData.absVelocity[1];
 
 			os << ", " << players[i][j].visualData.distance << ", " << players[i][j].visualData.direction;
 
@@ -384,6 +389,13 @@ void Player::printNewestSenseBodyStruct( ostream & os ) const
 	
 	os << "view_mode" << ": " << senseBodyData.view_mode.viewQuality << " "
 	                            << senseBodyData.view_mode.viewWidth << endl;
+
+	os << "absLocation[0]" << ": " << senseBodyData.absLocation[0] << endl
+	   << "absLocation[1]" << ": " << senseBodyData.absLocation[1] << endl;
+
+	os << "absVelocity[0]" << ": " << senseBodyData.absVelocity[0] << endl
+	   << "absVelocity[1]" << ": " << senseBodyData.absVelocity[1] << endl;
+	 
 	
 	os << "stamina" << ": " << senseBodyData.stamina[0] << " "
 	                          << senseBodyData.stamina[1] << " "
