@@ -426,6 +426,9 @@ tmp_str << "(init " << team_name << " (version 15.0))";
 
 this->udp_send( tmp_str.str() );
 
+//move demo
+this->udp_send( movePlayersOntoField(hdl_idx) );
+
 /*----------------------------------------------------------
 Set the handle index
 ----------------------------------------------------------*/
@@ -437,7 +440,6 @@ Set the socket open status
 this->m_client_cb.socket_open = TRUE;
 
 }   /* UDP_open_socket() */
-
 
 /*********************************************************************
 *
@@ -513,6 +515,8 @@ if( udp_client_ptr->m_player.parseBuffer( udp_client_ptr->m_client_cb.buffer ) )
     //this->m_player.printServerHash( this->udp_client_cb.dbg_log );
     //this->m_player.printPlayerTypesHash( this->udp_client_cb.dbg_log );
     //this->m_player.printPlayerParamHash( this->udp_client_cb.dbg_log );
+	
+	//udp_send( makePlayersRunAroundOnField( udp_client_ptr->m_client_cb.hdl_idx ) );
 
     /*------------------------------------------------------
     Leave the critical section
@@ -754,6 +758,7 @@ attempt to concurrently access the same data
 ----------------------------------------------------------*/
 EnterCriticalSection( &this->m_client_cb.tx_crit_sec );
 
+udp_send( makePlayersRunAroundOnField( m_client_cb.hdl_idx ) );
 /*----------------------------------------------------------
 Send on UDP socket until transmit queue has been emptied
 

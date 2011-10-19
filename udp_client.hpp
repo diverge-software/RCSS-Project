@@ -22,6 +22,8 @@
 #include <ws2tcpip.h>
 #include <queue>
 
+#include "demo.hpp"
+
 #include "Player.hpp"
 
 using namespace std;

@@ -71,11 +71,10 @@ string makePlayersRunAroundOnField(unsigned int playerNum)
 */
 }
 
+/*
 string makeThemMove(unsigned int playerNum)
-    {
-        string serverString;
+{
+    string serverString;
 
- 
-                return ( movePlayersOntoField(playerNum) );
-                return ( makePlayersRunAroundOnField(playerNum) );
-	}
+    return ( makePlayersRunAroundOnField(playerNum) );
+}*/ 
