@@ -428,12 +428,6 @@ tmp_str << "(init " << team_name << " (version 15.0))";
 
 this->udp_send( tmp_str.str() );
 
-//move demo, really shouldn't be here. Add sleep for temp solution, give time for server to init
-//also should not be using hdl_idx as a player number, you should be using the uniform number assigned 
-//by the server!
-Sleep( 1000 );
-this->udp_send( movePlayersOntoField( hdl_idx ) );
-
 /*----------------------------------------------------------
 Set the handle index
 ----------------------------------------------------------*/
@@ -529,12 +523,13 @@ if( udp_client_ptr->m_player.parseBuffer( udp_client_ptr->m_client_cb.buffer ) )
     the most recent commands.  This will ensure the command
     being sent is based on the most recent data
     ------------------------------------------------------*/
-    tx_str = makePlayersRunAroundOnField( udp_client_ptr->m_client_cb.hdl_idx );
-	
-    if( !tx_str.empty() )
-        {
-	    udp_client_ptr->udp_send( tx_str );
-        }
+    char* demoBuffer = udp_client_ptr->m_client_cb.buffer;
+
+	tx_str = makeThemMove( udp_client_ptr->m_client_cb.hdl_idx, demoBuffer );
+	if( !tx_str.empty() )
+	{
+		udp_client_ptr->udp_send( tx_str );
+	}
 
     /*------------------------------------------------------
     Leave the critical section
