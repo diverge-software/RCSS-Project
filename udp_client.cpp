@@ -19,7 +19,6 @@
 #include <sstream>
 #include <string>
 
-#include "ai_processing.hpp"
 #include "debug.hpp"
 #include "udp_client.hpp"
 
@@ -472,7 +471,6 @@ void CALLBACK UDP_client::udp_completion_routine
 /*----------------------------------------------------------
 Local Variables
 ----------------------------------------------------------*/
-AI_Processing           ai_processing;
 string                  tx_str;     /* transmit string              */
 UDP_client *            udp_client_ptr;
                                     /* UDP client pointer           */
@@ -522,9 +520,6 @@ if( udp_client_ptr->m_player.parseBuffer( udp_client_ptr->m_client_cb.buffer ) )
     //this->m_player.printPlayerParamHash( this->udp_client_cb.dbg_log );
 
     //replace with queue
-    if( udp_client_ptr->m_player.mServerInfo( "" ) )
-        {
-        }
     tx_str = makePlayersRunAroundOnField( udp_client_ptr->m_client_cb.hdl_idx );
 	
     if( !tx_str.empty() )
