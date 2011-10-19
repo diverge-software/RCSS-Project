@@ -7,7 +7,7 @@
 *       Performs artificial intelligence processing
 *
 *---------------------------------------------------------------------
-* $Id: ai_processing.cpp, v1.0, 2011-10-11 17:25:00Z, Joseph Wachtel$
+* $Id: ai_processing.cpp, v1.1, 2011-10-19 17:25:00Z, Joseph Wachtel$
 * $NoKeywords$
 *********************************************************************/
 

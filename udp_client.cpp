@@ -7,7 +7,7 @@
 *       Performs UDP interface processing
 *
 *---------------------------------------------------------------------
-* $Id: udp_client.cpp, v1.5, 2011-10-11 17:25:00Z, Joseph Wachtel$
+* $Id: udp_client.cpp, v1.6, 2011-10-19 17:25:00Z, Joseph Wachtel$
 * $NoKeywords$
 *********************************************************************/
 
@@ -281,8 +281,6 @@ void UDP_client::UDP_open_socket    /* Open UDP Socket              */
     unsigned int        hdl_idx     /* handle index                 */
     )
 {
-//set teamName
-m_player.setTeamName(team_name);
 /*----------------------------------------------------------
 Local Constants
 ----------------------------------------------------------*/
@@ -296,6 +294,11 @@ int						err_no;		/* error number					*/
 string                  filename;   /* filename                     */
 ostringstream           tmp_str;    /* temporary string             */
 WSADATA					wsa_data;	/* winsock data					*/
+
+/*----------------------------------------------------------
+Set the team name
+----------------------------------------------------------*/
+m_player.setTeamName( team_name );
 
 /*----------------------------------------------------------
 Initiate Winsock DLL
