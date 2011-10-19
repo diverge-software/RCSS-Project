@@ -426,8 +426,11 @@ tmp_str << "(init " << team_name << " (version 15.0))";
 
 this->udp_send( tmp_str.str() );
 
-//move demo
-this->udp_send( movePlayersOntoField(hdl_idx) );
+//move demo, really shouldn't be here. Add sleep for temp solution, give time for server to init
+//also should not be using hdl_idx as a player number, you should be using the uniform number assigned 
+//by the server!
+Sleep( 1000 );
+this->udp_send( movePlayersOntoField( hdl_idx ) );
 
 /*----------------------------------------------------------
 Set the handle index
@@ -440,6 +443,7 @@ Set the socket open status
 this->m_client_cb.socket_open = TRUE;
 
 }   /* UDP_open_socket() */
+
 
 /*********************************************************************
 *
@@ -469,6 +473,7 @@ void CALLBACK UDP_client::udp_completion_routine
 Local Variables
 ----------------------------------------------------------*/
 AI_Processing           ai_processing;
+string                  tx_str;     /* transmit string              */
 UDP_client *            udp_client_ptr;
                                     /* UDP client pointer           */
 
@@ -515,8 +520,17 @@ if( udp_client_ptr->m_player.parseBuffer( udp_client_ptr->m_client_cb.buffer ) )
     //this->m_player.printServerHash( this->udp_client_cb.dbg_log );
     //this->m_player.printPlayerTypesHash( this->udp_client_cb.dbg_log );
     //this->m_player.printPlayerParamHash( this->udp_client_cb.dbg_log );
+
+    //replace with queue
+    if( udp_client_ptr->m_player.mServerInfo( "" ) )
+        {
+        }
+    tx_str = makePlayersRunAroundOnField( udp_client_ptr->m_client_cb.hdl_idx );
 	
-	//udp_send( makePlayersRunAroundOnField( udp_client_ptr->m_client_cb.hdl_idx ) );
+    if( !tx_str.empty() )
+        {
+	    udp_client_ptr->udp_send( tx_str );
+        }
 
     /*------------------------------------------------------
     Leave the critical section
@@ -758,7 +772,6 @@ attempt to concurrently access the same data
 ----------------------------------------------------------*/
 EnterCriticalSection( &this->m_client_cb.tx_crit_sec );
 
-udp_send( makePlayersRunAroundOnField( m_client_cb.hdl_idx ) );
 /*----------------------------------------------------------
 Send on UDP socket until transmit queue has been emptied
 

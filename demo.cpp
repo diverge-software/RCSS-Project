@@ -1,63 +1,72 @@
 #include "udp_client.hpp"
 #include "demo.hpp"
-//#include <string>
 
 string movePlayersOntoField(unsigned int playerNum)
 {
+/*----------------------------------------------------------
+Local Variables
+----------------------------------------------------------*/
+string                  ret_val;    /* return value                 */
 
-    switch (playerNum)
-        {
-        case 0:
-            return "(move -10 10)";
-            break;
-        case 1:
-            return "(move -5 0)";
-            break;
-        case 2:
-            return "(move -10 0)";
-            break;
-        case 3:
-            return "(move -15 0)";
-            break;
-        case 4:
-            return "(move -20 0)";
-            break;
-        case 5:
-            return "(move -5 5)";
-            break;
-        case 6:
-            return "(move -5 -5)";
-            break;
-        case 7:
-            return "(move -5 10)";
-            break;
-        case 8:
-            return "(move -5 -10)";
-            break;
-        case 9:
-            return "(move -5 15)";
-            break;
-        case 10:
-            return "(move -5 -15)";
-            break;
-        }
+switch( playerNum )
+    {
+    case 0:
+        ret_val = "(move -10 10)";
+        break;
 
-/*
-	if(playerNum == 4)
-	{
-		return "(move 10 10)";
-	}
-	else
-	{
-		return "don't do anything";
-	}
-*/
+    case 1:
+        ret_val = "(move -5 0)";
+        break;
+
+    case 2:
+        ret_val = "(move -10 0)";
+        break;
+
+    case 3:
+        ret_val = "(move -15 0)";
+        break;
+
+    case 4:
+        ret_val = "(move -20 0)";
+        break;
+
+    case 5:
+        ret_val = "(move -5 5)";
+        break;
+
+    case 6:
+        ret_val = "(move -5 -5)";
+        break;
+
+    case 7:
+        ret_val = "(move -5 10)";
+        break;
+
+    case 8:
+        ret_val = "(move -5 -10)";
+        break;
+
+    case 9:
+        ret_val = "(move -5 15)";
+        break;
+
+    case 10:
+        ret_val = "(move -5 -15)";
+        break;
+
+    default:
+        ret_val = "";
+        break;
+    }
+
+return( ret_val );
+
 }
 
 string makePlayersRunAroundOnField(unsigned int playerNum)
 {
 
-	return "(dash 30)";
+return( "(dash 30)" );
 
 /*
 	if(playerNum == 4)
