@@ -19,6 +19,7 @@
 #include <sstream>
 #include <string>
 
+#include "ai_processing.hpp"
 #include "debug.hpp"
 #include "udp_client.hpp"
 
@@ -154,7 +155,7 @@ this->m_client_cb.wt_thrd_alive = FALSE;
 /*********************************************************************
 *
 *   PROCEDURE NAME:
-*       UDP_dbg_log_enbl - Disable Write Debug Log To File
+*       UDP_dbg_log_dsbl - Disable Write Debug Log To File
 *
 *   DESCRIPTION:
 *       Disable write debug log to file
@@ -465,6 +466,7 @@ void CALLBACK UDP_client::udp_completion_routine
 /*----------------------------------------------------------
 Local Variables
 ----------------------------------------------------------*/
+AI_Processing           ai_processing;
 UDP_client *            udp_client_ptr;
                                     /* UDP client pointer           */
 
@@ -937,7 +939,10 @@ while( !udp_client_ptr->m_client_cb.stop_wt_thrd )
     {
     Sleep( 50 );
 
-    udp_client_ptr->udp_write();
+    if( udp_client_ptr->m_client_cb.socket_open )
+        {
+        udp_client_ptr->udp_write();
+        }
     }
 
 /*----------------------------------------------------------
