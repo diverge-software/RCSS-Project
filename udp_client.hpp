@@ -1,12 +1,10 @@
-/*********************************************************************
+/** @file udp_client.hpp
+* UDP Client Processing Declarations
 *
-*   MODULE NAME:
-*       udp_client.hpp - UDP Client Processing Declarations
-*
-*---------------------------------------------------------------------
-* $Id: udp_client.hpp, v1.6, 2011-10-19 17:25:00Z, Joseph Wachtel$
-* $NoKeywords$
-*********************************************************************/
+* Declarations for the UDP Client class
+* @author Joseph Wachtel
+* @date Oct 19, 2011
+*/
 
 #ifndef _UDP_CLIENT_HPP
 #define _UDP_CLIENT_HPP
@@ -23,7 +21,6 @@
 #include <queue>
 
 #include "demo.hpp"
-
 #include "Player.hpp"
 
 using namespace std;
@@ -38,6 +35,10 @@ using namespace std;
                                  TYPES
 --------------------------------------------------------------------*/
 
+/** @class udp_client_cb_t
+* A container for all the information related to a single UDP client
+* including each of the required transmit, receive, and write threads
+*/
 typedef struct                      /* UDP control block type       */
     {  
     char                buffer[ UDP_SRVR_PKT_SIZE ];
@@ -76,6 +77,10 @@ typedef struct                      /* UDP control block type       */
                                 CLASSES
 --------------------------------------------------------------------*/
 
+/** @class UDP_client
+* A class which performs the UDP client processing for each of the 
+* players
+*/
 class UDP_client
     {
     public:
@@ -84,7 +89,6 @@ class UDP_client
 
         void UDP_dbg_log_dsbl( void );
         void UDP_dbg_log_enbl( string filename );
-        void UDP_close_socket( void );
         void UDP_open_socket( string server_ip, unsigned int server_port, string team_name, unsigned int hdl_idx );
 
     private:

@@ -1,15 +1,11 @@
-/*********************************************************************
+/** @file udp_client.cpp
+* UDP Client Processing
 *
-*   MODULE NAME:
-*       udp_client.cpp - UDP Client Processing
-*
-*   DESCRIPTION:
-*       Performs UDP interface processing
-*
-*---------------------------------------------------------------------
-* $Id: udp_client.cpp, v1.6, 2011-10-19 17:25:00Z, Joseph Wachtel$
-* $NoKeywords$
-*********************************************************************/
+* Handles the threading of both transmit and receive for each client
+* which communicates via the UDP protocol with the soccer server
+* @author Joseph Wachtel
+* @date Oct 19, 2011
+*/
 
 /*--------------------------------------------------------------------
                            GENERAL INCLUDES
@@ -58,15 +54,13 @@ static void process_wsa_err         /* process WSA error            */
     ( void );
 
 
-/*********************************************************************
-*
-*   PROCEDURE NAME:
-*       ~UDP_client - UDP Client Destructor
-*
-*   DESCRIPTION:
-*       Class destructor for UDP client
-*
-*********************************************************************/
+/** Class destructor for UDP client
+* @param None
+* @pre None
+* @post If the UDP socket was opened the socket will be closed.  The
+* transmit, receive, and write threads signal termination and the
+* debug log is closed.  Finally the Winsock API DLL is closed
+*/
 
 UDP_client::~UDP_client             /* UDP Client Destructor        */
     ( void )                             
@@ -114,15 +108,12 @@ WSACleanup();
 }   /* ~UDP_client() */
 
 
-/*********************************************************************
-*
-*   PROCEDURE NAME:
-*       UDP_client - UDP Client Constructor
-*
-*   DESCRIPTION:
-*       Class constructor for UDP client
-*
-*********************************************************************/
+/** Class constructor for UDP client
+* @param None
+* @pre None
+* @post The UDP control block is initialized to invalid data.  This
+* is helpful for determining if a process was successful
+*/
 
 UDP_client::UDP_client              /* UDP Client Constructor       */
     ( void )                             
@@ -151,15 +142,12 @@ this->m_client_cb.wt_thrd_alive = FALSE;
 }   /* UDP_client() */
 
 
-/*********************************************************************
-*
-*   PROCEDURE NAME:
-*       UDP_dbg_log_dsbl - Disable Write Debug Log To File
-*
-*   DESCRIPTION:
-*       Disable write debug log to file
-*
-*********************************************************************/
+/** Disable write debug log to file
+* @param None
+* @pre None
+* @post The write thread is signalled to terminate and the debug log
+* is closed
+*/
 
 void UDP_client::UDP_dbg_log_dsbl   /* Dsbl Write Debug Log To File */
     ( void )
@@ -183,15 +171,12 @@ if( this->m_client_cb.dbg_log.is_open() )
 }   /* UDP_dbg_log_dsbl() */
 
 
-/*********************************************************************
-*
-*   PROCEDURE NAME:
-*       UDP_dbg_log_enbl - Enable Write Debug Log To File
-*
-*   DESCRIPTION:
-*       Enable write debug log to file
-*
-*********************************************************************/
+/** Enable write debug log to file
+* @param filename The filename of the debug log
+* @pre The filename given should not already be in use
+* @post The debug log file is opened and the write thread is 
+* started
+*/
 
 void UDP_client::UDP_dbg_log_enbl   /* Enbl Write Debug Log To File */
     (
@@ -240,27 +225,6 @@ if( this->m_client_cb.h_wt_thrd == NULL )
     }
 
 }   /* UDP_dbg_log_enbl() */
-
-
-/*********************************************************************
-*
-*   PROCEDURE NAME:
-*       UDP_close_socket - Close UDP Socket
-*
-*   DESCRIPTION:
-*       Close UDP socket
-*
-*********************************************************************/
-
-void UDP_client::UDP_close_socket   /* Close UDP Socket             */
-    ( void )
-{
-/*----------------------------------------------------------
-Call the destructor to close the socket
-----------------------------------------------------------*/
-this->~UDP_client();
-
-}   /* UDP_close_socket() */
 
 
 /*********************************************************************
@@ -524,12 +488,12 @@ if( udp_client_ptr->m_player.parseBuffer( udp_client_ptr->m_client_cb.buffer ) )
     being sent is based on the most recent data
     ------------------------------------------------------*/
     char* demoBuffer = udp_client_ptr->m_client_cb.buffer;
-
 	tx_str = makeThemMove( udp_client_ptr->m_client_cb.hdl_idx, demoBuffer );
+
 	if( !tx_str.empty() )
-	{
-		udp_client_ptr->udp_send( tx_str );
-	}
+	    {
+        udp_client_ptr->udp_send( tx_str );
+	    }
 
     /*------------------------------------------------------
     Leave the critical section
