@@ -70,6 +70,13 @@ string                  ret_val;    /* return value                 */
 
 string makePlayersRunAroundOnField(unsigned int playerNum, char* buffer)
 {
+	
+	/* The program should run ok up til here.
+	   There's something wrong with how the players are moving together.
+	   Most likely it's the kicking or reading the buffer.
+	   
+	   I just wanted to get these changes up before any major changes were made.
+	*/
 	float bDist, bDir;
 
 	if(strstr(buffer, "(b)"))
