@@ -1,13 +1,10 @@
-/*********************************************************************
+/** @file ai_processing.hpp
+* Artificial Intelligence Processing Declarations
 *
-*   MODULE NAME:
-*       ai_processing.hpp - Artificial Intelligence Processing 
-*                           Declarations
-*
-*---------------------------------------------------------------------
-* $Id: ai_processing.hpp, v1.1, 2011-10-19 17:25:00Z, Joseph Wachtel$
-* $NoKeywords$
-*********************************************************************/
+* Declarations for the Artificial Intelligence namespace
+* @author Joseph Wachtel
+* @date Oct 19, 2011
+*/
 
 #ifndef _AI_PROCESSING_HPP
 #define _AI_PROCESSING_HPP

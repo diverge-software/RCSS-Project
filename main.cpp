@@ -1,15 +1,11 @@
-/*********************************************************************
+/** @file main.cpp
+* Main Program Processing
 *
-*   MODULE NAME:
-*       main.cpp - Main Program Processing
-*
-*   DESCRIPTION:
-*       Performs Main Program Processing
-*
-*---------------------------------------------------------------------
-* $Id: main.cpp, v1.4, 2011-10-11 17:25:00Z, Joseph Wachtel$
-* $NoKeywords$
-*********************************************************************/
+* Serves as the main entry point for the program.  Starts and
+* initializes each client 
+* @author Joseph Wachtel
+* @date Oct 19, 2011
+*/
 
 /*--------------------------------------------------------------------
                            GENERAL INCLUDES
@@ -25,7 +21,9 @@ using namespace std;
 /*--------------------------------------------------------------------
                           LITERAL CONSTANTS
 --------------------------------------------------------------------*/
-#define TEAM_NAME "team1"
+
+#define TEAM_NAME ( "team1" )       /* team name                    */
+
 /*--------------------------------------------------------------------
                                 TYPES
 --------------------------------------------------------------------*/
@@ -50,16 +48,14 @@ using namespace std;
                               PROCEDURES
 --------------------------------------------------------------------*/
 
-
-/*********************************************************************
-*
-*   PROCEDURE NAME:
-*       main - Main Program Processing
-*
-*   DESCRIPTION:
-*       Main program processing
-*
-*********************************************************************/
+/** Main program processing
+* @param argc Number of input arguments
+* @param *argv[] An array of the inputs arguments
+* @pre None
+* @post Each client is initialized and started in its own thread while
+* the function loops until a keyboard stroke is pressed
+* @return Returns a value of 0
+*/
 
 int main							/* main program processing		*/
 	(
@@ -79,12 +75,12 @@ Initialization
 
 Todo: Add input parameters for IP, Port, and Teamname
 ----------------------------------------------------------*/
-for( i = 0; i < 11; i++ )
+for( i = 0; i < 1; i++ )
     {
     tmp_str.str( "" );
     tmp_str << "dbg_log_" << i << ".txt";
     udp_client[ i ].UDP_dbg_log_enbl( tmp_str.str() );
-    udp_client[ i ].UDP_open_socket( /*"192.168.1.3"*/"10.0.1.52", 6000, TEAM_NAME, i );
+    udp_client[ i ].UDP_open_socket( "192.168.1.3", 6000, TEAM_NAME, i );
     }
 
 while( true ) 

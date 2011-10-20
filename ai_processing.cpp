@@ -1,15 +1,12 @@
-/*********************************************************************
+/** @file ai_processing.cpp
+* Artificial Intelligence Processing
 *
-*   MODULE NAME:
-*       ai_processing.cpp - Artificial Intelligence Processing
-*
-*   DESCRIPTION:
-*       Performs artificial intelligence processing
-*
-*---------------------------------------------------------------------
-* $Id: ai_processing.cpp, v1.1, 2011-10-19 17:25:00Z, Joseph Wachtel$
-* $NoKeywords$
-*********************************************************************/
+* The Artificial Intelligence Processing is the primary module that
+* will handle the decision processing and server string formatting for
+* each of the clients
+* @author Joseph Wachtel
+* @date Oct 19, 2011
+*/
 
 /*--------------------------------------------------------------------
                            GENERAL INCLUDES
@@ -63,16 +60,11 @@ using namespace std;
                               PROCEDURES
 --------------------------------------------------------------------*/
 
-
-/*********************************************************************
-*
-*   PROCEDURE NAME:
-*       Decision_Processing - Descision Processing
-*
-*   DESCRIPTION:
-*       Artificial intelligence decision processing for client
-*
-*********************************************************************/
+/** Descision Processing
+* @param None
+* @pre None
+* @post Currently under development
+*/
 
 void AI_Processing::Decision_Processing      
                                     /* Descision Processing         */
@@ -82,15 +74,13 @@ void AI_Processing::Decision_Processing
 }   /* Decision_Processing() */
 
 
-/*********************************************************************
-*
-*   PROCEDURE NAME:
-*       Catch_Cmd - Catch Command
-*
-*   DESCRIPTION:
-*       Format Catch command string for the server
-*
-*********************************************************************/
+/** Catch Command
+* @param direction Directional value to catch given in degrees
+* @pre None
+* @post None
+* @throw If the value of direction is out of range, an Assertion is thrown
+* @return Returns the formatted Catch command string for the server
+*/
 
 string AI_Processing::Catch_Cmd     /* Catch Command                */
     (
@@ -119,15 +109,14 @@ return( ret_val.str() );
 }   /* Catch_Cmd() */
 
 
-/*********************************************************************
-*
-*   PROCEDURE NAME:
-*       Change_View_Cmd - Change View Command
-*
-*   DESCRIPTION:
-*       Format Change View command string for the server
-*
-*********************************************************************/
+/** Change View Command
+* @param width An enumeration value which represents the width of the view
+* @param quality An enumeration value which represents the quality of the view
+* @pre None
+* @post None
+* @throw If the value of width or quality is invalid, an Assertion is thrown
+* @return Returns the formatted Change View command string for the server
+*/
 
 string AI_Processing::Change_View_Cmd
                                     /* Change View Command          */
@@ -190,15 +179,13 @@ return( ret_val.str() );
 }   /* Change_View_Cmd() */
 
 
-/*********************************************************************
-*
-*   PROCEDURE NAME:
-*       Dash_Cmd - Dash Command
-*
-*   DESCRIPTION:
-*       Format Dash command string for the server
-*
-*********************************************************************/
+/** Dash Command
+* @param power Power value which is unitless
+* @pre None
+* @post None
+* @throw If the value of power is out of range, an Assertion is thrown
+* @return Returns the formatted Dash command string for the server
+*/
 
 string AI_Processing::Dash_Cmd      /* Dash Command                 */
     (
@@ -227,15 +214,13 @@ return( ret_val.str() );
 }   /* Dash_Cmd() */
 
 
-/*********************************************************************
-*
-*   PROCEDURE NAME:
-*       Kick_Cmd - Kick Command
-*
-*   DESCRIPTION:
-*       Format Kick command string for the server
-*
-*********************************************************************/
+/** Kick Command
+* @param power Power value which is unitless
+* @pre None
+* @post None
+* @throw If the value of power is out of range, an Assertion is thrown
+* @return Returns the formatted Kick command string for the server
+*/
 
 string AI_Processing::Kick_Cmd      /* Kick Command                 */
     (
@@ -264,15 +249,14 @@ return( ret_val.str() );
 }   /* Kick_Cmd() */
 
 
-/*********************************************************************
-*
-*   PROCEDURE NAME:
-*       Move_Cmd - Move Command
-*
-*   DESCRIPTION:
-*       Format Move command string for the server
-*
-*********************************************************************/
+/** Move Command
+* @param x_val X coordinate value which is unitless
+* @param y_val Y coordinate value which is unitless
+* @pre None
+* @post None
+* @throw If the value of x_val or y_val is out of range, an Assertion is thrown
+* @return Returns the formatted Move command string for the server
+*/
 
 string AI_Processing::Move_Cmd      /* Move Command                 */
     (
@@ -304,15 +288,12 @@ return( ret_val.str() );
 }   /* Move_Cmd() */
 
 
-/*********************************************************************
-*
-*   PROCEDURE NAME:
-*       Say_Cmd - Say Command
-*
-*   DESCRIPTION:
-*       Format Say command string for the server
-*
-*********************************************************************/
+/** Say Command
+* @param msg_str Message that is to be said
+* @pre None
+* @post None
+* @return Returns the formatted Say command string for the server
+*/
 
 string AI_Processing::Say_Cmd       /* Say Command                  */
     (
@@ -331,15 +312,12 @@ return( ret_val.str() );
 }   /* Say_Cmd() */
 
 
-/*********************************************************************
-*
-*   PROCEDURE NAME:
-*       Score_Cmd - Score Command
-*
-*   DESCRIPTION:
-*       Format Score command string for the server
-*
-*********************************************************************/
+/** Score Command
+* @param None
+* @pre None
+* @post None
+* @return Returns the formatted Score command string for the server
+*/
 
 string AI_Processing::Score_Cmd     /* Score Command                */
     ( void )
@@ -356,15 +334,12 @@ return( ret_val.str() );
 }   /* Score_Cmd() */
 
 
-/*********************************************************************
-*
-*   PROCEDURE NAME:
-*       Sense_Body_Cmd - Sense Body Command
-*
-*   DESCRIPTION:
-*       Format Sense Body command string for the server
-*
-*********************************************************************/
+/** Sense Body Command
+* @param None
+* @pre None
+* @post None
+* @return Returns the formatted Sense Body command string for the server
+*/
 
 string AI_Processing::Sense_Body_Cmd/* Sense Body Command           */
     ( void )
@@ -381,15 +356,13 @@ return( ret_val.str() );
 }   /* Sense_Body_Cmd() */
 
 
-/*********************************************************************
-*
-*   PROCEDURE NAME:
-*       Turn_Cmd - Turn Command
-*
-*   DESCRIPTION:
-*       Format Turn command string for the server
-*
-*********************************************************************/
+/** Turn Command
+* @param direction Directional value to turn given in degrees
+* @pre None
+* @post None
+* @throw If the value of direction is out of range, an Assertion is thrown
+* @return Returns the formatted Turn command string for the server
+*/
 
 string AI_Processing::Turn_Cmd      /* Turn Command                 */
     (
@@ -418,15 +391,13 @@ return( ret_val.str() );
 }   /* Turn_Cmd() */
 
 
-/*********************************************************************
-*
-*   PROCEDURE NAME:
-*       Turn_Neck_Cmd - Turn Neck Command
-*
-*   DESCRIPTION:
-*       Format Turn Neck command string for the server
-*
-*********************************************************************/
+/** Turn Neck Command
+* @param direction Directional value to turn neck given in degrees
+* @pre None
+* @post None
+* @throw If the value of direction is out of range, an Assertion is thrown
+* @return Returns the formatted Turn Neck command string for the server
+*/
 
 string AI_Processing::Turn_Neck_Cmd /* Turn Neck Command            */
     (
