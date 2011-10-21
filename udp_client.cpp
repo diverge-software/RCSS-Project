@@ -287,6 +287,7 @@ if( this->m_client_cb.h_wt_thrd == NULL )
 * @param server_ip The RoboCup server IP
 * @param server_port The RoboCup server port
 * @param team_name The Team Name that is to be used
+* @param hdl_index Will be removed next sprint
 * @pre The UDP control block should be initialized
 * @throw If a socket cannot be created, an assertion is thrown
 * @throw If the binding of the remote port is unsuccessful, an assertion is thrown
@@ -299,7 +300,8 @@ void UDP_client::UDP_open_socket    /* Open UDP Socket              */
     (
     string              server_ip,  /* server IP                    */
     unsigned int        server_port,/* server port                  */
-    string              team_name   /* team name                    */
+    string              team_name,  /* team name                    */
+    unsigned int        hdl_idx     /* handle index                 */
     )
 {
 /*----------------------------------------------------------
