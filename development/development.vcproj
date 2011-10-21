@@ -214,7 +214,7 @@
 				Name="Demo"
 				>
 				<File
-					RelativePath="..\demo.hpp"
+					RelativePath="..\demo.cpp"
 					>
 				</File>
 			</Filter>
@@ -272,7 +272,7 @@
 				Name="Demo"
 				>
 				<File
-					RelativePath="..\demo.cpp"
+					RelativePath="..\demo.hpp"
 					>
 				</File>
 			</Filter>
