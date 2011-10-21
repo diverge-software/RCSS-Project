@@ -87,6 +87,7 @@ while( true )
     {
     if( _kbhit() )
         {
+        udp_client[ 0 ].UDP_close_socket();
         break;
         }
     }

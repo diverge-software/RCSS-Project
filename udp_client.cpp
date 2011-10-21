@@ -142,6 +142,60 @@ this->m_client_cb.wt_thrd_alive = FALSE;
 }   /* UDP_client() */
 
 
+/** Close the UDP socket
+* @param None
+* @pre None
+* @post If the UDP socket was opened the socket will be closed.  The
+* transmit, receive, and write threads signal termination and the
+* debug log is closed.  Finally the Winsock API DLL is closed
+*/
+
+void UDP_client::UDP_close_socket   /* Close UDP Socket             */
+    ( void )
+{
+/*----------------------------------------------------------
+Close open UDP socket
+----------------------------------------------------------*/
+if( this->m_client_cb.socket_open )
+    {
+    this->m_client_cb.socket_open = FALSE;
+    closesocket( this->m_client_cb.socket );
+    }
+
+/*----------------------------------------------------------
+Terminate all running threads
+----------------------------------------------------------*/
+if( this->m_client_cb.rx_thrd_alive )
+    {
+    this->m_client_cb.stop_rx_thrd = TRUE;
+    }
+
+if( this->m_client_cb.tx_thrd_alive )
+    {
+    this->m_client_cb.stop_tx_thrd = TRUE;
+    }
+
+if( this->m_client_cb.wt_thrd_alive )
+    {
+    this->m_client_cb.stop_wt_thrd = TRUE;
+    }
+
+/*----------------------------------------------------------
+Close debug log file
+----------------------------------------------------------*/
+if( this->m_client_cb.dbg_log.is_open() )
+    {
+    this->m_client_cb.dbg_log.close();
+    }
+
+/*----------------------------------------------------------
+Close Winsock DLL
+----------------------------------------------------------*/
+WSACleanup();
+
+}   /* UDP_close_socket() */
+
+
 /** Disable write debug log to file
 * @param None
 * @pre None
@@ -174,6 +228,8 @@ if( this->m_client_cb.dbg_log.is_open() )
 /** Enable write debug log to file
 * @param filename The filename of the debug log
 * @pre The filename given should not already be in use
+* @throw If the file cannot be opened, an assertion is thrown
+* @throw If the write thread cannot be created, an assertion is thrown
 * @post The debug log file is opened and the write thread is 
 * started
 */
@@ -227,22 +283,23 @@ if( this->m_client_cb.h_wt_thrd == NULL )
 }   /* UDP_dbg_log_enbl() */
 
 
-/*********************************************************************
-*
-*   PROCEDURE NAME:
-*       UDP_open_socket - Open UDP Socket
-*
-*   DESCRIPTION:
-*       Open UDP socket
-*
-*********************************************************************/
+/** Open a UDP socket
+* @param server_ip The RoboCup server IP
+* @param server_port The RoboCup server port
+* @param team_name The Team Name that is to be used
+* @pre The UDP control block should be initialized
+* @throw If a socket cannot be created, an assertion is thrown
+* @throw If the binding of the remote port is unsuccessful, an assertion is thrown
+* @throw If the receive thread cannot be created, an assertion is thrown
+* @throw If the transmit thread cannot be created, an assertion is thrown
+* @post The transmit and receive threads are started and processing begins for each client
+*/
 
 void UDP_client::UDP_open_socket    /* Open UDP Socket              */
     (
     string              server_ip,  /* server IP                    */
     unsigned int        server_port,/* server port                  */
-    string              team_name,  /* team name                    */
-    unsigned int        hdl_idx     /* handle index                 */
+    string              team_name   /* team name                    */
     )
 {
 /*----------------------------------------------------------
@@ -405,20 +462,15 @@ this->m_client_cb.socket_open = TRUE;
 }   /* UDP_open_socket() */
 
 
-/*********************************************************************
-*
-*   PROCEDURE NAME:
-*       udp_completion_routine - UDP Completion Routine
-*
-*   DESCRIPTION:
-*       Completion routine that is called once a complete UDP packet
-*       has been received.  This routine will also handle the parsing
-*       and decision making of the received packet
-*
-*   Note:
-*       All Windows CALLBACK's are required to be static
-*
-*********************************************************************/
+/** UDP Completion Routine
+* @param err_no Error number from calling function
+* @param bytes_xfer Number of bytes transfered
+* @param overlapped The overlapped structure which handles asynchronous I/O
+* @param flags Flags from calling function
+* @pre All Windows CALLBACK's are required to be static
+* @throw If the packet cannot be identified, an Assert is thrown
+* @post Called when a packet is received.  Parses received UDP packet and passes it to the Decision Processing
+*/
 
 void CALLBACK UDP_client::udp_completion_routine
                                     /* UDP completion routine       */
@@ -449,66 +501,70 @@ Note: Parsing and all the decision need to happen in this
       thread.  Each client will have a unique thread to
       handle it's own processing.
 ----------------------------------------------------------*/
-if( udp_client_ptr->m_player.parseBuffer( udp_client_ptr->m_client_cb.buffer ) )
-	{
-    /*------------------------------------------------------
-    Enter the critical section to ensure threads will not
-    attempt to concurrently access the same data 
-    ------------------------------------------------------*/
-    EnterCriticalSection( &udp_client_ptr->m_client_cb.rx_crit_sec );
-
-    /*------------------------------------------------------
-    Send the parsed data to the debug log string stream
-    to be written when the write thread is available.  The
-    string stream has low overhead, and is considerably
-    faster to write than writing to a file.  This ensures
-    that a packet will not be missed from the slow access
-    time of a hard disk
-    ------------------------------------------------------*/
-    udp_client_ptr->m_client_cb.dbg_log_ss << "##################################" << endl;
-    udp_client_ptr->m_client_cb.dbg_log_ss << "##################################" << endl;
-    udp_client_ptr->m_client_cb.dbg_log_ss << "########### MESSAGE ##############" << endl;
-    udp_client_ptr->m_client_cb.dbg_log_ss << "##################################" << endl;
-    udp_client_ptr->m_client_cb.dbg_log_ss << "##################################" << endl;
-    udp_client_ptr->m_client_cb.dbg_log_ss << "Message: " << udp_client_ptr->m_client_cb.buffer << endl;
-
-    //udp_client_ptr->m_player.printNewestVisualHash( udp_client_ptr->m_client_cb.dbg_log_ss );
-	//this->m_player.printNewestVisiblePlayersList( this->udp_client_cb.dbg_log );
-    //this->m_player.printNewestAuralStruct( this->udp_client_cb.dbg_log );
-    //this->m_player.printNewestSenseBodyStruct( this->udp_client_cb.dbg_log );
-    //this->m_player.printServerHash( this->udp_client_cb.dbg_log );
-    //this->m_player.printPlayerTypesHash( this->udp_client_cb.dbg_log );
-    //this->m_player.printPlayerParamHash( this->udp_client_cb.dbg_log );
-
-    /*------------------------------------------------------
-    Todo: When the Decision_Processing() is implemented, 
-    this will be modified to return a queue.  The queue will
-    be overwritten each time, so the server will only send 
-    the most recent commands.  This will ensure the command
-    being sent is based on the most recent data
-    ------------------------------------------------------*/
-    char* demoBuffer = udp_client_ptr->m_client_cb.buffer;
-	tx_str = makeThemMove( udp_client_ptr->m_client_cb.hdl_idx, demoBuffer );
-
-	if( !tx_str.empty() )
+if( udp_client_ptr->m_client_cb.socket_open )
+    {
+    if( udp_client_ptr->m_player.parseBuffer( udp_client_ptr->m_client_cb.buffer ) )
 	    {
-        udp_client_ptr->udp_send( tx_str );
+        /*--------------------------------------------------
+        Enter the critical section to ensure threads will 
+        not attempt to concurrently access the same data 
+        --------------------------------------------------*/
+        EnterCriticalSection( &udp_client_ptr->m_client_cb.rx_crit_sec );
+
+        /*--------------------------------------------------
+        Send the parsed data to the debug log string stream
+        to be written when the write thread is available.  
+        The string stream has low overhead, and is 
+        considerably faster to write than writing to a file.  
+        This ensures that a packet will not be missed from 
+        the slow access time of a hard disk
+        --------------------------------------------------*/
+        udp_client_ptr->m_client_cb.dbg_log_ss << "##################################" << endl;
+        udp_client_ptr->m_client_cb.dbg_log_ss << "##################################" << endl;
+        udp_client_ptr->m_client_cb.dbg_log_ss << "########### MESSAGE ##############" << endl;
+        udp_client_ptr->m_client_cb.dbg_log_ss << "##################################" << endl;
+        udp_client_ptr->m_client_cb.dbg_log_ss << "##################################" << endl;
+        udp_client_ptr->m_client_cb.dbg_log_ss << "Message: " << udp_client_ptr->m_client_cb.buffer << endl;
+
+        //udp_client_ptr->m_player.printNewestVisualHash( udp_client_ptr->m_client_cb.dbg_log_ss );
+	    //this->m_player.printNewestVisiblePlayersList( this->udp_client_cb.dbg_log );
+        //this->m_player.printNewestAuralStruct( this->udp_client_cb.dbg_log );
+        //this->m_player.printNewestSenseBodyStruct( this->udp_client_cb.dbg_log );
+        //this->m_player.printServerHash( this->udp_client_cb.dbg_log );
+        //this->m_player.printPlayerTypesHash( this->udp_client_cb.dbg_log );
+        //this->m_player.printPlayerParamHash( this->udp_client_cb.dbg_log );
+
+        /*--------------------------------------------------
+        Todo: When the Decision_Processing() is implemented, 
+        this will be modified to return a queue.  The queue 
+        will be overwritten each time, so the server will 
+        only send  the most recent commands.  This will 
+        ensure the command being sent is based on the most
+        recent data
+        --------------------------------------------------*/
+        char* demoBuffer = udp_client_ptr->m_client_cb.buffer;
+	    tx_str = makeThemMove( udp_client_ptr->m_client_cb.hdl_idx, demoBuffer );
+
+	    if( !tx_str.empty() )
+	        {
+            udp_client_ptr->udp_send( tx_str );
+	        }
+
+        /*--------------------------------------------------
+        Leave the critical section
+        --------------------------------------------------*/
+        LeaveCriticalSection( &udp_client_ptr->m_client_cb.rx_crit_sec );
 	    }
 
-    /*------------------------------------------------------
-    Leave the critical section
-    ------------------------------------------------------*/
-    LeaveCriticalSection( &udp_client_ptr->m_client_cb.rx_crit_sec );
-	}
-
-/*----------------------------------------------------------
-Parsing of the received message failed
-----------------------------------------------------------*/
-else
-	{
-	cout << "Message: " << udp_client_ptr->m_client_cb.buffer << endl;
-	alwaysAssert();
-	}
+    /*----------------------------------------------------------
+    Parsing of the received message failed
+    ----------------------------------------------------------*/
+    else
+	    {
+	    cout << "Message: " << udp_client_ptr->m_client_cb.buffer << endl;
+	    alwaysAssert();
+	    }
+    }
 
 /*----------------------------------------------------------
 Clear the asynchronous I/O buffer to ensure no stall data 
@@ -519,15 +575,13 @@ memset( &udp_client_ptr->m_client_cb.buffer, 0x00, sizeof( udp_client_ptr->m_cli
 }   /* udp_completion_routine() */
 
 
-/*********************************************************************
-*
-*   PROCEDURE NAME:
-*       udp_receive - UDP Receive Processing
-*
-*   DESCRIPTION:
-*       Receive packet over UDP socket 
-*
-*********************************************************************/
+/** UDP Receive Processing
+* @param None
+* @pre Socket should be open and initialized
+* @throw If WSARecvFrom() returns an unexpected error, and assertion is thrown
+* @post Thread sleeps until a packet is received using the overlapped structure.  Once received
+* the completion routine is executed
+*/
 
 void UDP_client::udp_receive	    /* UDP receive processing       */
 	( void )
@@ -594,10 +648,13 @@ if( err_no == SOCKET_ERROR )
     {
     err_no = WSAGetLastError();
 
-    if( WSAGetLastError() != WSA_IO_PENDING )
+    if( this->m_client_cb.socket_open )
         {
-        process_wsa_err();
-        alwaysAssert();
+        if( WSAGetLastError() != WSA_IO_PENDING )
+            {
+            process_wsa_err();
+            alwaysAssert();
+            }
         }
     }
 
@@ -609,20 +666,12 @@ LeaveCriticalSection( &this->m_client_cb.rx_crit_sec );
 }	/* udp_receive() */
 
 
-/*********************************************************************
-*
-*   PROCEDURE NAME:
-*       udp_receive_thread - Receive Processing Thread
-*
-*   DESCRIPTION:
-*       Thread to handle UDP receive data
-*
-*   Note:
-*       This function, called by CreateThread(), is required to be
-*       static.  This function calls a non-static function which is
-*       specific to each client
-*
-*********************************************************************/
+/** UDP Receive Processing
+* @param udp_client Pointer To UDP Client Object
+* @pre Required to be static
+* @post Calls the non-static function udp_receive() and sleeps until
+* a UDP packet is received
+*/
 
 DWORD WINAPI UDP_client::udp_receive_thread
                                     /* receive processing thread    */
@@ -672,16 +721,11 @@ return( 0 );
 }   /* udp_receive_thread() */
 
 
-/*********************************************************************
-*
-*   PROCEDURE NAME:
-*       udp_send - Send UDP Data
-*
-*   DESCRIPTION:
-*       Send UDP data when socket is available
-*
-*********************************************************************/
-
+/** Send UDP Data
+* @param tx_str String To Transmit
+* @pre Socket must be open
+* @post Queues the string to be sent at the next allowable time
+*/
 void UDP_client::udp_send	        /* UDP send data                */
 	( 
     string              tx_str      /* transmit string              */
@@ -710,15 +754,12 @@ LeaveCriticalSection( &this->m_client_cb.tx_crit_sec );
 }	/* udp_send() */
 
 
-/*********************************************************************
-*
-*   PROCEDURE NAME:
-*       udp_transmit - UDP Transmit Processing
-*
-*   DESCRIPTION:
-*       Transmit string over UDP socket
-*
-*********************************************************************/
+/** UDP Transmit Processing
+* @param None
+* @pre Socket must be open
+* @throw If not bytes are transmitted, an assertion is thrown
+* @post Transfers the queue of strings over the UDP socket
+*/
 
 void UDP_client::udp_transmit       /* UDP transmit processing		*/
 	( void )
@@ -772,20 +813,12 @@ LeaveCriticalSection( &this->m_client_cb.tx_crit_sec );
 }	/* udp_transmit() */
 
 
-/*********************************************************************
-*
-*   PROCEDURE NAME:
-*       udp_transmit_thread - Transmit Processing Thread
-*
-*   DESCRIPTION:
-*       Thread to handle UDP transmit data
-*
-*   Note:
-*       This function, called by CreateThread(), is required to be
-*       static.  This function calls a non-static function which is
-*       specific to each client
-*
-*********************************************************************/
+/** Transmit Processing Thread
+* @param udp_client Pointer To UDP Client Object
+* @pre Required to be static
+* @post Calls the non-static function udp_transmit() and sleeps until
+* a 100ms has elapsed
+*/
 
 DWORD WINAPI UDP_client::udp_transmit_thread
                                     /* transmit processing thread   */
@@ -833,15 +866,11 @@ return( 0 );
 }   /* udp_transmit_thread() */
 
 
-/*********************************************************************
-*
-*   PROCEDURE NAME:
-*       udp_write - UDP Write Processing
-*
-*   DESCRIPTION:
-*       Write to debug log from string stream data
-*
-*********************************************************************/
+/** UDP Write Processing
+* @param None
+* @pre The debug log should be open
+* @post Writes to the debug lof from the string stream data
+*/
 
 void UDP_client::udp_write          /* UDP write processing		    */
 	( void )
@@ -873,22 +902,12 @@ LeaveCriticalSection( &this->m_client_cb.rx_crit_sec );
 }	/* udp_write() */
 
 
-/*********************************************************************
-*
-*   PROCEDURE NAME:
-*       udp_write_thread - Write Processing Thread
-*
-*   DESCRIPTION:
-*       Thread to handle writing the debug log to a file. This 
-*       process takes several milliseconds to complete, therefore
-*       this has to be a separate thread to prevent missed packets
-*
-*   Note:
-*       This function, called by CreateThread(), is required to be
-*       static. This function calls a non-static function which is
-*       specific to each client
-*
-*********************************************************************/
+/** Write Processing Thread
+* @param udp_client Pointer To UDP Client Object
+* @pre Required to be static
+* @post Calls the non-static function udp_write() and sleeps until
+* a 50ms has elapsed
+*/
 
 DWORD WINAPI UDP_client::udp_write_thread
                                     /* write processing thread      */
@@ -936,15 +955,11 @@ return( 0 );
 }   /* udp_write_thread() */
 
 
-/*********************************************************************
-*
-*   PROCEDURE NAME:
-*       process_wsa_err - Process WSA Error
-*
-*   DESCRIPTION:
-*       Process Winsock API error
-*
-*********************************************************************/
+/** Process WSA Error
+* @param None
+* @pre None
+* @post Outputs to standard out the Winsock API error message
+*/
 
 static void process_wsa_err         /* process WSA error            */
     ( void )

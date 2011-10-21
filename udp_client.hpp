@@ -87,6 +87,7 @@ class UDP_client
         ~UDP_client( void );
         UDP_client( void );
 
+        void UDP_close_socket( void );
         void UDP_dbg_log_dsbl( void );
         void UDP_dbg_log_enbl( string filename );
         void UDP_open_socket( string server_ip, unsigned int server_port, string team_name, unsigned int hdl_idx );
