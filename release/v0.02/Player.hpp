@@ -28,13 +28,13 @@ using namespace Brain;
 class Player
 {
 	public:
-		/* Default constructor. Initializes invalid values for aural and sense body queues.
+		/** Default constructor. Initializes invalid values for aural and sense body queues.
 		* Also initializes stationary flag positions.
 		* @pre None.
 		* @post This object is ready to receive server messages and parse/store their data.
 		*/
 		Player();
-		/* Parses a buffer of information from the soccer server.
+		/** Parses a buffer of information from the soccer server.
 		* @param buffer Any S-expression string sent from the soccer server.
 		* @pre None.
 		* @post The relevant data will be stored in the private members of this object based
@@ -42,50 +42,50 @@ class Player
 		*/
 		bool parseBuffer( const string buffer );
 
-		/* Prints the most recently stored visual information hash to the specified output stream.
+		/** Prints the most recently stored visual information hash to the specified output stream.
 		* @param os The output stream to write to.
 		* @pre None.
 		* @post The contents of the hash will be printed to the output stream.
 		*/
 		void printNewestVisualHash( ostream & os ) const;
-		/* Prints the most recently stored list of visible players to the specified output stream.
+		/** Prints the most recently stored list of visible players to the specified output stream.
 		* @param os The output stream to write to.
 		* @pre None.
 		* @post The contents of the visible player vector will be printed to the output stream.
 		*/
 		void printNewestVisiblePlayersList( ostream & os ) const;
-		/* Prints the most recently stored aural information struct to the specified output stream.
+		/** Prints the most recently stored aural information struct to the specified output stream.
 		* @param os The output stream to write to.
 		* @pre None.
 		* @post The contents of the aural struct will be printed to the output stream.
 		*/
 		void printNewestAuralStruct( ostream & os ) const;
-		/* Prints the most recently stored sense body information struct to the specified output stream.
+		/** Prints the most recently stored sense body information struct to the specified output stream.
 		* @param os The output stream to write to.
 		* @pre None.
 		* @post The contents of the sense body struct will be printed to the output stream.
 		*/
 		void printNewestSenseBodyStruct( ostream & os ) const;
-		/* Prints the contents of the server information hash to the specified output stream.
+		/** Prints the contents of the server information hash to the specified output stream.
 		* @param os The output stream to write to.
 		* @pre None.
 		* @post The contents of the hash will be printed to the output stream.
 		*/
 		void printServerHash( ostream & os ) const;
-		/* Prints the contents of the player types hash to the specified output stream.
+		/** Prints the contents of the player types hash to the specified output stream.
 		* @param os The output stream to write to.
 		* @pre None.
 		* @post The contents of the hash will be printed to the output stream.
 		*/
 		void printPlayerTypesHash( ostream & os ) const;
-		/* Prints the contents of the palyer parameter hash to the specified output stream.
+		/** Prints the contents of the palyer parameter hash to the specified output stream.
 		* @param os The output stream to write to.
 		* @pre None.
 		* @post The contents of the hash will be printed to the output stream.
 		*/
 		void printPlayerParamHash( ostream & os ) const;
 
-		/* Retrieves the position of the object from the visual data, estimating its position
+		/** Retrieves the position of the object from the visual data, estimating its position
 		* linearly based on past data if necessary.
 		* @param objName Name of the object under consideration. E.g. "b" for ball.
 		* @param currentTimestamp Timestamp of latest data, used for linear estimation.
@@ -95,7 +95,7 @@ class Player
 		* float values if the object cannot be found and its position cannot be estimated.
 		*/
 		Vector2f getObjectPosition( string objName, int currentTimestamp ) const;
-		/* Sets team name
+		/** Sets team name
 		 * @param teamname name of team
 		 * @pre None
 		 * @post Private member teamName is set to appropriate team name	
