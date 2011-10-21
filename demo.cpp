@@ -104,7 +104,9 @@ string makePlayersRunAroundOnField(unsigned int playerNum, char* buffer)
 
 string makeThemMove(unsigned int playerNum, char* buffer)
 {
-	string tx_str="";
+    string              tx_str;
+
+    tx_str.clear();
 
 	if(strstr(buffer, "(see 0") != NULL)
 	{
@@ -115,8 +117,5 @@ string makeThemMove(unsigned int playerNum, char* buffer)
 		tx_str = makePlayersRunAroundOnField( playerNum, buffer );
 	}
 
-	if( !tx_str.empty() )
-	{
-		return ( tx_str );
-	}
+	return( tx_str );
 }
