@@ -22,7 +22,8 @@ using namespace std;
                           LITERAL CONSTANTS
 --------------------------------------------------------------------*/
 
-#define TEAM_NAME ( "team1" )       /* team name                    */
+#define CLIENT_CNT ( 11 )           /* client count                 */
+#define TEAM_NAME  ( "team1" )      /* team name                    */
 
 /*--------------------------------------------------------------------
                                 TYPES
@@ -68,14 +69,14 @@ Local Variables
 ----------------------------------------------------------*/
 int                     i;
 ostringstream           tmp_str;
-UDP_client              udp_client[ 11 ];
+UDP_client              udp_client[ CLIENT_CNT ];
 
 /*----------------------------------------------------------
 Initialization
 
 Todo: Add input parameters for IP, Port, and Teamname
 ----------------------------------------------------------*/
-for( i = 0; i < 1; i++ )
+for( i = 0; i < CLIENT_CNT; i++ )
     {
     tmp_str.str( "" );
     tmp_str << "dbg_log_" << i << ".txt";
@@ -87,7 +88,11 @@ while( true )
     {
     if( _kbhit() )
         {
-        udp_client[ 0 ].UDP_close_socket();
+        for( i = 0; i < CLIENT_CNT; i++ )
+            {
+            udp_client[ i ].UDP_close_socket();
+            }
+        
         break;
         }
     }
