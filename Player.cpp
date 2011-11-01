@@ -510,3 +510,19 @@ void Player::setTeamName(string teamname)
 {
 	teamName = teamname;
 }
+
+void Player::setPlayerRole( string role )
+{
+	if( role == "goalie" ||
+		role == "defender" ||
+		role == "midfielder" ||
+		role == "forward" )
+	{
+		playerRole = role;
+	}
+	else
+	{
+		cout << "Player role cannot be: " << role << endl;
+		alwaysAssert();
+	}
+}

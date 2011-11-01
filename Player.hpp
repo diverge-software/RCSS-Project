@@ -95,12 +95,18 @@ class Player
 		* float values if the object cannot be found and its position cannot be estimated.
 		*/
 		Vector2f getObjectPosition( string objName, int currentTimestamp ) const;
-		/** Sets team name
+		/** Sets team name.
 		 * @param teamname name of team
 		 * @pre None
 		 * @post Private member teamName is set to appropriate team name	
 		 */
 		void setTeamName(string teamname);
+		/** Set the player's role, or position, on the field.
+		 * @param role Can be either "goalie", "defender", "midfielder", or "forward".
+		 * @pre A valid string is passed in.
+		 * @post The player's type is set.
+		 */
+		void setPlayerRole( string role );
 
 	private:	
 		// Sensory data passed from the server
@@ -115,6 +121,8 @@ class Player
 		int uniformNumber;
 		char side;    // Which side you're playing from, left or right
 		string teamName;
+		string playerRole;
+
 		unordered_map<string, PlayerTypeStruct>   mPlayerTypes[NUM_PLAYER_TYPES];
 		unordered_map<string, ServerStruct>       mServerInfo;
 		unordered_map<string, PlayerParamStruct>  mPlayerParams;
