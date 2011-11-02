@@ -107,6 +107,10 @@ class Player
 		 * @post The player's type is set.
 		 */
 		void setPlayerRole( string role );
+		/** Get the player's uniform number.
+		 * @return Integer uniform number.
+		 */
+		int getUniformNumber() const;
 
 	private:	
 		// Sensory data passed from the server

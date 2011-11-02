@@ -532,3 +532,8 @@ void Player::setPlayerRole( string role )
 		alwaysAssert();
 	}
 }
+
+int Player::getUniformNumber() const
+{
+	return uniformNumber;
+}
