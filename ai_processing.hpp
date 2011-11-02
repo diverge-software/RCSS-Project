@@ -14,8 +14,21 @@
 --------------------------------------------------------------------*/
 
 #include "udp_client.hpp"
+#include <iostream>
+#include <string>
+#include <vector>
+#include <unordered_map>
+#include <string.h>
+#include <cstdlib>
+#include <cmath>
+#include <deque>
 
+#include "Vector2f.hpp"
+#include "Parser.hpp"
+
+using namespace Parser;
 using namespace std;
+using std::tr1::unordered_map;
 
 /*--------------------------------------------------------------------
                           LITERAL CONSTANTS
@@ -43,7 +56,7 @@ typedef enum                        /* change view quality type     */
 --------------------------------------------------------------------*/
 
 namespace AI_Processing
-    {
+{
     void Decision_Processing( void );
 
     string Catch_Cmd( double direction );
@@ -55,8 +68,35 @@ namespace AI_Processing
     string Score_Cmd( void );
     string Sense_Body_Cmd( void );
     string Turn_Cmd( double direction );
-    string Turn_Neck_Cmd( double direction );    
-    };
+    string Turn_Neck_Cmd( double direction ); 
+
+	/** Determines for client-player if a particular teammate can be passed to or if an opponent is in range to intercept
+	 * @param teammate A struct containing all visible information about teammate in question
+	 * @param opponnents A vector containing structs of an opponents visual information
+	 * @pre None
+	 * @post Client-Player knows who it can or cannot pass to a particular player
+	 * @return True if teammate is passable (open), False if teammate is not
+	 */
+	bool isTeammateOpenForPass(VisiblePlayer teammate, vector<VisiblePlayer> opponents);
+
+	/** Determines future position of a player given its current position and velocity 
+     * @param cPos
+     * @param cVec
+	 * @pre Non
+	 * @post Client-Player knows future of position a player
+	 * @return returns future position as a vector
+	 */
+	Vector2f getFuturePlayerPos(Vector2f cPos, Vector2f cVec, double tInterval);
+	
+	/** Determines future position of a player given its current position and velocity 
+     * @param cPos
+     * @param cVec
+	 * @pre Non
+	 * @post Client-Player knows future of position a player
+	 * @return returns future position as a vector
+	 */
+	Vector2f getFutureBallPos(Vector2f cPos, Vector2f cVec, double tInterval, double ballDecay);   
+};
 
 /*--------------------------------------------------------------------
                             PROJECT INCLUDES
@@ -77,5 +117,7 @@ namespace AI_Processing
 /*--------------------------------------------------------------------
                                PROCEDURES
 --------------------------------------------------------------------*/
+
+	
 
 #endif /* _AI_PROCESSING_HPP */

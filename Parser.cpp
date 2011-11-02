@@ -557,95 +557,94 @@ void Parser::convertToAbsoluteCoordsAndVelocity( unordered_map<string, VisualDat
 	bool ballVisible = false;
 	string flags[3]; //Contains keys to the three closest flags used for triangulation.
 	int index = 0;
-
+	
 	//speed is parsed as speed[0] = the magnitude of the client-player's velocity
 	//	and speed[1] = the client-player's location angle relative to the field's x-axis
-	double absoluteSpeedAngle = senseBodyData.speed[1];
+	//double absoluteSpeedAngle = senseBodyData.speed[1];
 	double absoluteSpeedMagnitude = senseBodyData.speed[0];  
-	
-	for(unordered_map<string, VisualData>::const_iterator it = visualHash.begin(); it != visualHash.end(); ++it )
-	{	
-		//Find three closest flags and ball 
-		//NOTE: only need one flat to find absolulute position. Finding three and averaging them
-		//		will make the estimate more accurate
-		if(it->first[0] == 'f' && !senseBodyData.absCalculated) //it->first returns key at this iteration 
+	double absAngle = senseBodyData.speed[1];
+	double xAvg = 0;
+	double yAvg = 0;
+
+	if(absoluteSpeedMagnitude != 0)
+	{
+		absAngle = calculateAbsAngle(visualHash, flags);
+		
+	}
+	else
+	{
+		for(unordered_map<string, VisualData>::const_iterator it = visualHash.begin(); it != visualHash.end(); ++it )
 		{	
-			if(index < 3)
-			{
-				flags[index] = it->first;
-				index++; 
-			}
-			else //Compare distances of each flag to find closest flags
-			{
-				//Find flag with largest distance, replace it with it->first if necessary
-				int largesti = 0; //stores index to key associated with largest distance
-				for(int i=0; i<2; i++)
+			//Find three closest flags and ball 
+			//NOTE: only need one flat to find absolulute position. Finding three and averaging them
+			//		will make the estimate more accurate
+			if(it->first[0] == 'f' /*&& !senseBodyData.absCalculated*/) //it->first returns key at this iteration 
+			{	
+				if(index < 3)
 				{
-					if(visualHash[flags[i+1]].distance > visualHash[flags[largesti]].distance)
+					flags[index] = it->first;
+					index++; 
+				}
+				else //Compare distances of each flag to find closest flags
+				{
+					//Find flag with largest distance, replace it with it->first if necessary
+					int largesti = 0; //stores index to key associated with largest distance
+					for(int i=0; i<2; i++)
 					{
-						largesti = i+1;
+						if(visualHash[flags[i+1]].distance > visualHash[flags[largesti]].distance)
+						{
+							largesti = i+1;
+						}
+					}
+					if(visualHash[flags[largesti]].distance > it->second.distance)
+					{
+						flags[largesti] = it->first;
 					}
 				}
-				if(visualHash[flags[largesti]].distance > it->second.distance)
-				{
-					flags[largesti] = it->first;
-				}
-			}
+			}	
 		}
-		//Determine if the ball is visible. 
-		//NOTE: we only care about flags and the ball at this point. 
-		else if(it->first[0] == 'b')
-		{
-			ballVisible = true; 
-		}	
-	}
 	
-	if(!senseBodyData.absCalculated)
-	{
 		//Find absolute client-player location
 		//Takes the average of locations derived from the three flags
-		double xAvg = 0;
-		double yAvg = 0;
-		for(int i=0; i<3; i++)
+		for(int i=0; i<index; i++)
 		{
 			//AbsoluteAngleSum is the sum of the player's angle with respect to the field and 
 			//	the flag's angle with respect to the client-player's
-			double absoluteAngleSum = getAbsoluteAngle(absoluteSpeedAngle, visualHash[flags[i]].direction); 
+			double absoluteAngleSum = getAbsoluteAngleSum(absAngle, visualHash[flags[i]].direction); 
 		
-			xAvg += stationaryFlags[flags[i]][0] - visualHash[flags[i]].distance*(180/PI)*cos((PI/180)*absoluteAngleSum);
-			yAvg += stationaryFlags[flags[i]][1] - visualHash[flags[i]].distance*(180/PI)*sin((PI/180)*absoluteAngleSum); 			
+			xAvg += stationaryFlags[flags[i]][0] - visualHash[flags[i]].distance*cos((PI/180)*absoluteAngleSum);
+			yAvg += stationaryFlags[flags[i]][1] - visualHash[flags[i]].distance*sin((PI/180)*absoluteAngleSum); 			
 		}
 
 		//Assign client-player's location vales to absLocation vector
-		senseBodyData.absLocation[0] = xAvg/3; 
-		senseBodyData.absLocation[1] = yAvg/3;	
-
-		//convert client-player's absolute velocity to a vector
-		senseBodyData.absVelocity[0] = absoluteSpeedMagnitude*(180/PI)*cos((PI/180)*absoluteSpeedAngle);
-		senseBodyData.absVelocity[1] = absoluteSpeedMagnitude*(180/PI)*sin((PI/180)*absoluteSpeedAngle);
-	
-		senseBodyData.absCalculated = true;
+		senseBodyData.absLocation[0] = xAvg/(index); 
+		senseBodyData.absLocation[1] = yAvg/(index);	
 	}
 
+	//convert client-player's absolute velocity to a vector
+	senseBodyData.absVelocity[0] = absoluteSpeedMagnitude*cos((PI/180)*absAngle);
+	senseBodyData.absVelocity[1] = absoluteSpeedMagnitude*sin((PI/180)*absAngle);
+	
 	//find absolute ball location
-	if(ballVisible)
+	unordered_map<string, VisualData>::const_iterator findIter = visualHash.find( "b" );
+	if(findIter != visualHash.end())
 	{
 		//calculate absolute position
-		double absoluteAngle = getAbsoluteAngle(absoluteSpeedAngle, visualHash["b"].direction);
+		double absoluteAngle = getAbsoluteAngleSum(absAngle, visualHash["b"].direction);
 		
-		visualHash["b"].absLocation[0] = senseBodyData.absLocation[0] + visualHash["b"].distance*(180/PI)*cos((PI/180)*absoluteAngle);
-		visualHash["b"].absLocation[1] = senseBodyData.absLocation[1] + visualHash["b"].distance*(180/PI)*sin((PI/180)*absoluteAngle);
+		visualHash["b"].absLocation[0] = senseBodyData.absLocation[0] + visualHash["b"].distance*cos((PI/180)*absoluteAngle);
+		visualHash["b"].absLocation[1] = senseBodyData.absLocation[1] + visualHash["b"].distance*sin((PI/180)*absoluteAngle);
 	
 		//check if ball is close enough to have observe distance change and direction change
 		if( (visualHash["b"].distanceChange != INVALID_FLOAT_VALUE) 
 			 && (visualHash["b"].directionChange != INVALID_DIRECTION) )
 		{
 			//convert ball's velocity to abslolute vector velocity
-			double absVecAngle = getAbsoluteAngle( absoluteAngle, visualHash["b"].directionChange );
+			double absVecAngle = getAbsoluteAngleSum( absoluteAngle, visualHash["b"].directionChange );
 
-			visualHash["b"].absVelocity[0] = visualHash["b"].distanceChange*(180/PI)*cos((PI/180)*absVecAngle)
+			visualHash["b"].absVelocity[0] = visualHash["b"].distanceChange*cos((PI/180)*absVecAngle)
 											 - senseBodyData.absVelocity[0];
-			visualHash["b"].absVelocity[1] = visualHash["b"].distanceChange*(180/PI)*sin((PI/180)*absVecAngle) 
+			visualHash["b"].absVelocity[1] = visualHash["b"].distanceChange*sin((PI/180)*absVecAngle) 
 											 - senseBodyData.absVelocity[1];
 		}
 		else //invalid
@@ -658,30 +657,178 @@ void Parser::convertToAbsoluteCoordsAndVelocity( unordered_map<string, VisualDat
 	for(unsigned int i=0; i<visiblePlayers.size(); i++)
 	{
 		//calculate absolute position
-		double absoluteAngle = getAbsoluteAngle(absoluteSpeedAngle, visiblePlayers[i].visualData.direction);
+		double absoluteAngle = getAbsoluteAngleSum(absAngle, visiblePlayers[i].visualData.direction);
 	
-		visiblePlayers[i].visualData.absLocation[0] = senseBodyData.absLocation[0] + visiblePlayers[i].visualData.distance*(180/PI)*cos((PI/180)*absoluteAngle);
-		visiblePlayers[i].visualData.absLocation[1] = senseBodyData.absLocation[1] + visiblePlayers[i].visualData.distance*(180/PI)*sin((PI/180)*absoluteAngle);
+		visiblePlayers[i].visualData.absLocation[0] = senseBodyData.absLocation[0] + visiblePlayers[i].visualData.distance*cos((PI/180)*absoluteAngle);
+		visiblePlayers[i].visualData.absLocation[1] = senseBodyData.absLocation[1] + visiblePlayers[i].visualData.distance*sin((PI/180)*absoluteAngle);
 	
 		//convert each other player's velocity to absolute vector velocity
 		if( (visiblePlayers[i].visualData.distanceChange != INVALID_FLOAT_VALUE) 
 			 && (visiblePlayers[i].visualData.directionChange != INVALID_DIRECTION) )
 		{ 
-			double absVecAngle = getAbsoluteAngle( absoluteAngle, visiblePlayers[i].visualData.distanceChange );
+			double absVecAngle = getAbsoluteAngleSum( absoluteAngle, visiblePlayers[i].visualData.distanceChange );
 
-			visiblePlayers[i].visualData.absVelocity[0] = visiblePlayers[i].visualData.distanceChange*(180/PI)
-														  * cos((PI/180)*absVecAngle - senseBodyData.absVelocity[0]);
-			visiblePlayers[i].visualData.absVelocity[1] = visiblePlayers[i].visualData.distanceChange*(180/PI)
-														  * sin((PI/180)*absVecAngle - senseBodyData.absVelocity[1]);
+			visiblePlayers[i].visualData.absVelocity[0] = visiblePlayers[i].visualData.distanceChange*
+														  cos((PI/180)*absVecAngle - senseBodyData.absVelocity[0]);
+			visiblePlayers[i].visualData.absVelocity[1] = visiblePlayers[i].visualData.distanceChange*
+														  sin((PI/180)*absVecAngle - senseBodyData.absVelocity[1]);
 		}
-		else
+		else //set values to invalid
 		{
-			visualHash["b"].absVelocity = Vector2f(INVALID_FLOAT_VALUE, INVALID_FLOAT_VALUE);
+			visiblePlayers[i].visualData.absVelocity = Vector2f(INVALID_FLOAT_VALUE, INVALID_FLOAT_VALUE);
 		}		
 	}
 }
 
-double Parser::getAbsoluteAngle(double absAngle, double refAngle)
+double Parser::calculateAbsAngle(unordered_map<string, VisualData> &visualHash, string flags[])
+{
+	//hold key of closest flags of each type
+	string tFlags[2];
+	string bFlags[2];
+	string rFlags[2];
+	string lFlags[2];
+	string pFlags[2];
+	string gFlags[2];
+
+	int countt = 0; 
+	int countb = 0;
+	int countr = 0;
+	int countl = 0;
+	int countp = 0;
+	int countg = 0;
+	
+
+	//find two closest flags on a line
+	for(unordered_map<string, VisualData>::const_iterator it = visualHash.begin(); it != visualHash.end(); ++it )
+	{
+		if(it->first[2] == 't')
+		{
+			if(countt < 2)
+			{
+				tFlags[countt] = it->first;
+				countt++;
+			}
+			else 
+			{
+				if(it->second.distance < visualHash[tFlags[0]].distance)
+				{
+					tFlags[0] = it->first;
+				}
+				else if(it->second.distance < visualHash[tFlags[1]].distance)
+				{
+					tFlags[1] = it->first;
+				}
+				
+				
+			}
+		}
+		else if(it->first[2] == 'b')
+		{
+			if(countt < 2)
+			{
+				bFlags[countt] = it->first;
+				countb++;
+			}
+			else 
+			{
+				if(it->second.distance < visualHash[bFlags[0]].distance)
+				{
+					bFlags[0] = it->first;
+				}
+				else if(it->second.distance < visualHash[bFlags[1]].distance)
+				{
+					bFlags[1] = it->first;
+				}
+			}
+		}
+		else if(it->first[2] == 'r')
+		{
+			if(countt < 2)
+			{
+				rFlags[countt] = it->first;
+				countr++;
+			}
+			else 
+			{
+				if(it->second.distance < visualHash[rFlags[0]].distance)
+				{
+					rFlags[0] = it->first;
+				}
+				else if(it->second.distance < visualHash[rFlags[1]].distance)
+				{
+					rFlags[1] = it->first;
+				}
+			}
+		}
+		else if(it->first[2] == 'l')
+		{
+			if(countt < 2)
+			{
+				lFlags[countt] = it->first;
+				countt++;
+			}
+			else 
+			{
+				if(it->second.distance < visualHash[lFlags[0]].distance)
+				{
+					lFlags[0] = it->first;
+				}
+				else if(it->second.distance < visualHash[lFlags[1]].distance)
+				{
+					lFlags[1] = it->first;
+				}
+			}
+		}
+		else if(it->first[2] == 'p')
+		{
+			if(countp < 2)
+			{
+				pFlags[countt] = it->first;
+				countp++;
+			}
+			else 
+			{
+				if(it->second.distance < visualHash[pFlags[0]].distance)
+				{
+					pFlags[0] = it->first;
+				}
+				else if(it->second.distance < visualHash[pFlags[1]].distance)
+				{
+					pFlags[1] = it->first;
+				}
+			}
+		}
+		else if(it->first[2] == 'g')
+		{
+			if(countg < 2)
+			{
+				gFlags[countt] = it->first;
+				countg++;
+			}
+			else 
+			{
+				if(it->second.distance < visualHash[gFlags[0]].distance)
+				{
+					gFlags[0] = it->first;
+				}
+				else if(it->second.distance < visualHash[gFlags[1]].distance)
+				{
+					gFlags[1] = it->first;
+				}
+			}
+		}
+		else
+		{
+			cout << endl << "Crap. I see no flags!" << endl;
+		}	
+	}
+
+	//Now we need to find which set of flags is closest
+	double fag;
+	return fag;	
+}
+
+double Parser::getAbsoluteAngleSum(double absAngle, double refAngle)
 {
 	double absoluteAngleSum = absAngle + refAngle;
 	if(absoluteAngleSum > 180)
@@ -693,7 +840,8 @@ double Parser::getAbsoluteAngle(double absAngle, double refAngle)
 		absoluteAngleSum += 360;
 	}
 
-	return absoluteAngleSum;
+	//server is retarded
+	return (-1)*absoluteAngleSum;
 }
 
 vector<Parser::VisiblePlayer> Parser::getTeammateIdentities( string teamName, const vector<VisiblePlayer> & visiblePlayers )
@@ -702,7 +850,7 @@ vector<Parser::VisiblePlayer> Parser::getTeammateIdentities( string teamName, co
 
 	for( unsigned int i = 0; i < visiblePlayers.size(); i++ )
 	{
-		if( visiblePlayers[i].teamName != teamName )
+		if( visiblePlayers[i].teamName == teamName )
 		{
 			teammateList.push_back( visiblePlayers[i] );
 		}

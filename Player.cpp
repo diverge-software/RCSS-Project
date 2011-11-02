@@ -65,7 +65,7 @@ Player::Player()
 	mSenseBodyDataQueue.push_back( senseBodyData );
 
 	mStationaryFlags["g l"] = Vector2f( LEFT_LINE_X, 0 );
-	mStationaryFlags["g r"] = Vector2f( RIGHT_LINE_X, 0 );
+	mStationaryFlags["g r"] = Vector2f( RIGHT_LINE_X, 0.0f );
 	mStationaryFlags["f c"] = Vector2f( 0.0f, 0.0f );
 	mStationaryFlags["f c t"] = Vector2f( 0.0f, TOP_LINE_Y );
 	mStationaryFlags["f c b"] = Vector2f( 0.0f, BOTTOM_LINE_Y );
@@ -75,8 +75,10 @@ Player::Player()
 	mStationaryFlags["f r b"] = Vector2f( RIGHT_LINE_X, BOTTOM_LINE_Y );
 	mStationaryFlags["f p l t"] = Vector2f( PENALTY_LEFT, PENALTY_TOP );
 	mStationaryFlags["f p l b"] = Vector2f( PENALTY_LEFT, PENALTY_BOTTOM );
+	mStationaryFlags["f p l c"] = Vector2f( PENALTY_LEFT, 0.0f );
 	mStationaryFlags["f p r t"] = Vector2f( PENALTY_RIGHT, PENALTY_TOP );
 	mStationaryFlags["f p r b"] = Vector2f( PENALTY_RIGHT, PENALTY_BOTTOM );
+	mStationaryFlags["f p r c"] = Vector2f( PENALTY_RIGHT, 0.0f );
 	mStationaryFlags["f g l t"] = Vector2f( LEFT_LINE_X, GOALPOST_TOP_Y );
 	mStationaryFlags["f g l b"] = Vector2f( LEFT_LINE_X, GOALPOST_BOTTOM_Y );
 	mStationaryFlags["f g r t"] = Vector2f( RIGHT_LINE_X, GOALPOST_TOP_Y );
@@ -117,6 +119,10 @@ Player::Player()
 	mStationaryFlags["f r b 10"] = Vector2f( RIGHT_BOUNDARY_X, -10.0f );
 	mStationaryFlags["f r b 20"] = Vector2f( RIGHT_BOUNDARY_X, -20.0f );
 	mStationaryFlags["f r b 30"] = Vector2f( RIGHT_BOUNDARY_X, -30.0f );
+
+	//initialize states
+	servInitialized = false; 
+	kickOffMode = false;
 }
 
 // Decide the buffer type and pass to respective parsing function

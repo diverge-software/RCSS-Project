@@ -256,7 +256,7 @@ namespace Parser
 	 * @post None
 	 * @return Returns double containing absolute angle of object
 	 */
-	double getAbsoluteAngle(double absAngle, double refAngle);
+	double getAbsoluteAngleSum(double absAngle, double refAngle);
 
 	/** Fills vector with visible teammates.
 	 * @param teamName Name of the allied team.
@@ -266,6 +266,7 @@ namespace Parser
 	 * @return Returns a vector that contains teammates.
 	 */
 	vector<VisiblePlayer> getTeammateIdentities( string teamName, const vector<VisiblePlayer> & visiblePlayers );
+
 	/** Fills vector with visible opponents.
 	 * @param teamName Name of the allied team.
 	 * @param visiblePlayers Vector of VisiblePlayers to look in.
@@ -274,6 +275,7 @@ namespace Parser
 	 * @return Returns a vector that contains opponents.
 	 */
 	vector<VisiblePlayer> getOpponentIdentities( string teamName, const vector<VisiblePlayer> & visiblePlayers );
+
 	/** Fills vector with visible, but unidentified, players.
 	 * @param teamName Name of the allied team.
 	 * @param visiblePlayers Vector of VisiblePlayers to look in.
@@ -282,6 +284,14 @@ namespace Parser
 	 * @return Returns a vector that contains unidentified players.
 	 */
 	vector<VisiblePlayer> getUnidentifiedIdentities( string teamName, const vector<VisiblePlayer> & visiblePlayers );
+
+	/** If the client is in motion, calculates it's angle relative to the x-axis
+	 * @param visualHash hash table that holds all visual data
+     * @pre None
+	 * @post None
+	 * @return Returns the absolute angle relatve to the x-axis
+	 */
+	double calculateAbsAngle(unordered_map<string, VisualData> &visualHash, string flags[]);
 }
 
 #endif

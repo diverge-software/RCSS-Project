@@ -127,6 +127,14 @@ class Player
 		unordered_map<string, ServerStruct>       mServerInfo;
 		unordered_map<string, PlayerParamStruct>  mPlayerParams;
 		unordered_map<string, Vector2f>           mStationaryFlags;
+
+		// Game states:
+		bool	servInitialized;
+		bool	kickOffMode;
+		bool	playOn;
+		bool	freeKickFriendly;
+		bool	freeKickOpponent;
+		bool	teamPossessesBall;
 };
 	
 #endif
