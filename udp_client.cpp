@@ -126,18 +126,19 @@ memset( &this->m_client_cb.lcl_intfc, 0x00, sizeof( this->m_client_cb.lcl_intfc 
 memset( &this->m_client_cb.svr_intfc, 0x00, sizeof( this->m_client_cb.svr_intfc ) );
 this->m_client_cb.dbg_log_ss.clear();
 this->m_client_cb.dbg_log_ss.str( "" );
-this->m_client_cb.h_rx_thrd     = NULL;
-this->m_client_cb.h_tx_thrd     = NULL;
-this->m_client_cb.h_wt_thrd     = NULL;
-this->m_client_cb.hdl_idx       = 0;
-this->m_client_cb.rx_thrd_alive = FALSE;
-this->m_client_cb.socket        = INVALID_SOCKET;
-this->m_client_cb.socket_open   = FALSE;
-this->m_client_cb.stop_rx_thrd  = FALSE;
-this->m_client_cb.stop_tx_thrd  = FALSE;
-this->m_client_cb.stop_wt_thrd  = FALSE;
-this->m_client_cb.tx_thrd_alive = FALSE;
-this->m_client_cb.wt_thrd_alive = FALSE;
+this->m_client_cb.h_evnt          = NULL;
+this->m_client_cb.h_rx_thrd       = NULL;
+this->m_client_cb.h_tx_thrd       = NULL;
+this->m_client_cb.h_wt_thrd       = NULL;
+this->m_client_cb.rx_thrd_alive   = FALSE;
+this->m_client_cb.socket          = INVALID_SOCKET;
+this->m_client_cb.socket_open     = FALSE;
+this->m_client_cb.svr_initialized = FALSE;
+this->m_client_cb.stop_rx_thrd    = FALSE;
+this->m_client_cb.stop_tx_thrd    = FALSE;
+this->m_client_cb.stop_wt_thrd    = FALSE;
+this->m_client_cb.tx_thrd_alive   = FALSE;
+this->m_client_cb.wt_thrd_alive   = FALSE;
 
 }   /* UDP_client() */
 
@@ -296,12 +297,11 @@ if( this->m_client_cb.h_wt_thrd == NULL )
 * @post The transmit and receive threads are started and processing begins for each client
 */
 
-void UDP_client::UDP_open_socket    /* Open UDP Socket              */
+boolean UDP_client::UDP_open_socket /* Open UDP Socket              */
     (
     string              server_ip,  /* server IP                    */
     unsigned int        server_port,/* server port                  */
-    string              team_name,  /* team name                    */
-    unsigned int        hdl_idx     /* handle index                 */
+    string              team_name   /* team name                    */
     )
 {
 /*----------------------------------------------------------
@@ -315,6 +315,7 @@ Local Variables
 ----------------------------------------------------------*/
 int						err_no;		/* error number					*/
 string                  filename;   /* filename                     */
+boolean                 ret_val;    /* return value                 */
 ostringstream           tmp_str;    /* temporary string             */
 WSADATA					wsa_data;	/* winsock data					*/
 
@@ -375,7 +376,7 @@ Note: This is required to use the bind() function that
       structure.  The port must be unique
 ----------------------------------------------------------*/
 this->m_client_cb.lcl_intfc.sin_family      = AF_INET;
-this->m_client_cb.lcl_intfc.sin_port        = htons( server_port + hdl_idx + 100 );
+this->m_client_cb.lcl_intfc.sin_port        = htons( 0 );
 this->m_client_cb.lcl_intfc.sin_addr.s_addr = htonl( INADDR_ANY );
 
 /*----------------------------------------------------------
@@ -443,6 +444,21 @@ if( this->m_client_cb.h_tx_thrd == NULL )
     }
 
 /*----------------------------------------------------------
+Create the generic event handle
+----------------------------------------------------------*/
+this->m_client_cb.h_evnt = CreateEvent( NULL, FALSE, FALSE, NULL );
+
+/*----------------------------------------------------------
+Verify the handle was created successfully
+----------------------------------------------------------*/
+if( this->m_client_cb.h_evnt == NULL )
+    {
+    alwaysAssert();
+    }
+
+ResetEvent( this->m_client_cb.h_evnt );
+
+/*----------------------------------------------------------
 Initialize client with team name
 ----------------------------------------------------------*/
 tmp_str.str( "" );
@@ -452,14 +468,26 @@ tmp_str << "(init " << team_name << " (version 15.0))";
 this->udp_send( tmp_str.str() );
 
 /*----------------------------------------------------------
-Set the handle index
-----------------------------------------------------------*/
-this->m_client_cb.hdl_idx = hdl_idx;
-
-/*----------------------------------------------------------
 Set the socket open status
 ----------------------------------------------------------*/
 this->m_client_cb.socket_open = TRUE;
+
+/*----------------------------------------------------------
+Verify that a packet was received and parsed from the server
+within a specified amount of time
+----------------------------------------------------------*/
+if( WaitForSingleObjectEx( this->m_client_cb.h_evnt, SRVR_TIMEOUT, FALSE ) != WAIT_OBJECT_0 )
+    {
+    this->UDP_close_socket();
+
+    ret_val = FALSE;
+    }
+else
+    {
+    ret_val = TRUE;
+    }
+
+return( ret_val );
 
 }   /* UDP_open_socket() */
 
@@ -514,6 +542,22 @@ if( udp_client_ptr->m_client_cb.socket_open )
         EnterCriticalSection( &udp_client_ptr->m_client_cb.rx_crit_sec );
 
         /*--------------------------------------------------
+        Determine if the server has been initialized. This
+        indicates that a packet was received and parsed
+        successfully. An event is fired to for timeout
+        purposes
+        --------------------------------------------------*/
+        if( !udp_client_ptr->m_client_cb.svr_initialized )
+            {
+            udp_client_ptr->m_client_cb.svr_initialized = TRUE;
+
+            if( !SetEvent( udp_client_ptr->m_client_cb.h_evnt ) )
+                {
+                alwaysAssert();
+                }
+            }
+
+        /*--------------------------------------------------
         Send the parsed data to the debug log string stream
         to be written when the write thread is available.  
         The string stream has low overhead, and is 
@@ -540,12 +584,12 @@ if( udp_client_ptr->m_client_cb.socket_open )
         Todo: When the Decision_Processing() is implemented, 
         this will be modified to return a queue.  The queue 
         will be overwritten each time, so the server will 
-        only send  the most recent commands.  This will 
+        only send the most recent commands.  This will 
         ensure the command being sent is based on the most
         recent data
         --------------------------------------------------*/
-        char* demoBuffer = udp_client_ptr->m_client_cb.buffer;
-	    tx_str = makeThemMove( udp_client_ptr->m_client_cb.hdl_idx, demoBuffer );
+        //char* demoBuffer = udp_client_ptr->m_client_cb.buffer;
+	    //tx_str = makeThemMove( udp_client_ptr->m_client_cb.hdl_idx, demoBuffer );
 
 	    if( !tx_str.empty() )
 	        {

@@ -23,7 +23,7 @@ using namespace std;
 --------------------------------------------------------------------*/
 
 #define CLIENT_CNT ( 11 )           /* client count                 */
-#define TEAM_NAME  ( "team1" )      /* team name                    */
+#define TEAM_NAME  ( "diverge" )    /* team name                    */
 
 /*--------------------------------------------------------------------
                                 TYPES
@@ -67,35 +67,76 @@ int main							/* main program processing		*/
 /*----------------------------------------------------------
 Local Variables
 ----------------------------------------------------------*/
-int                     i;
+boolean                 error;      /* error occurred               */
+int                     i;          /* index                        */
+string                  input;      /* input                        */
 ostringstream           tmp_str;
 UDP_client              udp_client[ CLIENT_CNT ];
+string                  server_ip;
+unsigned int            server_port;
+
+cout << "Welcome to the Diverge Software RoboCup Soccer Client" << endl << endl; 
+
+cout << "Enter RoboCup Soccer Server information [xx.xx.xx.xx:port]: ";
+cin >> input;
+
+server_ip = input.substr( 0, input.find( ":" ) );
+server_port = atoi( input.substr( input.find( ":" ) + 1, input.length() ).c_str() );
+
+//server_ip = "192.168.1.3";
+//server_port = 6000;
 
 /*----------------------------------------------------------
 Initialization
 
 Todo: Add input parameters for IP, Port, and Teamname
 ----------------------------------------------------------*/
+error = FALSE;
+
 for( i = 0; i < CLIENT_CNT; i++ )
     {
     tmp_str.str( "" );
     tmp_str << "dbg_log_" << i << ".txt";
     udp_client[ i ].UDP_dbg_log_enbl( tmp_str.str() );
-    udp_client[ i ].UDP_open_socket( "192.168.1.3", 6000, TEAM_NAME, i );
-    }
 
-while( true ) 
-    {
-    if( _kbhit() )
+    if( !udp_client[ i ].UDP_open_socket( server_ip, server_port, TEAM_NAME ) )
         {
-        for( i = 0; i < CLIENT_CNT; i++ )
-            {
-            udp_client[ i ].UDP_close_socket();
-            }
-        
+        cout << endl << "Error: Client unable to connect to the RoboCup Soccer Server" << endl;
+        error = TRUE;
         break;
         }
     }
+
+if( !error )
+    {
+    cout << endl << "Debug Interface:" << endl << endl;
+    cout << "sp: Stop drills" << endl;
+    cout << "st: Start drills" << endl;
+    cout << "mv: Move player [mv uniform x y]" << endl;
+    cout << "qt: Quit" << endl << endl;
+
+    while( true ) 
+        {
+        cout << "Command: ";
+        cin >> input;
+
+        /*--------------------------------------------------
+        Quit command
+        --------------------------------------------------*/
+        if( input.compare( "qt" ) == 0 )
+            {
+            for( i = 0; i < CLIENT_CNT; i++ )
+                {
+                udp_client[ i ].UDP_close_socket();
+                }
+
+            return( 0 );
+            }
+        }
+    }
+
+cout << endl;
+system( "PAUSE" );
 
 return( 0 );
 

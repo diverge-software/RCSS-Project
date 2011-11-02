@@ -30,6 +30,7 @@ using namespace std;
 --------------------------------------------------------------------*/
 
 #define UDP_SRVR_PKT_SIZE ( 8192 )  /* UDP server packet size       */
+#define SRVR_TIMEOUT      ( 2000 )  /* server timeout in ms         */
 
 /*--------------------------------------------------------------------
                                  TYPES
@@ -47,10 +48,10 @@ typedef struct                      /* UDP control block type       */
     boolean             dbg_log_enbl;
                                     /* debug logging enabled        */
     ostringstream       dbg_log_ss; /* debug log string stream      */
+    HANDLE              h_evnt;     /* generic event                */
     HANDLE              h_rx_thrd;  /* receive thread handle        */
     HANDLE              h_tx_thrd;  /* transmit thread handle       */
-    HANDLE              h_wt_thrd;  /* write thread handle          */
-    unsigned int        hdl_idx;    /* handle index                 */  
+    HANDLE              h_wt_thrd;  /* write thread handle          */  
     sockaddr_in         lcl_intfc;  /* local socket interface       */
     WSAOVERLAPPED       overlapped; /* overlapped structure         */
     CRITICAL_SECTION    rx_crit_sec;/* receive critical section     */
@@ -65,6 +66,8 @@ typedef struct                      /* UDP control block type       */
     boolean             stop_wt_thrd;
                                     /* stop write thread            */
     sockaddr_in         svr_intfc;  /* server socket interface      */
+    boolean             svr_initialized;
+                                    /* server initialized           */
     CRITICAL_SECTION    tx_crit_sec;/* transmit critical section    */
     queue<string>       tx_data_q;  /* transmit data queue          */
     boolean             tx_thrd_alive; 
@@ -90,7 +93,7 @@ class UDP_client
         void UDP_close_socket( void );
         void UDP_dbg_log_dsbl( void );
         void UDP_dbg_log_enbl( string filename );
-        void UDP_open_socket( string server_ip, unsigned int server_port, string team_name, unsigned int hdl_idx );
+        boolean UDP_open_socket( string server_ip, unsigned int server_port, string team_name );
 
     private:
         static void CALLBACK udp_completion_routine( DWORD err_no, DWORD bytes_xfer, LPWSAOVERLAPPED overlapped, DWORD flags );
