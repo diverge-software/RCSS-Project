@@ -8,7 +8,6 @@
 
 #include "Parser.hpp"
 #include "Vector2f.hpp"
-#include "Brain.h"
 #include <iostream>
 #include <string>
 #include <cstdlib>
@@ -17,7 +16,6 @@
 
 using namespace std;
 using namespace Parser;
-using namespace Brain;
 
 #define NUM_PLAYER_TYPES	17
 #define MAX_QUEUE_SIZE		10
