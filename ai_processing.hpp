@@ -13,7 +13,6 @@
                            GENERAL INCLUDES
 --------------------------------------------------------------------*/
 
-#include "udp_client.hpp"
 #include <iostream>
 #include <string>
 #include <vector>
@@ -57,6 +56,14 @@ typedef enum                        /* change view quality type     */
 
 namespace AI_Processing
 {
+    typedef enum
+        {
+        PLAYER_TYPE_GOALIE,
+        PLAYER_TYPE_FORWARD,
+        PLAYER_TYPE_MIDFIELDER,
+        PLAYER_TYPE_DEFENDER
+        } player_type_t32;
+
     void Decision_Processing( void );
 
     string Catch_Cmd( double direction );
@@ -116,8 +123,6 @@ namespace AI_Processing
 
 /*--------------------------------------------------------------------
                                PROCEDURES
---------------------------------------------------------------------*/
-
-	
+--------------------------------------------------------------------*/	
 
 #endif /* _AI_PROCESSING_HPP */

@@ -20,10 +20,12 @@
 #include <ws2tcpip.h>
 #include <queue>
 
+#include "ai_processing.hpp"
 #include "demo.hpp"
 #include "Player.hpp"
 
 using namespace std;
+using namespace AI_Processing;
 
 /*--------------------------------------------------------------------
                           LITERAL CONSTANTS
@@ -45,8 +47,6 @@ typedef struct                      /* UDP control block type       */
     char                buffer[ UDP_SRVR_PKT_SIZE ];
                                     /* asynchronous I/O buffer      */
     ofstream            dbg_log;    /* debug log output file stream */
-    boolean             dbg_log_enbl;
-                                    /* debug logging enabled        */
     ostringstream       dbg_log_ss; /* debug log string stream      */
     HANDLE              h_evnt;     /* generic event                */
     HANDLE              h_rx_thrd;  /* receive thread handle        */
@@ -93,7 +93,7 @@ class UDP_client
         void UDP_close_socket( void );
         void UDP_dbg_log_dsbl( void );
         void UDP_dbg_log_enbl( string filename );
-        boolean UDP_open_socket( string server_ip, unsigned int server_port, string team_name );
+        int UDP_open_socket( string server_ip, unsigned int server_port, string team_name, player_type_t32 player_type );
 
     private:
         static void CALLBACK udp_completion_routine( DWORD err_no, DWORD bytes_xfer, LPWSAOVERLAPPED overlapped, DWORD flags );

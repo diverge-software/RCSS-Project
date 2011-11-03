@@ -20,6 +20,7 @@
 #include "debug.hpp"
 
 using namespace std;
+using namespace AI_Processing;
 
 /*--------------------------------------------------------------------
                           LITERAL CONSTANTS

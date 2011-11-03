@@ -70,43 +70,102 @@ Local Variables
 boolean                 error;      /* error occurred               */
 int                     i;          /* index                        */
 string                  input;      /* input                        */
-ostringstream           tmp_str;
-UDP_client              udp_client[ CLIENT_CNT ];
-string                  server_ip;
-unsigned int            server_port;
+string                  pt_str;     /* player type string           */
+string                  server_ip;  /* server IP                    */
+unsigned int            server_port;/* server port                  */
+ostringstream           tmp_str;    /* temporary string             */
+UDP_client *            udp_client[ CLIENT_CNT ];
+                                    /* UDP client pointer array     */
+UDP_client *            udp_client_ptr;
+                                    /* UDP client pointer           */
+int                     uniform_num;/* uniform number               */
 
+/*----------------------------------------------------------
+Get server information for user
+----------------------------------------------------------*/
 cout << "Welcome to the Diverge Software RoboCup Soccer Client" << endl << endl; 
 
 cout << "Enter RoboCup Soccer Server information [xx.xx.xx.xx:port]: ";
 cin >> input;
+cout << endl;
 
 server_ip = input.substr( 0, input.find( ":" ) );
 server_port = atoi( input.substr( input.find( ":" ) + 1, input.length() ).c_str() );
 
-//server_ip = "192.168.1.3";
-//server_port = 6000;
-
 /*----------------------------------------------------------
 Initialization
-
-Todo: Add input parameters for IP, Port, and Teamname
 ----------------------------------------------------------*/
 error = FALSE;
 
+/*----------------------------------------------------------
+Assign player types for each soccer client
+----------------------------------------------------------*/
 for( i = 0; i < CLIENT_CNT; i++ )
-    {
+    {   
+    udp_client_ptr = new UDP_client;
+
+    /*------------------------------------------------------
+    Enable debug logging for client 
+    ------------------------------------------------------*/
     tmp_str.str( "" );
     tmp_str << "dbg_log_" << i << ".txt";
-    udp_client[ i ].UDP_dbg_log_enbl( tmp_str.str() );
+    udp_client_ptr->UDP_dbg_log_enbl( tmp_str.str() );
 
-    if( !udp_client[ i ].UDP_open_socket( server_ip, server_port, TEAM_NAME ) )
+    /*------------------------------------------------------
+    Assign player goalie type 
+    ------------------------------------------------------*/
+    if( i == 0 )
+        {
+        uniform_num = udp_client_ptr->UDP_open_socket( server_ip, server_port, TEAM_NAME, PLAYER_TYPE_GOALIE );
+        pt_str = "Goalie";
+        }
+
+    /*------------------------------------------------------
+    Assign player defender type 
+    ------------------------------------------------------*/
+    else if( ( i > 0 )
+          && ( i < 4 ) )
+        {
+        uniform_num = udp_client_ptr->UDP_open_socket( server_ip, server_port, TEAM_NAME, PLAYER_TYPE_DEFENDER );
+        pt_str = "Defender";
+        }
+
+    /*------------------------------------------------------
+    Assign player forward type 
+    ------------------------------------------------------*/
+    else if( ( i >= 4 )
+          && ( i < 8  ) )
+        {
+        uniform_num = udp_client_ptr->UDP_open_socket( server_ip, server_port, TEAM_NAME, PLAYER_TYPE_FORWARD );
+        pt_str = "Forward";
+        }
+
+    /*------------------------------------------------------
+    Assign player midfielder type 
+    ------------------------------------------------------*/
+    else if( i >= 8 )
+        {
+        uniform_num = udp_client_ptr->UDP_open_socket( server_ip, server_port, TEAM_NAME, PLAYER_TYPE_MIDFIELDER );
+        pt_str = "Midfielder";
+        }
+
+    if( uniform_num == -1 )
         {
         cout << endl << "Error: Client unable to connect to the RoboCup Soccer Server" << endl;
         error = TRUE;
+
         break;
+        }
+    else
+        {
+        udp_client[ uniform_num - 1 ] = udp_client_ptr;
+        cout << "Uniform Number: " << uniform_num << " Player Type: " << pt_str << endl;
         }
     }
 
+/*----------------------------------------------------------
+Display debug interface and wait for an input
+----------------------------------------------------------*/
 if( !error )
     {
     cout << endl << "Debug Interface:" << endl << endl;
@@ -127,7 +186,7 @@ if( !error )
             {
             for( i = 0; i < CLIENT_CNT; i++ )
                 {
-                udp_client[ i ].UDP_close_socket();
+                udp_client[ i ]->UDP_close_socket();
                 }
 
             return( 0 );
