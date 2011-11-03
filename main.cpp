@@ -22,9 +22,8 @@ using namespace std;
                           LITERAL CONSTANTS
 --------------------------------------------------------------------*/
 
-#define CLIENT_CNT   ( 12        )  /* client count                 */
+#define CLIENT_CNT   ( 12 )         /* client count                 */
 #define TEAM_NAME    ( "diverge" )  /* team name                    */
-#define TRAINER_ENBL ( FALSE      ) /* trainer enabled              */
 
 /*--------------------------------------------------------------------
                                 TYPES
@@ -75,6 +74,8 @@ int                     player_cnt; /* player count                 */
 string                  pt_str;     /* player type string           */
 string                  server_ip;  /* server IP                    */
 unsigned int            server_port;/* server port                  */
+boolean                 trainer_enbld;
+                                    /* trainer enabled              */
 ostringstream           tmp_str;    /* temporary string             */
 UDP_client *            udp_client[ CLIENT_CNT ];
                                     /* UDP client pointer array     */
@@ -89,24 +90,32 @@ cout << "Welcome to the Diverge Software RoboCup Soccer Client" << endl << endl;
 
 cout << "Enter RoboCup Soccer Server information [xx.xx.xx.xx:port]: ";
 cin >> input;
-cout << endl;
 
 server_ip = input.substr( 0, input.find( ":" ) );
 server_port = atoi( input.substr( input.find( ":" ) + 1, input.length() ).c_str() );
 
 /*----------------------------------------------------------
-Initialization
+Enable/Disable the offline trainer
 ----------------------------------------------------------*/
-error = FALSE;
+cout << "Enable the offline trainer [y/n]: ";
+cin >> input;
+cout << endl;
 
-if( TRAINER_ENBL )
+if( input.compare( "y" ) == 0 )
     {
+    trainer_enbld = TRUE;
     player_cnt = CLIENT_CNT;
     }
 else
     {
+    trainer_enbld = FALSE;
     player_cnt = CLIENT_CNT - 1;
     }
+
+/*----------------------------------------------------------
+Initialization
+----------------------------------------------------------*/
+error = FALSE;
 
 /*----------------------------------------------------------
 Assign player types for each soccer client
@@ -164,7 +173,7 @@ for( i = 0; i < player_cnt; i++ )
     /*------------------------------------------------------
     Assign trainer type
     ------------------------------------------------------*/
-    else if( TRAINER_ENBL )
+    else if( trainer_enbld )
         {
         uniform_num = udp_client_ptr->UDP_open_socket( server_ip, server_port + 1, TEAM_NAME, PLAYER_TYPE_TRAINER );
         pt_str = "Trainer";
@@ -191,7 +200,7 @@ if( !error )
     {
     cout << endl << "User Interface:" << endl << endl;
 
-    if( TRAINER_ENBL )
+    if( trainer_enbld )
         {
         cout << "sp: Stop drills" << endl;
         cout << "st: Start drills" << endl;
