@@ -542,6 +542,8 @@ void Player::checkPlayerBounds()
 {
 	/* this function should only be used if the player has moved since the last cycle
 	 * should help with efficiency.
+	 *
+	 * Also, should this go into ai_processing? I wasn't sure.
 	 */
 
 
