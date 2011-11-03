@@ -564,7 +564,7 @@ void Player::checkPlayerBounds()
 						  {10.0f,		  LEFT_LINE_X,  TOP_LINE_Y,  BOTTOM_LINE_Y}};		// Defender
 	
 
-
+	int roleNum;
 	// An enum would help with this
 	if(playerRole == "goalie")
 	{
