@@ -297,11 +297,12 @@ if( this->m_client_cb.h_wt_thrd == NULL )
 * @post The transmit and receive threads are started and processing begins for each client
 */
 
-boolean UDP_client::UDP_open_socket /* Open UDP Socket              */
+int UDP_client::UDP_open_socket     /* Open UDP Socket              */
     (
     string              server_ip,  /* server IP                    */
     unsigned int        server_port,/* server port                  */
-    string              team_name   /* team name                    */
+    string              team_name,  /* team name                    */
+    player_type_t32     player_type /* player type                  */
     )
 {
 /*----------------------------------------------------------
@@ -315,7 +316,7 @@ Local Variables
 ----------------------------------------------------------*/
 int						err_no;		/* error number					*/
 string                  filename;   /* filename                     */
-boolean                 ret_val;    /* return value                 */
+int                     ret_val;    /* return value                 */
 ostringstream           tmp_str;    /* temporary string             */
 WSADATA					wsa_data;	/* winsock data					*/
 
@@ -480,11 +481,11 @@ if( WaitForSingleObjectEx( this->m_client_cb.h_evnt, SRVR_TIMEOUT, FALSE ) != WA
     {
     this->UDP_close_socket();
 
-    ret_val = FALSE;
+    ret_val = -1;
     }
 else
     {
-    ret_val = TRUE;
+    ret_val = this->m_player.getUniformNumber();
     }
 
 return( ret_val );
@@ -590,6 +591,7 @@ if( udp_client_ptr->m_client_cb.socket_open )
         --------------------------------------------------*/
         //char* demoBuffer = udp_client_ptr->m_client_cb.buffer;
 	    //tx_str = makeThemMove( udp_client_ptr->m_client_cb.hdl_idx, demoBuffer );
+        Decision_Processing();
 
 	    if( !tx_str.empty() )
 	        {
