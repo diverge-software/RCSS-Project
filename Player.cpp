@@ -618,3 +618,8 @@ void Player::checkPlayerBounds()
 		// just stop and rest
 	}
 }
+
+string Player::think() const
+{
+	return "Sheeeeeeeit";
+}

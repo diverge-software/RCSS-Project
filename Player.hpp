@@ -115,6 +115,14 @@ class Player
 		*/
 		void checkPlayerBounds();
 
+		/** Determines what the player should do next, based on his role.
+		 * @param None.
+		 * @pre The player should be initialized with data from the server.
+		 * @post None.
+		 * @return String command to send to the server for the client's action.
+		 */
+		string think() const;
+
 	private:	
 		// Sensory data passed from the server
 		deque<AuralData>                          mAuralDataQueue;
