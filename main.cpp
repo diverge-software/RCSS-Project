@@ -22,8 +22,9 @@ using namespace std;
                           LITERAL CONSTANTS
 --------------------------------------------------------------------*/
 
-#define CLIENT_CNT ( 11 )           /* client count                 */
-#define TEAM_NAME  ( "diverge" )    /* team name                    */
+#define CLIENT_CNT   ( 12        )  /* client count                 */
+#define TEAM_NAME    ( "diverge" )  /* team name                    */
+#define TRAINER_ENBL ( FALSE      ) /* trainer enabled              */
 
 /*--------------------------------------------------------------------
                                 TYPES
@@ -70,6 +71,7 @@ Local Variables
 boolean                 error;      /* error occurred               */
 int                     i;          /* index                        */
 string                  input;      /* input                        */
+int                     player_cnt; /* player count                 */
 string                  pt_str;     /* player type string           */
 string                  server_ip;  /* server IP                    */
 unsigned int            server_port;/* server port                  */
@@ -97,10 +99,19 @@ Initialization
 ----------------------------------------------------------*/
 error = FALSE;
 
+if( TRAINER_ENBL )
+    {
+    player_cnt = CLIENT_CNT;
+    }
+else
+    {
+    player_cnt = CLIENT_CNT - 1;
+    }
+
 /*----------------------------------------------------------
 Assign player types for each soccer client
 ----------------------------------------------------------*/
-for( i = 0; i < CLIENT_CNT; i++ )
+for( i = 0; i < player_cnt; i++ )
     {   
     udp_client_ptr = new UDP_client;
 
@@ -143,10 +154,20 @@ for( i = 0; i < CLIENT_CNT; i++ )
     /*------------------------------------------------------
     Assign player midfielder type 
     ------------------------------------------------------*/
-    else if( i >= 8 )
+    else if( ( i >= 8 )
+          && ( i < 11 ) )
         {
         uniform_num = udp_client_ptr->UDP_open_socket( server_ip, server_port, TEAM_NAME, PLAYER_TYPE_MIDFIELDER );
         pt_str = "Midfielder";
+        }
+
+    /*------------------------------------------------------
+    Assign trainer type
+    ------------------------------------------------------*/
+    else if( TRAINER_ENBL )
+        {
+        uniform_num = udp_client_ptr->UDP_open_socket( server_ip, server_port + 1, TEAM_NAME, PLAYER_TYPE_TRAINER );
+        pt_str = "Trainer";
         }
 
     if( uniform_num == -1 )
@@ -168,10 +189,15 @@ Display debug interface and wait for an input
 ----------------------------------------------------------*/
 if( !error )
     {
-    cout << endl << "Debug Interface:" << endl << endl;
-    cout << "sp: Stop drills" << endl;
-    cout << "st: Start drills" << endl;
-    cout << "mv: Move player [mv uniform x y]" << endl;
+    cout << endl << "User Interface:" << endl << endl;
+
+    if( TRAINER_ENBL )
+        {
+        cout << "sp: Stop drills" << endl;
+        cout << "st: Start drills" << endl;
+        cout << "mv: Move player [mv uniform x y]" << endl;
+        }
+
     cout << "qt: Quit" << endl << endl;
 
     while( true ) 
@@ -184,7 +210,7 @@ if( !error )
         --------------------------------------------------*/
         if( input.compare( "qt" ) == 0 )
             {
-            for( i = 0; i < CLIENT_CNT; i++ )
+            for( i = 0; i < player_cnt; i++ )
                 {
                 udp_client[ i ]->UDP_close_socket();
                 }

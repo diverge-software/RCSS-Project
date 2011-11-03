@@ -464,7 +464,16 @@ Initialize client with team name
 ----------------------------------------------------------*/
 tmp_str.str( "" );
 tmp_str.clear();
-tmp_str << "(init " << team_name << " (version 15.0))";
+
+if( player_type != PLAYER_TYPE_TRAINER )
+    {
+    tmp_str << "(init " << team_name << " (version 15.0))";
+    }
+else
+    {
+    tmp_str << "(init (version 15.0))";
+    ret_val = 12;
+    }
 
 this->udp_send( tmp_str.str() );
 
@@ -477,15 +486,18 @@ this->m_client_cb.socket_open = TRUE;
 Verify that a packet was received and parsed from the server
 within a specified amount of time
 ----------------------------------------------------------*/
-if( WaitForSingleObjectEx( this->m_client_cb.h_evnt, SRVR_TIMEOUT, FALSE ) != WAIT_OBJECT_0 )
+if( player_type != PLAYER_TYPE_TRAINER )
     {
-    this->UDP_close_socket();
+    if( WaitForSingleObjectEx( this->m_client_cb.h_evnt, SRVR_TIMEOUT, FALSE ) != WAIT_OBJECT_0 )
+        {
+        this->UDP_close_socket();
 
-    ret_val = -1;
-    }
-else
-    {
-    ret_val = this->m_player.getUniformNumber();
+        ret_val = -1;
+        }
+    else
+        {
+        ret_val = this->m_player.getUniformNumber();
+        }
     }
 
 return( ret_val );

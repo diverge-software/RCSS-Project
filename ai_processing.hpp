@@ -61,7 +61,8 @@ namespace AI_Processing
         PLAYER_TYPE_GOALIE,
         PLAYER_TYPE_FORWARD,
         PLAYER_TYPE_MIDFIELDER,
-        PLAYER_TYPE_DEFENDER
+        PLAYER_TYPE_DEFENDER,
+        PLAYER_TYPE_TRAINER
         } player_type_t32;
 
     void Decision_Processing( void );
