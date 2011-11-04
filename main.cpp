@@ -22,7 +22,7 @@ using namespace std;
                           LITERAL CONSTANTS
 --------------------------------------------------------------------*/
 
-#define CLIENT_CNT   ( 12 )         /* client count                 */
+#define CLIENT_CNT   ( 1 )         /* client count                 */
 #define TEAM_NAME    ( "diverge" )  /* team name                    */
 
 /*--------------------------------------------------------------------

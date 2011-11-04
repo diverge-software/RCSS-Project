@@ -707,7 +707,7 @@ double Parser::calculateAbsAngle(unordered_map<string, VisualData> &visualHash, 
 	//find two closest flags on a line
 	for(unordered_map<string, VisualData>::const_iterator it = visualHash.begin(); it != visualHash.end(); ++it )
 	{
-		if(it->first[2] == 't')
+		if( !it->first.compare( 0, 3, "f t" ) )
 		{
 			if(tCount < 2)
 			{
@@ -726,7 +726,7 @@ double Parser::calculateAbsAngle(unordered_map<string, VisualData> &visualHash, 
 				}
 			}
 		}
-		else if(it->first[2] == 'b')
+		else if( !it->first.compare( 0, 3, "f b" ) )
 		{
 			if(bCount < 2)
 			{
@@ -745,7 +745,7 @@ double Parser::calculateAbsAngle(unordered_map<string, VisualData> &visualHash, 
 				}
 			}
 		}
-		else if(it->first[2] == 'r')
+		else if( !it->first.compare( 0, 3, "f r" ) )
 		{
 			if(rCount < 2)
 			{
@@ -764,7 +764,7 @@ double Parser::calculateAbsAngle(unordered_map<string, VisualData> &visualHash, 
 				}
 			}
 		}
-		else if(it->first[2] == 'l')
+		else if( !it->first.compare( 0, 3, "f l" ) )
 		{
 			if(lCount < 2)
 			{
@@ -783,7 +783,7 @@ double Parser::calculateAbsAngle(unordered_map<string, VisualData> &visualHash, 
 				}
 			}
 		}
-		else if(it->first[2] == 'p')
+		else if( !it->first.compare( 0, 5, "f p r" ) )
 		{
 			if(pCount < 2)
 			{
@@ -802,7 +802,45 @@ double Parser::calculateAbsAngle(unordered_map<string, VisualData> &visualHash, 
 				}
 			}
 		}
-		else if(it->first[2] == 'g')
+		else if( !it->first.compare( 0, 5, "f p l" ) )
+		{
+			if(pCount < 2)
+			{
+				flagsHash["pFlags"][pCount] = it->first;
+				pCount++;
+			}
+			else 
+			{
+				if(it->second.distance < visualHash[flagsHash["pFlags"][0]].distance)
+				{
+					flagsHash["pFlags"][0] = it->first;
+				}
+				else if(it->second.distance < visualHash[flagsHash["pFlags"][1]].distance)
+				{
+					flagsHash["pFlags"][1] = it->first;
+				}
+			}
+		}
+		else if( !it->first.compare( 0, 5, "f g l" ) )
+		{
+			if(gCount < 2)
+			{
+				flagsHash["gFlags"][gCount] = it->first;
+				gCount++;
+			}
+			else 
+			{
+				if(it->second.distance < visualHash[flagsHash["gFlags"][0]].distance)
+				{
+					flagsHash["gFlags"][0] = it->first;
+				}
+				else if(it->second.distance < visualHash[flagsHash["gFlags"][1]].distance)
+				{
+					flagsHash["gFlags"][1] = it->first;
+				}
+			}
+		}
+		else if( !it->first.compare( 0, 5, "f g r" ) )
 		{
 			if(gCount < 2)
 			{
@@ -844,7 +882,7 @@ double Parser::calculateAbsAngle(unordered_map<string, VisualData> &visualHash, 
 			x_1 = visualHash[it->second[1]].distance * cos( (PI/180)*theta_0 );
 
 			//check for undefined slope
-			if( (x_0 - x_1) == 0 )
+			if( (x_0 - x_1) == 0.0 )
 			{
 				continue;
 			}
@@ -859,9 +897,16 @@ double Parser::calculateAbsAngle(unordered_map<string, VisualData> &visualHash, 
 	double y_1 = visualHash[flags[1]].distance * sin( (PI/180)*theta_1 );
 
 	double slope = (y_1 - y_0)/(x_1 - x_0);
+	double absAngle = (180/PI)*atan( (PI/180)*slope );
 	
-	double absAngle = atan( (PI/180)*slope ); 
-
+	if( !flags[0].compare( 0, 3, "f r") || !flags[0].compare( 0, 5, "f p r") )
+	{
+		absAngle += 90;
+	} 
+	else if( !flags[0].compare( 0, 3, "f l") || !flags[0].compare( 0, 5, "f p l") )
+	{
+		absAngle -= 90;
+	}
 	return absAngle;
 }
 
