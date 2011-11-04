@@ -291,7 +291,8 @@ namespace Parser
 	 * @post None
 	 * @return Returns the absolute angle relatve to the x-axis
 	 */
-	double calculateAbsAngle(unordered_map<string, VisualData> &visualHash, string flags[]);
+	double calculateAbsAngle(unordered_map<string, VisualData> &visualHash, string flags[], 
+						     unordered_map<string, Vector2f> &stationaryFlags);
 }
 
 #endif
