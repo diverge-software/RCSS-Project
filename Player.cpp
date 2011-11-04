@@ -5,8 +5,9 @@
 #include <iostream>
 using std::cout;
 using std::endl;
+using namespace AI_Processing;
 
-// Used for stationary flags
+/*// Used for stationary flags
 #define RIGHT_LINE_X		50.0f
 #define LEFT_LINE_X			-50.0f
 #define RIGHT_BOUNDARY_X	55.0f
@@ -21,6 +22,7 @@ using std::endl;
 #define PENALTY_BOTTOM		-22.0f
 #define GOALPOST_TOP_Y		10.0f
 #define GOALPOST_BOTTOM_Y	-10.0f
+*/
 
 // Initialize internal structs to invalid values
 Player::Player()
@@ -527,61 +529,6 @@ int Player::getUniformNumber() const
 	return uniformNumber;
 }
 
-void Player::checkPlayerBounds()
-{
-	/* this function should only be used if the player has moved since the last cycle
-	 * should help with efficiency.
-	 *
-	 * Also, should this go into ai_processing? I wasn't sure.
-	 */
-
-
-	/* bounds[x][y]:
-	 *   [x]: [0] goalie;  [1] forward; [2] midfielder; [3] defender
-     *   [y]: [0] right x; [1] left x;  [2] top y;      [3] bottom y
-	 *
-	 * another dimension can be added for different modes of play.
-	 * This is the default. These bounds should work before kick off and during play.
-	 *
-	 * NOTE: These bounds have been defined as if playing from the left side of the field.
-	 *       If you are playing on the right side of the field, this should be corrected
-	 *       when evaluating the boundary ranges below.
-     */
-	float bounds[4][4] = {{PENALTY_LEFT,  LEFT_LINE_X,  PENALTY_TOP, PENALTY_BOTTOM},		// Goalie
-						  {RIGHT_LINE_X,  -10.0f,		TOP_LINE_Y,  BOTTOM_LINE_Y},		// Foward/striker
-						  {30.0f,	  	  -20.0f,		TOP_LINE_Y,  BOTTOM_LINE_Y},		// Midfielder
-						  {10.0f,		  LEFT_LINE_X,  TOP_LINE_Y,  BOTTOM_LINE_Y}};		// Defender
-
-	// Get the latest senseBodyData in order to access player's position
-	SenseBodyData senseBodyData = mSenseBodyDataQueue.back();
-
-	// Check if the player's position is within the defined boundaries
-	if(side == 'l' &&													// evaluate if on the left side
-		senseBodyData.absLocation[0] < bounds[playerRole][0] &&
-		senseBodyData.absLocation[0] > bounds[playerRole][1] &&
-		senseBodyData.absLocation[1] < bounds[playerRole][2] &&
-		senseBodyData.absLocation[1] > bounds[playerRole][3])
-	{
-		// Congrats you're within bounds
-	}
-	else if (side == 'r' &&												// evaluate if on the right side
-		senseBodyData.absLocation[0] < -1 * bounds[playerRole][1] &&		// swap the x bounds and multiply by -1.
-		senseBodyData.absLocation[0] > -1 * bounds[playerRole][0] &&
-		senseBodyData.absLocation[1] < bounds[playerRole][2] &&			// y values should be the same
-		senseBodyData.absLocation[1] > bounds[playerRole][3])
-	{
-		// Congrats you're within bounds
-	}
-	else
-	{
-		// resetPlayerPosition();
-		
-		// or maybe have something like
-		// if the ball is far away
-		// and the player is within 1 meter of a boundary,
-		// just stop and rest
-	}
-}
 
 string Player::think() const
 {

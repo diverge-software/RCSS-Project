@@ -110,11 +110,6 @@ class Player
 		 * @return Integer uniform number.
 		 */
 		int getUniformNumber() const;
-		/** Checks to see if the player is within defined boundaries based on role on the field.
-		* @pre playerRole must be initialized.
-		* @post player will be within established boundaries for that player type.
-		*/
-		void checkPlayerBounds();
 
 		/** Determines what the player should do next, based on his role.
 		 * @param None.

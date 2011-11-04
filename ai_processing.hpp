@@ -33,6 +33,8 @@ using std::tr1::unordered_map;
                           LITERAL CONSTANTS
 --------------------------------------------------------------------*/
 
+
+
 /*--------------------------------------------------------------------
                                  TYPES
 --------------------------------------------------------------------*/
@@ -64,6 +66,23 @@ namespace AI_Processing
         PLAYER_TYPE_DEFENDER,
         PLAYER_TYPE_TRAINER
         } player_type_t32;
+
+	// Used for stationary flags
+	// Defines locations of various lines on the field.
+	#define RIGHT_LINE_X		50.0f
+	#define LEFT_LINE_X			-50.0f
+	#define RIGHT_BOUNDARY_X	55.0f
+	#define LEFT_BOUNDARY_X		-55.0f
+	#define TOP_LINE_Y			40.0f
+	#define BOTTOM_LINE_Y		-40.0f
+	#define TOP_BOUNDARY_Y		45.0f
+	#define BOTTOM_BOUNDARY_Y	-45.0f
+	#define PENALTY_RIGHT		( RIGHT_LINE_X - 18.0f )
+	#define PENALTY_LEFT		( LEFT_LINE_X + 18.0f )
+	#define PENALTY_TOP			22.0f
+	#define PENALTY_BOTTOM		-22.0f
+	#define GOALPOST_TOP_Y		10.0f
+	#define GOALPOST_BOTTOM_Y	-10.0f
 
     void Decision_Processing( void );
 
@@ -104,6 +123,16 @@ namespace AI_Processing
 	 * @return returns future position as a vector
 	 */
 	Vector2f getFutureBallPos(Vector2f cPos, Vector2f cVec, double tInterval, double ballDecay);   
+
+	/** Checks to see if the player is within defined boundaries based on role on the field.
+	 * @param playerRole the position of the player on the field
+	 * @param absLocation the absolute location of the player on the field
+	 * @param side the side from which the team is playing
+	 * @pre playerRole, absLocation, and side must be initialized.
+	 * @post player will be within established boundaries for that player type.
+	 */
+	void checkPlayerBounds(player_type_t32 playerRole, Vector2f absLocation, char side);
+
 };
 
 /*--------------------------------------------------------------------
@@ -114,10 +143,25 @@ namespace AI_Processing
                             MEMORY CONSTANTS
 --------------------------------------------------------------------*/
 
+
 /*--------------------------------------------------------------------
                                VARIABLES
 --------------------------------------------------------------------*/
-
+/* bounds[x][y]:
+ *   [x]: [0] goalie;  [1] forward; [2] midfielder; [3] defender
+ *   [y]: [0] right x; [1] left x;  [2] top y;      [3] bottom y
+ *
+ * another dimension can be added for different modes of play.
+ * This is the default. These bounds should work before kick off and during play.
+ *
+ * NOTE: These bounds have been defined as if playing from the left side of the field.
+ *       If you are playing on the right side of the field, this should be corrected
+ *       when evaluating the boundary ranges below.
+ */
+const float bounds[4][4] = {{PENALTY_LEFT,  LEFT_LINE_X,  PENALTY_TOP, PENALTY_BOTTOM},		// Goalie
+					        {RIGHT_LINE_X,  -10.0f,		  TOP_LINE_Y,  BOTTOM_LINE_Y},		// Foward/striker
+					        {30.0f,	  	    -20.0f,		  TOP_LINE_Y,  BOTTOM_LINE_Y},		// Midfielder
+					        {10.0f,		    LEFT_LINE_X,  TOP_LINE_Y,  BOTTOM_LINE_Y}};		// Defender
 /*--------------------------------------------------------------------
                                 MACROS
 --------------------------------------------------------------------*/
