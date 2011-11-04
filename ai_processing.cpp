@@ -451,3 +451,37 @@ Vector2f AI_Processing::getFutureBallPos(Vector2f cPos, Vector2f cVec, double tI
 {
 	return cPos + cVec * pow(ballDecay, tInterval-1); 
 }
+
+void AI_Processing::checkPlayerBounds(player_type_t32 playerRole, Vector2f absLocation, char side)
+{
+	/* This function should only be used if the player has moved since the last cycle
+	 * should help with efficiency.
+     */
+
+	// Check if the player's position is within the defined boundaries
+	if(side == 'l' &&													// evaluate if on the left side
+		absLocation[0] < bounds[playerRole][0] &&
+		absLocation[0] > bounds[playerRole][1] &&
+		absLocation[1] < bounds[playerRole][2] &&
+		absLocation[1] > bounds[playerRole][3])
+	{
+		// Congrats you're within bounds
+	}
+	else if (side == 'r' &&												// evaluate if on the right side
+		absLocation[0] < -1 * bounds[playerRole][1] &&		// swap the x bounds and multiply by -1.
+		absLocation[0] > -1 * bounds[playerRole][0] &&
+		absLocation[1] < bounds[playerRole][2] &&			// y values should be the same
+		absLocation[1] > bounds[playerRole][3])
+	{
+		// Congrats you're within bounds
+	}
+	else
+	{
+		// resetPlayerPosition();
+		
+		// or maybe have something like
+		// if the ball is far away
+		// and the player is within 1 meter of a boundary,
+		// just stop and rest
+	}
+}

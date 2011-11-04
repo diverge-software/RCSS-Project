@@ -8,6 +8,7 @@
 
 #include "Parser.hpp"
 #include "Vector2f.hpp"
+#include "ai_processing.hpp"
 #include <iostream>
 #include <string>
 #include <cstdlib>
@@ -104,16 +105,19 @@ class Player
 		 * @pre A valid string is passed in.
 		 * @post The player's type is set.
 		 */
-		void setPlayerRole( string role );
+		void setPlayerRole( AI_Processing::player_type_t32 role );
 		/** Get the player's uniform number.
 		 * @return Integer uniform number.
 		 */
 		int getUniformNumber() const;
-		/** Checks to see if the player is within defined boundaries based on role on the field.
-		* @pre playerRole must be initialized.
-		* @post player will be within established boundaries for that player type.
-		*/
-		void checkPlayerBounds();
+
+		/** Determines what the player should do next, based on his role.
+		 * @param None.
+		 * @pre The player should be initialized with data from the server.
+		 * @post None.
+		 * @return String command to send to the server for the client's action.
+		 */
+		string think() const;
 
 	private:	
 		// Sensory data passed from the server
@@ -128,7 +132,7 @@ class Player
 		int uniformNumber;
 		char side;    // Which side you're playing from, left or right
 		string teamName;
-		string playerRole;
+		AI_Processing::player_type_t32 playerRole;
 
 		unordered_map<string, PlayerTypeStruct>   mPlayerTypes[NUM_PLAYER_TYPES];
 		unordered_map<string, ServerStruct>       mServerInfo;
