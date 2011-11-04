@@ -529,8 +529,24 @@ int Player::getUniformNumber() const
 	return uniformNumber;
 }
 
-
 string Player::think() const
 {
-	return "Sheeeeeeeit";
+	// This will be returned, so set this in your section, then break
+	string command;
+
+	switch( playerRole )
+	{
+		case PLAYER_TYPE_GOALIE:
+			break;
+		case PLAYER_TYPE_FORWARD:
+			break;
+		case PLAYER_TYPE_MIDFIELDER:
+			break;
+		case PLAYER_TYPE_DEFENDER:
+			break;
+		case PLAYER_TYPE_TRAINER:
+			break;
+	}
+
+	return command;
 }
