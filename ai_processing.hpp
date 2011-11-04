@@ -132,6 +132,14 @@ namespace AI_Processing
 	 * @post player will be within established boundaries for that player type.
 	 */
 	void checkPlayerBounds(player_type_t32 playerRole, Vector2f absLocation, char side);
+
+	/** Determines the side of the opponent. For use with finding scoring goal, etc.
+	 * @param side character representing the side that your team is playing from
+	 * @pre player initialized
+	 * @post None.
+	 * @return character representing the other team's side.
+	 */
+	char getOpponentSide(char side);
 };
 
 /*--------------------------------------------------------------------

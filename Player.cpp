@@ -563,7 +563,6 @@ string Player::think_forward()
 	// Get the most recent visual information
 	unordered_map<string, VisualData> visualData = mVisualDataQueue.back();
 
-
 	/**********************************************************************
 	 * The following basically just kicks it towards the goal.
 	 * I'll make it better when I can test it. (dribbling, avoiding people, whatever)
@@ -573,9 +572,9 @@ string Player::think_forward()
 	//{
 	//	if(visualData["b"].distance < 0.7)											// if the player is within kicking distance of the ball
 	//	{
-	//		if(visualData["g " + /*other?*/side] /* does not return invalid */)		// if the player sees the goal and the ball and can kick it
+	//		if(visualData["g " + getOpponentSide(side)] /* does not return invalid */)		// if the player sees the goal and the ball and can kick it
 	//		{
-	//			command = "kick 50 " + visualData["g " + /*other?*/side].direction;	// kick the ball to the other team's goal
+	//			command = "kick 50 " + visualData["g " + getOpponentSide(side)].direction;	// kick the ball to the other team's goal
 	//		}
 	//		else																	// if the player can't see the goal, turn to find it
 	//		{																		// ** this might end up in some kind of loop where you alternate between
