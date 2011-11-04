@@ -1,6 +1,7 @@
 #include "Player.hpp"
 #include "Parser.hpp"
 #include "Debug.hpp"
+#include <sstream>
 
 #include <iostream>
 using std::cout;
@@ -568,28 +569,51 @@ string Player::think_forward()
 	 * I'll make it better when I can test it. (dribbling, avoiding people, whatever)
 	 **********************************************************************/
 
-	//if(visualData["b"] /* does not return invalid */)								// if the player sees the ball
-	//{
-	//	if(visualData["b"].distance < 0.7)											// if the player is within kicking distance of the ball
-	//	{
-	//		if(visualData["g " + getOpponentSide(side)] /* does not return invalid */)		// if the player sees the goal and the ball and can kick it
-	//		{
-	//			command = "kick 50 " + visualData["g " + getOpponentSide(side)].direction;	// kick the ball to the other team's goal
-	//		}
-	//		else																	// if the player can't see the goal, turn to find it
-	//		{																		// ** this might end up in some kind of loop where you alternate between
-	//			command = "turn 30";												// ** not finding the ball and not finding the goal
-	//		}
-	//	}
-	//	else																		// the player is not within kicking distance but sees the ball
-	//	{
-	//		command = "dash 20";													// get closer to ball
-	//	}
-	//}
-	//else																			// if the player can't see the ball
-	//{
-	//	command = "turn 30";														// turn to find the ball
-	//}
+	
+
+	if(visualData["b"].distance != INVALID_FLOAT_VALUE)								// if the player sees the ball
+	{
+		if(visualData["b"].distance < 0.7)											// if the player is within kicking distance of the ball
+		{
+			if(visualData["g " + getOpponentSide(side)].distance != INVALID_FLOAT_VALUE)			// if the player sees the goal and the ball and can kick it
+			{
+				bool canSeeGoalie = false;
+				vector<VisiblePlayer> opponents = mOpponentListQueue.back();
+				for(unsigned int i = 0; i <= opponents.size(); i++)
+				{
+					if( opponents[i].teamName != teamName &&
+						opponents[i].teamName != INVALID_TEAM_NAME &&
+						opponents[i].isGoalie == true)
+					{
+						canSeeGoalie = true;
+					}
+				}
+				if(canSeeGoalie)
+				{
+					/* are you in the penalty box? */
+					/* kick it to the widest open area along the goal */
+				}
+				else
+				{
+					std::ostringstream ostr;
+					ostr << visualData["g " + getOpponentSide(side)].direction;
+					command = "kick 50 " + ostr.str();									// kick the ball to the other team's goal
+				}
+			}
+			else																	// if the player can't see the goal, turn to find it
+			{																		// ** this might end up in some kind of loop where you alternate between
+				command = "turn 30";												// ** not finding the ball and not finding the goal
+			}
+		}
+		else																		// the player is not within kicking distance but sees the ball
+		{
+			command = "dash 20";													// get closer to ball
+		}
+	}
+	else																			// if the player can't see the ball
+	{
+		command = "turn 30";														// turn to find the ball
+	}
 
 	return ( command );
 }

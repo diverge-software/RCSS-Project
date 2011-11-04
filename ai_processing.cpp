@@ -499,8 +499,12 @@ void AI_Processing::checkPlayerBounds(player_type_t32 playerRole, Vector2f absLo
 
 char AI_Processing::getOpponentSide(char side)
 {
+	char otherSide;
 	if(side == 'r')
-		return 'l';
+		otherSide = 'l';
 	else if (side == 'l')
-		return 'r';
+		otherSide = 'r';
+	else
+		otherSide = side;
+	return otherSide;
 }
