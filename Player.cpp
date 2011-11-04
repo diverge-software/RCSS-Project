@@ -517,20 +517,9 @@ void Player::setTeamName(string teamname)
 	teamName = teamname;
 }
 
-void Player::setPlayerRole( string role )
+void Player::setPlayerRole( AI_Processing::player_type_t32 role )
 {
-	if( role == "goalie" ||
-		role == "defender" ||
-		role == "midfielder" ||
-		role == "forward" )
-	{
 		playerRole = role;
-	}
-	else
-	{
-		cout << "Player role cannot be: " << role << endl;
-		alwaysAssert();
-	}
 }
 
 int Player::getUniformNumber() const
@@ -562,49 +551,24 @@ void Player::checkPlayerBounds()
 						  {RIGHT_LINE_X,  -10.0f,		TOP_LINE_Y,  BOTTOM_LINE_Y},		// Foward/striker
 						  {30.0f,	  	  -20.0f,		TOP_LINE_Y,  BOTTOM_LINE_Y},		// Midfielder
 						  {10.0f,		  LEFT_LINE_X,  TOP_LINE_Y,  BOTTOM_LINE_Y}};		// Defender
-	
-
-	int roleNum;
-	// An enum would help with this
-	if(playerRole == "goalie")
-	{
-		roleNum = 0;
-	}
-	else if (playerRole == "forward")
-	{
-		roleNum = 1;
-	}
-	else if (playerRole == "midfielder")
-	{
-		roleNum = 2;
-	}
-	else if (playerRole == "defender")
-	{
-		roleNum = 3;
-	}
-	else
-	{
-		cout << "There was an error in playerRole.\n";
-		/* alwaysAssert(); */
-	}
 
 	// Get the latest senseBodyData in order to access player's position
 	SenseBodyData senseBodyData = mSenseBodyDataQueue.back();
 
 	// Check if the player's position is within the defined boundaries
 	if(side == 'l' &&													// evaluate if on the left side
-		senseBodyData.absLocation[0] < bounds[roleNum][0] &&
-		senseBodyData.absLocation[0] > bounds[roleNum][1] &&
-		senseBodyData.absLocation[1] < bounds[roleNum][2] &&
-		senseBodyData.absLocation[1] > bounds[roleNum][3])
+		senseBodyData.absLocation[0] < bounds[playerRole][0] &&
+		senseBodyData.absLocation[0] > bounds[playerRole][1] &&
+		senseBodyData.absLocation[1] < bounds[playerRole][2] &&
+		senseBodyData.absLocation[1] > bounds[playerRole][3])
 	{
 		// Congrats you're within bounds
 	}
 	else if (side == 'r' &&												// evaluate if on the right side
-		senseBodyData.absLocation[0] < -1 * bounds[roleNum][1] &&		// swap the x bounds and multiply by -1.
-		senseBodyData.absLocation[0] > -1 * bounds[roleNum][0] &&
-		senseBodyData.absLocation[1] < bounds[roleNum][2] &&			// y values should be the same
-		senseBodyData.absLocation[1] > bounds[roleNum][3])
+		senseBodyData.absLocation[0] < -1 * bounds[playerRole][1] &&		// swap the x bounds and multiply by -1.
+		senseBodyData.absLocation[0] > -1 * bounds[playerRole][0] &&
+		senseBodyData.absLocation[1] < bounds[playerRole][2] &&			// y values should be the same
+		senseBodyData.absLocation[1] > bounds[playerRole][3])
 	{
 		// Congrats you're within bounds
 	}

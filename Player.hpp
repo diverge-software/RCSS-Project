@@ -8,6 +8,7 @@
 
 #include "Parser.hpp"
 #include "Vector2f.hpp"
+#include "ai_processing.hpp"
 #include <iostream>
 #include <string>
 #include <cstdlib>
@@ -104,7 +105,7 @@ class Player
 		 * @pre A valid string is passed in.
 		 * @post The player's type is set.
 		 */
-		void setPlayerRole( string role );
+		void setPlayerRole( AI_Processing::player_type_t32 role );
 		/** Get the player's uniform number.
 		 * @return Integer uniform number.
 		 */
@@ -136,7 +137,7 @@ class Player
 		int uniformNumber;
 		char side;    // Which side you're playing from, left or right
 		string teamName;
-		string playerRole;
+		AI_Processing::player_type_t32 playerRole;
 
 		unordered_map<string, PlayerTypeStruct>   mPlayerTypes[NUM_PLAYER_TYPES];
 		unordered_map<string, ServerStruct>       mServerInfo;
