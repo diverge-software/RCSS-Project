@@ -529,16 +529,17 @@ int Player::getUniformNumber() const
 	return uniformNumber;
 }
 
-string Player::think() const
+string Player::think()
 {
 	// This will be returned, so set this in your section, then break
-	string command;
+	string command = "";
 
 	switch( playerRole )
 	{
 		case PLAYER_TYPE_GOALIE:
 			break;
 		case PLAYER_TYPE_FORWARD:
+			command = think_forward();
 			break;
 		case PLAYER_TYPE_MIDFIELDER:
 			break;
@@ -549,4 +550,47 @@ string Player::think() const
 	}
 
 	return command;
+}
+
+string Player::think_forward()
+{
+	string command;
+	/**********************************************************************
+	 * Is calling the hash table every time less efficient than calling 
+	 * them once at the top then referencing a local variable?
+	 **********************************************************************/
+
+	// Get the most recent visual information
+	unordered_map<string, VisualData> visualData = mVisualDataQueue.back();
+
+
+	/**********************************************************************
+	 * The following basically just kicks it towards the goal.
+	 * I'll make it better when I can test it. (dribbling, avoiding people, whatever)
+	 **********************************************************************/
+
+	if(visualData["b"] /* does not return invalid */)								// if the player sees the ball
+	{
+		if(visualData["b"].distance < 0.7)											// if the player is within kicking distance of the ball
+		{
+			if(visualData["g " + /*other?*/side] /* does not return invalid */)		// if the player sees the goal and the ball and can kick it
+			{
+				command = "kick 50 " + visualData["g " + /*other?*/side].direction;	// kick the ball to the other team's goal
+			}
+			else																	// if the player can't see the goal, turn to find it
+			{																		// ** this might end up in some kind of loop where you alternate between
+				command = "turn 30";												// ** not finding the ball and not finding the goal
+			}
+		}
+		else																		// the player is not within kicking distance but sees the ball
+		{
+			command = "dash 20";													// get closer to ball
+		}
+	}
+	else																			// if the player can't see the ball
+	{
+		command = "turn 30";														// turn to find the ball
+	}
+
+	return ( command );
 }

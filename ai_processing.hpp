@@ -89,7 +89,7 @@ namespace AI_Processing
     string Catch_Cmd( double direction );
     string Change_View_Cmd( change_view_width_t32 width, change_view_quality_t32 quality );
     string Dash_Cmd( double power );
-    string Kick_Cmd( double power );
+    string Kick_Cmd( double power, double direction );
     string Move_Cmd( double x_val, double y_val );
     string Say_Cmd( string msg_str );
     string Score_Cmd( void );
@@ -132,7 +132,6 @@ namespace AI_Processing
 	 * @post player will be within established boundaries for that player type.
 	 */
 	void checkPlayerBounds(player_type_t32 playerRole, Vector2f absLocation, char side);
-
 };
 
 /*--------------------------------------------------------------------

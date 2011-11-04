@@ -226,6 +226,7 @@ return( ret_val.str() );
 string AI_Processing::Kick_Cmd      /* Kick Command                 */
     (
     double              power       /* power value                  */
+	double              direction   /* direction value              */
     )
 {
 /*----------------------------------------------------------
@@ -243,7 +244,14 @@ if( ( power < MIN_POWER )
     alwaysAssert();
     }
 
-ret_val << "(kick " << power << ")";
+if( ( direction < MIN_MOMENT )
+ || ( direction > MAX_MOMENT ) )
+{
+	alwaysAssert();
+}
+
+
+ret_val << "(kick " << power << " " << direction ")";
 
 return( ret_val.str() );
 
@@ -454,12 +462,13 @@ Vector2f AI_Processing::getFutureBallPos(Vector2f cPos, Vector2f cVec, double tI
 
 void AI_Processing::checkPlayerBounds(player_type_t32 playerRole, Vector2f absLocation, char side)
 {
-	/* This function should only be used if the player has moved since the last cycle
+	/************ NEEDS TO BE TESTED ************************************
+	 * This function should only be used if the player has moved since the last cycle
 	 * should help with efficiency.
-     */
+     ********************************************************************/
 
 	// Check if the player's position is within the defined boundaries
-	if(side == 'l' &&													// evaluate if on the left side
+	if(side == 'l' &&									// evaluate if on the left side
 		absLocation[0] < bounds[playerRole][0] &&
 		absLocation[0] > bounds[playerRole][1] &&
 		absLocation[1] < bounds[playerRole][2] &&
@@ -467,16 +476,18 @@ void AI_Processing::checkPlayerBounds(player_type_t32 playerRole, Vector2f absLo
 	{
 		// Congrats you're within bounds
 	}
-	else if (side == 'r' &&												// evaluate if on the right side
-		absLocation[0] < -1 * bounds[playerRole][1] &&		// swap the x bounds and multiply by -1.
+	else if (side == 'r' &&								// evaluate if on the right side
+		absLocation[0] < -1 * bounds[playerRole][1] &&	// swap the x bounds and multiply by -1.
 		absLocation[0] > -1 * bounds[playerRole][0] &&
-		absLocation[1] < bounds[playerRole][2] &&			// y values should be the same
+		absLocation[1] < bounds[playerRole][2] &&		// y values should be the same
 		absLocation[1] > bounds[playerRole][3])
 	{
 		// Congrats you're within bounds
 	}
 	else
 	{
+		// What the hell? GET BACK IN YOUR CAGE.
+
 		// resetPlayerPosition();
 		
 		// or maybe have something like

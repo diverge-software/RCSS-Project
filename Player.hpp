@@ -33,6 +33,7 @@ class Player
 		* @post This object is ready to receive server messages and parse/store their data.
 		*/
 		Player();
+		
 		/** Parses a buffer of information from the soccer server.
 		* @param buffer Any S-expression string sent from the soccer server.
 		* @pre None.
@@ -47,36 +48,42 @@ class Player
 		* @post The contents of the hash will be printed to the output stream.
 		*/
 		void printNewestVisualHash( ostream & os ) const;
+		
 		/** Prints the most recently stored list of visible players to the specified output stream.
 		* @param os The output stream to write to.
 		* @pre None.
 		* @post The contents of the visible player vector will be printed to the output stream.
 		*/
 		void printNewestVisiblePlayersList( ostream & os ) const;
+		
 		/** Prints the most recently stored aural information struct to the specified output stream.
 		* @param os The output stream to write to.
 		* @pre None.
 		* @post The contents of the aural struct will be printed to the output stream.
 		*/
 		void printNewestAuralStruct( ostream & os ) const;
+		
 		/** Prints the most recently stored sense body information struct to the specified output stream.
 		* @param os The output stream to write to.
 		* @pre None.
 		* @post The contents of the sense body struct will be printed to the output stream.
 		*/
 		void printNewestSenseBodyStruct( ostream & os ) const;
+		
 		/** Prints the contents of the server information hash to the specified output stream.
 		* @param os The output stream to write to.
 		* @pre None.
 		* @post The contents of the hash will be printed to the output stream.
 		*/
 		void printServerHash( ostream & os ) const;
+		
 		/** Prints the contents of the player types hash to the specified output stream.
 		* @param os The output stream to write to.
 		* @pre None.
 		* @post The contents of the hash will be printed to the output stream.
 		*/
 		void printPlayerTypesHash( ostream & os ) const;
+		
 		/** Prints the contents of the palyer parameter hash to the specified output stream.
 		* @param os The output stream to write to.
 		* @pre None.
@@ -94,18 +101,21 @@ class Player
 		* float values if the object cannot be found and its position cannot be estimated.
 		*/
 		Vector2f getObjectPosition( string objName, int currentTimestamp ) const;
+		
 		/** Sets team name.
 		 * @param teamname name of team
 		 * @pre None
 		 * @post Private member teamName is set to appropriate team name	
 		 */
 		void setTeamName(string teamname);
+		
 		/** Set the player's role, or position, on the field.
 		 * @param role Can be either "goalie", "defender", "midfielder", or "forward".
 		 * @pre A valid string is passed in.
 		 * @post The player's type is set.
 		 */
 		void setPlayerRole( AI_Processing::player_type_t32 role );
+		
 		/** Get the player's uniform number.
 		 * @return Integer uniform number.
 		 */
@@ -117,7 +127,14 @@ class Player
 		 * @post None.
 		 * @return String command to send to the server for the client's action.
 		 */
-		string think() const;
+		string think();
+
+		/** Determines the actions for forwards
+		 * @pre Player should be intialized with data from the server.
+		 * @post 
+		 * @return command initialized with string to send to server to make the forward do something.
+		 */
+		string think_forward();
 
 	private:	
 		// Sensory data passed from the server
