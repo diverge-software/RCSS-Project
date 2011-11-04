@@ -120,6 +120,11 @@ class Player
 		 * @return Integer uniform number.
 		 */
 		int getUniformNumber() const;
+		/** Returns whether or not the player has received the (init ...) message.
+		 * This is applicable for offline trainers, as well.
+		 * @return True if player has received an (init ...) message, false otherwise.
+		 */
+		bool isPlayerInitialized() const;
 
 		/** Determines what the player should do next, based on his role.
 		 * @param None.
@@ -127,14 +132,14 @@ class Player
 		 * @post None.
 		 * @return String command to send to the server for the client's action.
 		 */
-		string think();
+		string think() const;
 
 		/** Determines the actions for forwards
 		 * @pre Player should be intialized with data from the server.
 		 * @post 
 		 * @return command initialized with string to send to server to make the forward do something.
 		 */
-		string think_forward();
+		string think_forward() const;
 
 	private:	
 		// Sensory data passed from the server
@@ -157,6 +162,7 @@ class Player
 		unordered_map<string, Vector2f>           mStationaryFlags;
 
 		// Game states:
+		bool	playerInitialized;
 		bool	servInitialized;
 		bool	kickOffMode;
 		bool	playOn;

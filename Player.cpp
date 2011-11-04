@@ -124,6 +124,7 @@ Player::Player()
 	mStationaryFlags["f r b 30"] = Vector2f( RIGHT_BOUNDARY_X, -30.0f );
 
 	//initialize states
+	playerInitialized = false;
 	servInitialized = false; 
 	kickOffMode = false;
 }
@@ -211,7 +212,19 @@ bool Player::parseBuffer(const string buffer)
 		}
 		else if( !buffer.compare( 0, 5, "(init" ) )
 		{
-			parseInitPacket( buffer, this->uniformNumber, this->side );
+			// Offline trainers receive a special "(init ok)" message when the
+			// server is ready for them, so deal with it specially.
+			if( !buffer.compare( 5, 4, " ok)" ) && playerRole == PLAYER_TYPE_TRAINER )
+			{
+				uniformNumber = -1;
+				side = 'n';    // n for no side
+			}
+			else
+			{
+				parseInitPacket( buffer, this->uniformNumber, this->side );
+			}
+
+			playerInitialized = true;
 		}
 		else if( !buffer.compare( 0, 13, "(server_param" ) )
 		{
@@ -530,7 +543,12 @@ int Player::getUniformNumber() const
 	return uniformNumber;
 }
 
-string Player::think()
+bool Player::isPlayerInitialized() const
+{
+	return playerInitialized;
+}
+
+string Player::think() const
 {
 	// This will be returned, so set this in your section, then break
 	string command = "";
@@ -540,7 +558,7 @@ string Player::think()
 		case PLAYER_TYPE_GOALIE:
 			break;
 		case PLAYER_TYPE_FORWARD:
-			command = think_forward();
+			command = this->think_forward();
 			break;
 		case PLAYER_TYPE_MIDFIELDER:
 			break;
@@ -553,7 +571,7 @@ string Player::think()
 	return command;
 }
 
-string Player::think_forward()
+string Player::think_forward() const
 {
 	string command;
 	/**********************************************************************
