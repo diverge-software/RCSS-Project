@@ -225,7 +225,7 @@ return( ret_val.str() );
 
 string AI_Processing::Kick_Cmd      /* Kick Command                 */
     (
-    double              power       /* power value                  */
+    double              power,       /* power value                  */
 	double              direction   /* direction value              */
     )
 {
@@ -251,7 +251,7 @@ if( ( direction < MIN_MOMENT )
 }
 
 
-ret_val << "(kick " << power << " " << direction ")";
+ret_val << "(kick " << power << " " << direction << ")";
 
 return( ret_val.str() );
 
