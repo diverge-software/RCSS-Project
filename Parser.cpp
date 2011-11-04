@@ -568,8 +568,19 @@ void Parser::convertToAbsoluteCoordsAndVelocity( unordered_map<string, VisualDat
 
 	if(absoluteSpeedMagnitude != 0)
 	{
-		absAngle = calculateAbsAngle(visualHash, flags);
+		absAngle = calculateAbsAngle(visualHash, flags, stationaryFlags);		
+		for(int i=0; i<2; i++)
+		{
+			//AbsoluteAngleSum is the sum of the player's angle with respect to the field and 
+			//	the flag's angle with respect to the client-player's
+			double absoluteAngleSum = getAbsoluteAngleSum(absAngle, visualHash[flags[i]].direction); 
 		
+			xAvg += stationaryFlags[flags[i]][0] - visualHash[flags[i]].distance*cos((PI/180)*absoluteAngleSum);
+			yAvg += stationaryFlags[flags[i]][1] - visualHash[flags[i]].distance*sin((PI/180)*absoluteAngleSum); 			
+		}
+
+		senseBodyData.absLocation[0] = xAvg/2; 
+		senseBodyData.absLocation[1] = yAvg/2;
 	}
 	else
 	{
@@ -680,140 +691,133 @@ void Parser::convertToAbsoluteCoordsAndVelocity( unordered_map<string, VisualDat
 	}
 }
 
-double Parser::calculateAbsAngle(unordered_map<string, VisualData> &visualHash, string flags[])
+double Parser::calculateAbsAngle(unordered_map<string, VisualData> &visualHash, string flags[], 
+								 unordered_map<string, Vector2f> &stationaryFlags)
 {
 	//hold key of closest flags of each type
-	string tFlags[2];
-	string bFlags[2];
-	string rFlags[2];
-	string lFlags[2];
-	string pFlags[2];
-	string gFlags[2];
-
-	int countt = 0; 
-	int countb = 0;
-	int countr = 0;
-	int countl = 0;
-	int countp = 0;
-	int countg = 0;
+	unordered_map<string, string *> flagsHash;
 	
+	int tCount = 0; 
+	int bCount = 0;
+	int rCount = 0;
+	int lCount = 0;
+	int pCount = 0;
+	int gCount = 0;
 
 	//find two closest flags on a line
 	for(unordered_map<string, VisualData>::const_iterator it = visualHash.begin(); it != visualHash.end(); ++it )
 	{
 		if(it->first[2] == 't')
 		{
-			if(countt < 2)
+			if(tCount < 2)
 			{
-				tFlags[countt] = it->first;
-				countt++;
+				flagsHash["tFlags"][tCount] = it->first;
+				tCount++;
 			}
 			else 
 			{
-				if(it->second.distance < visualHash[tFlags[0]].distance)
+				if(it->second.distance < visualHash[flagsHash["tFlags"][0]].distance)
 				{
-					tFlags[0] = it->first;
+					flagsHash["tFlags"][0] = it->first;
 				}
-				else if(it->second.distance < visualHash[tFlags[1]].distance)
+				else if(it->second.distance < visualHash[flagsHash["tFlags"][1]].distance)
 				{
-					tFlags[1] = it->first;
+					flagsHash["tFlags"][1] = it->first;
 				}
-				
-				
 			}
 		}
 		else if(it->first[2] == 'b')
 		{
-			if(countt < 2)
+			if(bCount < 2)
 			{
-				bFlags[countt] = it->first;
-				countb++;
+				flagsHash["bFlags"][bCount] = it->first;
+				bCount++;
 			}
 			else 
 			{
-				if(it->second.distance < visualHash[bFlags[0]].distance)
+				if(it->second.distance < visualHash[flagsHash["bFlags"][0]].distance)
 				{
-					bFlags[0] = it->first;
+					flagsHash["bFlags"][0] = it->first;
 				}
-				else if(it->second.distance < visualHash[bFlags[1]].distance)
+				else if(it->second.distance < visualHash[flagsHash["bFlags"][1]].distance)
 				{
-					bFlags[1] = it->first;
+					flagsHash["bFlags"][1] = it->first;
 				}
 			}
 		}
 		else if(it->first[2] == 'r')
 		{
-			if(countt < 2)
+			if(rCount < 2)
 			{
-				rFlags[countt] = it->first;
-				countr++;
+				flagsHash["rFlags"][rCount] = it->first;
+				rCount++;
 			}
 			else 
 			{
-				if(it->second.distance < visualHash[rFlags[0]].distance)
+				if(it->second.distance < visualHash[flagsHash["rFlags"][0]].distance)
 				{
-					rFlags[0] = it->first;
+					flagsHash["rFlags"][0] = it->first;
 				}
-				else if(it->second.distance < visualHash[rFlags[1]].distance)
+				else if(it->second.distance < visualHash[flagsHash["rFlags"][1]].distance)
 				{
-					rFlags[1] = it->first;
+					flagsHash["rFlags"][1] = it->first;
 				}
 			}
 		}
 		else if(it->first[2] == 'l')
 		{
-			if(countt < 2)
+			if(lCount < 2)
 			{
-				lFlags[countt] = it->first;
-				countt++;
+				flagsHash["lFlags"][lCount] = it->first;
+				lCount++;
 			}
 			else 
 			{
-				if(it->second.distance < visualHash[lFlags[0]].distance)
+				if(it->second.distance < visualHash[flagsHash["lFlags"][0]].distance)
 				{
-					lFlags[0] = it->first;
+					flagsHash["lFlags"][0] = it->first;
 				}
-				else if(it->second.distance < visualHash[lFlags[1]].distance)
+				else if(it->second.distance < visualHash[flagsHash["lFlags"][1]].distance)
 				{
-					lFlags[1] = it->first;
+					flagsHash["lFlags"][1] = it->first;
 				}
 			}
 		}
 		else if(it->first[2] == 'p')
 		{
-			if(countp < 2)
+			if(pCount < 2)
 			{
-				pFlags[countt] = it->first;
-				countp++;
+				flagsHash["pFlags"][pCount] = it->first;
+				pCount++;
 			}
 			else 
 			{
-				if(it->second.distance < visualHash[pFlags[0]].distance)
+				if(it->second.distance < visualHash[flagsHash["pFlags"][0]].distance)
 				{
-					pFlags[0] = it->first;
+					flagsHash["pFlags"][0] = it->first;
 				}
-				else if(it->second.distance < visualHash[pFlags[1]].distance)
+				else if(it->second.distance < visualHash[flagsHash["pFlags"][1]].distance)
 				{
-					pFlags[1] = it->first;
+					flagsHash["pFlags"][1] = it->first;
 				}
 			}
 		}
 		else if(it->first[2] == 'g')
 		{
-			if(countg < 2)
+			if(gCount < 2)
 			{
-				gFlags[countt] = it->first;
-				countg++;
+				flagsHash["gFlags"][gCount] = it->first;
+				gCount++;
 			}
 			else 
 			{
-				if(it->second.distance < visualHash[gFlags[0]].distance)
+				if(it->second.distance < visualHash[flagsHash["gFlags"][0]].distance)
 				{
-					gFlags[0] = it->first;
+					flagsHash["gFlags"][0] = it->first;
 				}
-				else if(it->second.distance < visualHash[gFlags[1]].distance)
+				else if(it->second.distance < visualHash[flagsHash["gFlags"][1]].distance)
 				{
-					gFlags[1] = it->first;
+					flagsHash["gFlags"][1] = it->first;
 				}
 			}
 		}
@@ -823,9 +827,42 @@ double Parser::calculateAbsAngle(unordered_map<string, VisualData> &visualHash, 
 		}	
 	}
 
-	//Now we need to find which set of flags is closest
-	double fag;
-	return fag;	
+	double theta_0;  
+	double theta_1; 
+	double x_0; 
+	double x_1; 
+	
+	//Now we need to find which set of flags is closest, store it in flags[]
+	flags = flagsHash["tFlags"]; // initialize as closest value tFlags[]
+	for( unordered_map<string, string *>::const_iterator it = flagsHash.begin(); it != flagsHash.end(); ++it )
+	{
+		if( visualHash[it->second[0]].distance < visualHash[flags[0]].distance )
+		{
+			theta_0 = visualHash[it->second[0]].direction;
+			theta_1 = visualHash[it->second[1]].direction;
+			x_0 = visualHash[it->second[0]].distance * cos( (PI/180)*theta_0 );
+			x_1 = visualHash[it->second[1]].distance * cos( (PI/180)*theta_0 );
+
+			//check for undefined slope
+			if( (x_0 - x_1) == 0 )
+			{
+				continue;
+			}
+			flags = it->second;
+		}
+	}
+	// Post: flags[] now contains the closest two colinear flags
+
+	//First, Initialize relative x and y values of both flags. With this, we can
+	//	calculate the relative slope of that line.
+	double y_0 = visualHash[flags[0]].distance * sin( (PI/180)*theta_0 );
+	double y_1 = visualHash[flags[1]].distance * sin( (PI/180)*theta_1 );
+
+	double slope = (y_1 - y_0)/(x_1 - x_0);
+	
+	double absAngle = atan( (PI/180)*slope ); 
+
+	return absAngle;
 }
 
 double Parser::getAbsoluteAngleSum(double absAngle, double refAngle)

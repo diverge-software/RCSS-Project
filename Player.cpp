@@ -143,9 +143,9 @@ bool Player::parseBuffer(const string buffer)
 				convertToAbsoluteCoordsAndVelocity( visualData, playerList, mSenseBodyDataQueue.back(), mStationaryFlags);
 			}
 
-					deque<vector<VisiblePlayer>>			  mTeammateListQueue;
-		deque<vector<VisiblePlayer>>			  mOpponentListQueue;
-		deque<vector<VisiblePlayer>>			  mUnidentifiedPlayerListQueue;
+			deque<vector<VisiblePlayer>>			  mTeammateListQueue;
+			deque<vector<VisiblePlayer>>			  mOpponentListQueue;
+			deque<vector<VisiblePlayer>>			  mUnidentifiedPlayerListQueue;
 			vector<VisiblePlayer> teammates = getTeammateIdentities( this->teamName, playerList );
 			vector<VisiblePlayer> opponents = getOpponentIdentities( this->teamName, playerList );
 			vector<VisiblePlayer> unidentified = getUnidentifiedIdentities( this->teamName, playerList );
