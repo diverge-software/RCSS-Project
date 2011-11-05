@@ -209,6 +209,12 @@ bool Player::parseBuffer(const string buffer)
 				mAuralDataQueue.pop_front();
 			}
 			mAuralDataQueue.push_back( auralData );
+
+			if(auralData.sender.compare( "referee" ) == 0)
+			{
+				playMode = auralData.message;
+			}
+
 		}
 		else if( !buffer.compare( 0, 5, "(init" ) )
 		{
@@ -568,7 +574,7 @@ string Player::think() const
 			break;
 	}
 
-	return command;
+	return ( command );
 }
 
 string Player::think_forward() const
@@ -613,23 +619,29 @@ string Player::think_forward() const
 				{
 					std::ostringstream ostr;
 					ostr << visualData["g " + getOpponentSide(side)].direction; 
-					command = "kick 50 " + ostr.str();									// kick the ball to the other team's goal
+					command = "(kick 50 " + ostr.str() + ")";									// kick the ball to the other team's goal
 				}
 			}
 			else																	// if the player can't see the goal, turn to find it
 			{																		// ** this might end up in some kind of loop where you alternate between
-				command = "turn 30";												// ** not finding the ball and not finding the goal
+				command = "(turn 30)";												// ** not finding the ball and not finding the goal
 			}
 		}
 		else																		// the player is not within kicking distance but sees the ball
 		{
-			command = "dash 20";													// get closer to ball
+			command = "(dash 20)";													// get closer to ball
 		}
 	}
 	else																			// if the player can't see the ball
 	{
-		command = "turn 30";														// turn to find the ball
+		command = "(turn 30)";														// turn to find the ball
 	}
 
 	return ( command );
+}
+
+
+string Player::getPlayMode() const
+{
+	return ( playMode );
 }
