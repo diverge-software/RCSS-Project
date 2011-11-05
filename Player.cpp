@@ -595,46 +595,69 @@ string Player::think_forward() const
 
 	if(visualData.find("b") != visualData.end())								// if the player sees the ball
 	{
-		if(visualData["b"].distance < 0.7)											// if the player is within kicking distance of the ball
+		if(visualData["b"].direction > -15 &&
+		   visualData["b"].direction < 15)
 		{
-			if(visualData.find("g " + getOpponentSide(side)) != visualData.end())			// if the player sees the goal and the ball and can kick it
+			if(visualData["b"].distance <= 0.7)											// if the player is within kicking distance of the ball
 			{
-				bool canSeeGoalie = false;
-				vector<VisiblePlayer> opponents = mOpponentListQueue.back();
-				for(unsigned int i = 0; i <= opponents.size(); i++)
+				string opponentSide(1, getOpponentSide(side));
+				string opponentGoal = "g " + opponentSide;
+				if(visualData.find(opponentGoal) != visualData.end())			// if the player sees the goal and the ball and can kick it
 				{
-					if( opponents[i].teamName != teamName &&
-						opponents[i].teamName != INVALID_TEAM_NAME &&
-						opponents[i].isGoalie == true)
+					/*
+					bool canSeeGoalie = false;
+					vector<VisiblePlayer> opponents = mOpponentListQueue.back();
+					for(unsigned int i = 0; i <= opponents.size(); i++)
 					{
-						canSeeGoalie = true;
+						if( opponents[i].teamName != teamName &&
+							opponents[i].teamName != INVALID_TEAM_NAME &&
+							opponents[i].isGoalie == true)
+						{
+							canSeeGoalie = true;
+						}
 					}
-				}
-				if(canSeeGoalie)
-				{
-					/* are you in the penalty box? */
-					/* kick it to the widest open area along the goal */
-				}
-				else
-				{
+					*/
+					//if(canSeeGoalie)
+					//{
+					//	/* are you in the penalty box? */
+					//	/* kick it to the widest open area along the goal */
+					//}
+					//else
+					//{
 					std::ostringstream ostr;
-					ostr << visualData["g " + getOpponentSide(side)].direction; 
-					command = "(kick 50 " + ostr.str() + ")";									// kick the ball to the other team's goal
+					ostr << visualData[opponentGoal].direction; 
+					if(visualData[opponentGoal].direction > -10 &&
+					   visualData[opponentGoal].direction < 10)
+					{
+						command = "(kick 50 " + ostr.str() + ")";									// kick the ball to the other team's goal
+					}
+					else
+					{
+						command = "(dash 10)";
+						//command = "(turn " + ostr.str() + ")";
+					}
+					//}
+				}
+				else																	// if the player can't see the goal, turn to find it
+				{																		// ** this might end up in some kind of loop where you alternate between
+					command = "(dash 30)";												// ** not finding the ball and not finding the goal
 				}
 			}
-			else																	// if the player can't see the goal, turn to find it
-			{																		// ** this might end up in some kind of loop where you alternate between
-				command = "(turn 30)";												// ** not finding the ball and not finding the goal
+			else
+			{
+				command = "(dash 30)";													// get closer to ball
 			}
 		}
 		else																		// the player is not within kicking distance but sees the ball
 		{
-			command = "(dash 20)";													// get closer to ball
+			std::ostringstream ostr;
+			ostr << visualData["b"].direction;
+			command = "(turn " + ostr.str() + ")";
 		}
 	}
 	else																			// if the player can't see the ball
 	{
-		command = "(turn 30)";														// turn to find the ball
+		command = "(turn 25)";														// turn to find the ball
 	}
 
 	return ( command );

@@ -643,7 +643,8 @@ if( udp_client_ptr->m_client_cb.socket_open )
 		//string txt_str = udp_client_ptr->m_player.getPlayMode();
  
 		// if play_on, or some other correct mode
-		if(udp_client_ptr->m_player.getPlayMode().compare("play_on") == 0)
+		if(udp_client_ptr->m_player.getPlayMode().compare("play_on") == 0 &&
+			udp_client_ptr->m_player.getUniformNumber() == 5)					/* actions restricted to player #5, the first forward */
 		{
 			tx_str = udp_client_ptr->m_player.think();
 			if( !tx_str.empty() )
