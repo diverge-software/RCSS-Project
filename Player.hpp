@@ -141,6 +141,8 @@ class Player
 		 */
 		string think_forward() const;
 
+		string getPlayMode() const;
+
 	private:	
 		// Sensory data passed from the server
 		deque<AuralData>                          mAuralDataQueue;
@@ -169,6 +171,8 @@ class Player
 		bool	freeKickFriendly;
 		bool	freeKickOpponent;
 		bool	teamPossessesBall;
+
+		string  playMode;
 };
 	
 #endif

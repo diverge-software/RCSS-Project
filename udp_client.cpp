@@ -638,12 +638,19 @@ if( udp_client_ptr->m_client_cb.socket_open )
         --------------------------------------------------*/
         //char* demoBuffer = udp_client_ptr->m_client_cb.buffer;
 	    //tx_str = makeThemMove( udp_client_ptr->m_client_cb.hdl_idx, demoBuffer );
-        Decision_Processing();
+        //Decision_Processing();
 
-	    if( !tx_str.empty() )
-	        {
-            udp_client_ptr->UDP_send( tx_str );
-	        }
+		//string txt_str = udp_client_ptr->m_player.getPlayMode();
+
+		// if play_on, or some other correct mode
+		if(udp_client_ptr->m_player.getPlayMode().compare("play_on") == 0)
+		{
+			tx_str = udp_client_ptr->m_player.think();
+			if( !tx_str.empty() )
+				{
+				udp_client_ptr->UDP_send( tx_str );
+				}
+		}
 
         /*--------------------------------------------------
         Leave the critical section
