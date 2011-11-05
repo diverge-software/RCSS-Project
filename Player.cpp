@@ -587,13 +587,11 @@ string Player::think_forward() const
 	 * I'll make it better when I can test it. (dribbling, avoiding people, whatever)
 	 **********************************************************************/
 
-	
-
-	if(visualData["b"].distance != INVALID_FLOAT_VALUE)								// if the player sees the ball
+	if(visualData.find("b") != visualData.end())								// if the player sees the ball
 	{
 		if(visualData["b"].distance < 0.7)											// if the player is within kicking distance of the ball
 		{
-			if(visualData["g " + getOpponentSide(side)].distance != INVALID_FLOAT_VALUE)			// if the player sees the goal and the ball and can kick it
+			if(visualData.find("g " + getOpponentSide(side)) != visualData.end())			// if the player sees the goal and the ball and can kick it
 			{
 				bool canSeeGoalie = false;
 				vector<VisiblePlayer> opponents = mOpponentListQueue.back();
