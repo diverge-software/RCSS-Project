@@ -94,6 +94,7 @@ class UDP_client
         void UDP_dbg_log_dsbl( void );
         void UDP_dbg_log_enbl( string filename );
         int UDP_open_socket( string server_ip, unsigned int server_port, string team_name, player_type_t32 player_type );
+        void UDP_send( string tx_str );
 
     private:
         static void CALLBACK udp_completion_routine( DWORD err_no, DWORD bytes_xfer, LPWSAOVERLAPPED overlapped, DWORD flags );
@@ -101,7 +102,7 @@ class UDP_client
         static DWORD WINAPI udp_transmit_thread( LPVOID udp_client );
         static DWORD WINAPI udp_write_thread( LPVOID udp_client );
 
-        void udp_send( string tx_str );
+        
         void udp_receive( void );
         void udp_transmit();
         void udp_write( void );

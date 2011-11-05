@@ -295,6 +295,7 @@ if( this->m_client_cb.h_wt_thrd == NULL )
 * @throw If the receive thread cannot be created, an assertion is thrown
 * @throw If the transmit thread cannot be created, an assertion is thrown
 * @post The transmit and receive threads are started and processing begins for each client
+* @return Returns the uniform number assigned by the server
 */
 
 int UDP_client::UDP_open_socket     /* Open UDP Socket              */
@@ -321,9 +322,10 @@ ostringstream           tmp_str;    /* temporary string             */
 WSADATA					wsa_data;	/* winsock data					*/
 
 /*----------------------------------------------------------
-Set the team name
+Set the team name and role
 ----------------------------------------------------------*/
 m_player.setTeamName( team_name );
+m_player.setPlayerRole( player_type );
 
 /*----------------------------------------------------------
 Initiate Winsock DLL
@@ -475,7 +477,7 @@ else
     ret_val = 12;
     }
 
-this->udp_send( tmp_str.str() );
+this->UDP_send( tmp_str.str() );
 
 /*----------------------------------------------------------
 Set the socket open status
@@ -503,6 +505,39 @@ if( player_type != PLAYER_TYPE_TRAINER )
 return( ret_val );
 
 }   /* UDP_open_socket() */
+
+
+/** Send UDP Data
+* @param tx_str String To Transmit
+* @pre Socket must be open
+* @post Queues the string to be sent at the next allowable time
+*/
+void UDP_client::UDP_send	        /* UDP send data                */
+	( 
+    string              tx_str      /* transmit string              */
+    )
+{
+/*----------------------------------------------------------
+Enter the critical section to ensure threads will not
+attempt to concurrently access the same data 
+----------------------------------------------------------*/
+EnterCriticalSection( &this->m_client_cb.tx_crit_sec );
+
+/*----------------------------------------------------------
+Add server command to queue.  This must be a queue to allow
+more than one command to be sent in a single cycle which is
+allowed for the "turn neck" client control command.  The 
+calling function is responsible for determing which commands
+are allowed to be combined
+----------------------------------------------------------*/
+this->m_client_cb.tx_data_q.push( tx_str );
+
+/*----------------------------------------------------------
+Leave the critical section
+----------------------------------------------------------*/
+LeaveCriticalSection( &this->m_client_cb.tx_crit_sec );
+
+}	/* UDP_send() */
 
 
 /** UDP Completion Routine
@@ -607,7 +642,7 @@ if( udp_client_ptr->m_client_cb.socket_open )
 
 	    if( !tx_str.empty() )
 	        {
-            udp_client_ptr->udp_send( tx_str );
+            udp_client_ptr->UDP_send( tx_str );
 	        }
 
         /*--------------------------------------------------
@@ -779,39 +814,6 @@ udp_client_ptr->m_client_cb.rx_thrd_alive = FALSE;
 return( 0 );
 
 }   /* udp_receive_thread() */
-
-
-/** Send UDP Data
-* @param tx_str String To Transmit
-* @pre Socket must be open
-* @post Queues the string to be sent at the next allowable time
-*/
-void UDP_client::udp_send	        /* UDP send data                */
-	( 
-    string              tx_str      /* transmit string              */
-    )
-{
-/*----------------------------------------------------------
-Enter the critical section to ensure threads will not
-attempt to concurrently access the same data 
-----------------------------------------------------------*/
-EnterCriticalSection( &this->m_client_cb.tx_crit_sec );
-
-/*----------------------------------------------------------
-Add server command to queue.  This must be a queue to allow
-more than one command to be sent in a single cycle which is
-allowed for the "turn neck" client control command.  The 
-calling function is responsible for determing which commands
-are allowed to be combined
-----------------------------------------------------------*/
-this->m_client_cb.tx_data_q.push( tx_str );
-
-/*----------------------------------------------------------
-Leave the critical section
-----------------------------------------------------------*/
-LeaveCriticalSection( &this->m_client_cb.tx_crit_sec );
-
-}	/* udp_send() */
 
 
 /** UDP Transmit Processing
