@@ -22,8 +22,9 @@ using namespace std;
                           LITERAL CONSTANTS
 --------------------------------------------------------------------*/
 
-#define CLIENT_CNT   ( 1 )         /* client count                 */
-#define TEAM_NAME    ( "diverge" )  /* team name                    */
+#define CLIENT_CNT ( 12 )           /* client count                 */
+#define TEAM_NAME  ( "diverge" )    /* team name                    */
+#define TRNR_UNUM  ( 12 )           /* trainer uniform number       */
 
 /*--------------------------------------------------------------------
                                 TYPES
@@ -83,6 +84,10 @@ UDP_client *            udp_client_ptr;
                                     /* UDP client pointer           */
 int                     uniform_num;/* uniform number               */
 
+string                  object_str;
+string                  x_str;
+string                  y_str; 
+
 /*----------------------------------------------------------
 Get server information for user
 ----------------------------------------------------------*/
@@ -91,6 +96,7 @@ cout << "Welcome to the Diverge Software RoboCup Soccer Client" << endl << endl;
 cout << "Enter RoboCup Soccer Server information [xx.xx.xx.xx:port]: ";
 cin >> input;
 
+//input = "192.168.1.3:6000";
 server_ip = input.substr( 0, input.find( ":" ) );
 server_port = atoi( input.substr( input.find( ":" ) + 1, input.length() ).c_str() );
 
@@ -204,15 +210,18 @@ if( !error )
         {
         cout << "sp: Stop drills" << endl;
         cout << "st: Start drills" << endl;
-        cout << "mv: Move player [mv uniform x y]" << endl;
+        cout << "mp: Move player [mp uniform x y]" << endl;
+        cout << "mb: Move ball [mb x y]" << endl;
         }
 
+    cout << "rw: Send raw command to server" << endl;
     cout << "qt: Quit" << endl << endl;
+    getline( cin, input );
 
     while( true ) 
         {
         cout << "Command: ";
-        cin >> input;
+        getline( cin, input );
 
         /*--------------------------------------------------
         Quit command
@@ -226,6 +235,82 @@ if( !error )
 
             return( 0 );
             }
+
+        /*--------------------------------------------------
+        Stop drill command
+        --------------------------------------------------*/
+        else if( ( input.compare( "sp" ) == 0 )
+              && ( trainer_enbld              ) )
+            {
+            udp_client[ TRNR_UNUM - 1 ]->UDP_send( "(change_mode time_over)" );
+            }
+
+        /*--------------------------------------------------
+        Start drill command
+        --------------------------------------------------*/
+        else if( ( input.compare( "st" ) == 0 )
+              && ( trainer_enbld              ) )
+            {
+            udp_client[ TRNR_UNUM - 1 ]->UDP_send( "(change_mode play_on)" );
+            }
+
+        /*--------------------------------------------------
+        Move player command
+        --------------------------------------------------*/
+        else if( ( input.find( "mp" ) == 0 )
+              && ( trainer_enbld           ) )
+            {
+            input.erase( 0, 3 );
+
+            object_str = input.substr( 0, input.find_first_of( " " ) );
+            input.erase( 0, input.find_first_of( " " ) + 1 );
+            x_str = input.substr( 0, input.find_first_of( " " ) );
+            input.erase( 0, input.find_first_of( " " ) + 1 );
+            y_str = input.substr( 0, input.length() );
+
+            tmp_str.str( "" );
+            tmp_str << "(move (player " << TEAM_NAME << " " << object_str << ") " << x_str << " " << y_str << ")";
+
+            udp_client[ TRNR_UNUM - 1 ]->UDP_send( tmp_str.str() );
+            }
+
+        /*--------------------------------------------------
+        Move ball command
+        --------------------------------------------------*/
+        else if( ( input.find( "mb" ) == 0 )
+              && ( trainer_enbld           ) )
+            {
+            input.erase( 0, 3 );
+
+            x_str = input.substr( 0, input.find_first_of( " " ) );
+            input.erase( 0, input.find_first_of( " " ) + 1 );
+            y_str = input.substr( 0, input.length() );
+
+            tmp_str.str( "" );
+            tmp_str << "(move (ball) " << x_str << " " << y_str << ")";
+
+            udp_client[ TRNR_UNUM - 1 ]->UDP_send( tmp_str.str() );
+            }
+
+        /*--------------------------------------------------
+        Raw server command
+        --------------------------------------------------*/
+        else if( input.find( "rw" ) == 0 )
+            {
+            input.erase( 0, 3 );
+
+            udp_client[ TRNR_UNUM - 1 ]->UDP_send( input );
+            }
+
+        /*--------------------------------------------------
+        Unknown command
+        --------------------------------------------------*/
+        else
+            {
+            cout << "Unknown Command" << endl;
+            }
+
+        Sleep( 200 );
         }
     }
 
