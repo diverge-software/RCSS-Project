@@ -216,7 +216,7 @@ bool Player::parseBuffer(const string buffer)
 			// server is ready for them, so deal with it specially.
 			if( !buffer.compare( 5, 4, " ok)" ) && playerRole == PLAYER_TYPE_TRAINER )
 			{
-				uniformNumber = 12;
+				uniformNumber = -1;
 				side = 'n';    // n for no side
 			}
 			else
@@ -240,27 +240,13 @@ bool Player::parseBuffer(const string buffer)
 		}
 		else if( !buffer.compare( 0, 6, "(error" ) )
 		{
-        if( this->playerRole == PLAYER_TYPE_TRAINER )
-            {
-            cout << "Trainer: " << buffer << endl;
-            }
-        else
-            {
-			cout << "Error parsing this: " << buffer << endl;
+            cout << "Error parsing this: " << buffer << endl;
 			alwaysAssert();
-            }
 		}
 		else
 		{
-        if( this->playerRole == PLAYER_TYPE_TRAINER )
-            {
-            cout << "Trainer: " << buffer << endl;
-            }
-        else
-            {
 			cout << "Error parsing this: " << buffer << endl;
 			softAssert( false );    // Always soft asserts
-            }
 		}
 
 		return true;
@@ -626,7 +612,7 @@ string Player::think_forward() const
 				else
 				{
 					std::ostringstream ostr;
-					ostr << visualData["g " + getOpponentSide(side)].direction;
+					ostr << visualData["g " + getOpponentSide(side)].direction; 
 					command = "kick 50 " + ostr.str();									// kick the ball to the other team's goal
 				}
 			}
