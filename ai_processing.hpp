@@ -140,6 +140,15 @@ namespace AI_Processing
 	 * @return character representing the other team's side.
 	 */
 	char getOpponentSide(char side);
+
+	/** Determines if client is in possession of the ball by check the distance of the ball
+	 *		the client will stay in possession until someone else has possession
+	 * @param distance Distance of the ball from the player  
+	 * @pre None.
+	 * @post None.
+	 * @returns whether or not client possesses the ball 
+	 */
+	bool doesClientPossessBall(double distance);
 };
 
 /*--------------------------------------------------------------------

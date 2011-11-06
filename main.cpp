@@ -107,7 +107,7 @@ cout << "Enable the offline trainer [y/n]: ";
 cin >> input;
 cout << endl;
 
-if( input.compare( "y" ) == 0 )
+if( (input.compare( "y" ) == 0) || (input.compare( "Y" ) == 0) )
     {
     trainer_enbld = TRUE;
     player_cnt = CLIENT_CNT;

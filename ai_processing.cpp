@@ -450,6 +450,7 @@ bool AI_Processing::isTeammateOpenForPass(VisiblePlayer teammate, vector<Visible
 	return true;	
 }
 
+
 Vector2f AI_Processing::getFuturePlayerPos(Vector2f cPos, Vector2f cVec, double tInterval)
 {
 	return cPos + cVec * tInterval;
@@ -507,4 +508,14 @@ char AI_Processing::getOpponentSide(char side)
 	else
 		otherSide = side;
 	return otherSide;
+}
+
+bool doesClientPossessBall(double distance)
+{
+	if( distance < 1 && distance > -1 )
+	{
+		return true;
+	}
+	
+	return false;
 }

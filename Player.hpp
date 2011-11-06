@@ -132,7 +132,7 @@ class Player
 		 * @post None.
 		 * @return String command to send to the server for the client's action.
 		 */
-		string think() const;
+		string think();
 
 		/** Determines the actions for forwards
 		 * @pre Player should be intialized with data from the server.
@@ -171,6 +171,8 @@ class Player
 		bool	freeKickFriendly;
 		bool	freeKickOpponent;
 		bool	teamPossessesBall;
+
+		bool	clientPossessesBall;
 
 		string  playMode;
 };
