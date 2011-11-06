@@ -450,7 +450,6 @@ bool AI_Processing::isTeammateOpenForPass(VisiblePlayer teammate, vector<Visible
 	return true;	
 }
 
-
 Vector2f AI_Processing::getFuturePlayerPos(Vector2f cPos, Vector2f cVec, double tInterval)
 {
 	return cPos + cVec * tInterval;
@@ -461,7 +460,7 @@ Vector2f AI_Processing::getFutureBallPos(Vector2f cPos, Vector2f cVec, double tI
 	return cPos + cVec * pow(ballDecay, tInterval-1); 
 }
 
-void AI_Processing::checkPlayerBounds(player_type_t32 playerRole, Vector2f absLocation, char side)
+bool AI_Processing::checkPlayerBounds(player_type_t32 playerRole, Vector2f absLocation, char side)
 {
 	/************ NEEDS TO BE TESTED ************************************
 	 * This function should only be used if the player has moved since the last cycle
@@ -475,7 +474,7 @@ void AI_Processing::checkPlayerBounds(player_type_t32 playerRole, Vector2f absLo
 		absLocation[1] < bounds[playerRole][2] &&
 		absLocation[1] > bounds[playerRole][3])
 	{
-		// Congrats you're within bounds
+		return true;
 	}
 	else if (side == 'r' &&								// evaluate if on the right side
 		absLocation[0] < -1 * bounds[playerRole][1] &&	// swap the x bounds and multiply by -1.
@@ -483,11 +482,12 @@ void AI_Processing::checkPlayerBounds(player_type_t32 playerRole, Vector2f absLo
 		absLocation[1] < bounds[playerRole][2] &&		// y values should be the same
 		absLocation[1] > bounds[playerRole][3])
 	{
-		// Congrats you're within bounds
+		return true;
 	}
 	else
 	{
 		// What the hell? GET BACK IN YOUR CAGE.
+		return false;
 
 		// resetPlayerPosition();
 		
@@ -510,7 +510,7 @@ char AI_Processing::getOpponentSide(char side)
 	return otherSide;
 }
 
-bool doesClientPossessBall(double distance)
+bool AI_Processing::doesClientPossessBall( const double distance )
 {
 	if( distance < 1 && distance > -1 )
 	{

@@ -131,7 +131,7 @@ namespace AI_Processing
 	 * @pre playerRole, absLocation, and side must be initialized.
 	 * @post player will be within established boundaries for that player type.
 	 */
-	void checkPlayerBounds(player_type_t32 playerRole, Vector2f absLocation, char side);
+	bool checkPlayerBounds(player_type_t32 playerRole, Vector2f absLocation, char side);
 
 	/** Determines the side of the opponent. For use with finding scoring goal, etc.
 	 * @param side character representing the side that your team is playing from
@@ -148,7 +148,7 @@ namespace AI_Processing
 	 * @post None.
 	 * @returns whether or not client possesses the ball 
 	 */
-	bool doesClientPossessBall(double distance);
+	bool doesClientPossessBall( const double distance );
 };
 
 /*--------------------------------------------------------------------
