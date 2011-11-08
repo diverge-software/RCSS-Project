@@ -96,7 +96,7 @@ cout << "Welcome to the Diverge Software RoboCup Soccer Client" << endl << endl;
 cout << "Enter RoboCup Soccer Server information [xx.xx.xx.xx:port]: ";
 cin >> input;
 
-//input = "192.168.1.3:6000";
+//input = "192.168.1.105:6000";
 server_ip = input.substr( 0, input.find( ":" ) );
 server_port = atoi( input.substr( input.find( ":" ) + 1, input.length() ).c_str() );
 

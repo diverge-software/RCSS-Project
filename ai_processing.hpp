@@ -122,7 +122,20 @@ namespace AI_Processing
 	 * @post Client-Player knows future of position a player
 	 * @return returns future position as a vector
 	 */
-	Vector2f getFutureBallPos(Vector2f cPos, Vector2f cVec, double tInterval, double ballDecay);   
+	Vector2f getFutureBallPos(Vector2f cPos, Vector2f cVec, double tInterval, double ballDecay);
+
+	/** Returns the data on the player closest to the given position. This position could be that of the
+	 * ball, for example, but this function works generally on any object's location.
+	 * @param teammates List of visible teammates.
+	 * @param opponents List of visible opponents.
+	 * @param location The vector location under consideration.
+	 * @pre None.
+	 * @post None.
+	 * @return VisualData on player closest to the given location. Returns a structure with a negative
+	 * uniform number on any error.
+	 */
+	VisiblePlayer getPlayerClosestToLocation( const vector<VisiblePlayer> & teammates, const vector<VisiblePlayer> opponents,
+											  const Vector2f & location );
 
 	/** Checks to see if the player is within defined boundaries based on role on the field.
 	 * @param playerRole the position of the player on the field
@@ -149,6 +162,30 @@ namespace AI_Processing
 	 * @returns whether or not client possesses the ball 
 	 */
 	bool doesClientPossessBall( const double distance );
+
+	/** Determines if the goalie needs to be active, i.e. positioning himself, intercepting,
+	 * etc. If not, he should just be chilling back at the goal.
+	 * @param side Which side the goalie is playing on.
+	 * @param ballPos The absolute position of the ball.
+	 * @pre None.
+	 * @post None.
+	 * @return True if goaile should be active, false otherwise
+	 */
+	bool goalieShouldBeActive( const char side, const Vector2f & ballPos );
+
+	/** Determines the command that the goalie needs to execute to take possession of the ball
+	 * from the enemy team based on its location. If within the penalty box it should catch,
+	 * if not the goalie should try to kick if close enough to the ball.
+	 * @param side Which side the goalie is playing on.
+	 * @param goaliePos The absolute position of the goalie.
+	 * @param ballData Visual data of the ball.
+	 * @pre Ball must be within sight, and within 2.0m, the minimum catchable distance. This command
+	 * MUST be for a goalie since you can get a catch command out of it, an error condition for any
+	 * other player role.
+	 * @post None.
+	 * @return Command to send to the server: catch, kick, or potentially a turn (to face the ball).
+	 */
+	string goalieDoCatchOrKick( const char side, const Vector2f & goaliePos, const VisualData & ballData );
 };
 
 /*--------------------------------------------------------------------

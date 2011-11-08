@@ -460,6 +460,46 @@ Vector2f AI_Processing::getFutureBallPos(Vector2f cPos, Vector2f cVec, double tI
 	return cPos + cVec * pow(ballDecay, tInterval-1); 
 }
 
+VisiblePlayer AI_Processing::getPlayerClosestToLocation( const vector<VisiblePlayer> & teammates,
+														 const vector<VisiblePlayer> opponents,
+														 const Vector2f & location )
+{
+	VisiblePlayer closestPlayer;
+	closestPlayer.uniformNumber = -1;
+
+	if( !teammates.empty() )
+	{
+		closestPlayer = teammates[0];
+		for( unsigned int i = 1; i < teammates.size(); i++ )
+		{
+			if( ( teammates[i].visualData.absLocation - location ).magnitude()
+				< ( closestPlayer.visualData.absLocation - location ).magnitude() )
+			{
+				closestPlayer = teammates[i];
+			}
+		}
+	}
+	if( !opponents.empty() )
+	{
+		int startIndex = 0;
+		if( closestPlayer.uniformNumber == -1 )
+		{
+			closestPlayer = opponents[0];
+			startIndex = 1;
+		}
+		for( unsigned int i = startIndex; i < opponents.size(); i++ )
+		{
+			if( ( opponents[i].visualData.absLocation - location ).magnitude()
+				< ( closestPlayer.visualData.absLocation - location ).magnitude() )
+			{
+				closestPlayer = opponents[i];
+			}
+		}
+	}
+
+	return closestPlayer;
+}
+
 bool AI_Processing::checkPlayerBounds(player_type_t32 playerRole, Vector2f absLocation, char side)
 {
 	/************ NEEDS TO BE TESTED ************************************
@@ -518,4 +558,34 @@ bool AI_Processing::doesClientPossessBall( const double distance )
 	}
 	
 	return false;
+}
+
+bool AI_Processing::goalieShouldBeActive( const char side, const Vector2f & ballPos )
+{
+	return ( side == 'l' && ballPos[0] < 0 ||
+			 side == 'r' && ballPos[0] > 0 );
+}
+
+string AI_Processing::goalieDoCatchOrKick( const char side, const Vector2f & goaliePos, const VisualData & ballData )
+{
+	string command;
+
+	// If within the penalty box, catch the ball
+	if( checkPlayerBounds( PLAYER_TYPE_GOALIE, goaliePos, side ) )
+	{
+		command = Catch_Cmd( ballData.direction );
+	}
+	// If not within the penalty box, if the ball is close enough to kick
+	else if( ballData.distance < 0.7 )
+	{
+		// In the future, should pass to teammates, but for now, just kick in some random direction
+		command = Kick_Cmd( 100, -20 );
+	}
+	// Otherwise, we're close enough, just turn toward the ball
+	else if( ballData.direction != 0 )
+	{
+		command = Turn_Cmd( ballData.direction );
+	}
+
+	return command;
 }

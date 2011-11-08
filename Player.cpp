@@ -570,7 +570,7 @@ string Player::think()
 		{
 			ostringstream temp; 
 			temp << "t " << uniformNumber;
-			command = temp.str(); 
+			command = Say_Cmd( temp.str() ); 
 		}
 	}
 
@@ -581,33 +581,32 @@ string Player::think()
 			// If the ball is visible, try to intercept it
 			if( ballIter != mVisualDataQueue.back().end() )
 			{
-				Vector2f ballPos = ballIter->second.absLocation;
-				Vector2f goaliePos = mSenseBodyDataQueue.back().absLocation;
-				// If the ball is within the catchable area (defined in server.conf, manual says it's 2.0)
-				if( ballIter->second.distance < 2.0 )
+				// If the ball is on our side of the field, wake up and defend, otherwise
+				// just chill and do nothing.
+				if( goalieShouldBeActive( side, ballIter->second.absLocation ) )
 				{
-					// If within the penalty box, catch the ball
-					if( checkPlayerBounds( playerRole, goaliePos, side ) )
+					Vector2f ballPos = ballIter->second.absLocation;
+					Vector2f goaliePos = mSenseBodyDataQueue.back().absLocation;
+					// If the ball is within the catchable area (defined in server.conf, manual says it's 2.0)
+					if( ballIter->second.distance < 2.0 )
 					{
-						command = Catch_Cmd( ballIter->second.direction );
+						command = goalieDoCatchOrKick( side, goaliePos, ballIter->second );
 					}
-					// If not within the penalty box, if the ball is close enough to kick
-					else if( ballIter->second.distance < 0.7 )
+					// If the ball is in the penalty box
+					else if( checkPlayerBounds( PLAYER_TYPE_GOALIE, ballPos, side ) )
 					{
-						// In the future, should pass to teammates, but for now, just kick in some random direction
-						command = Kick_Cmd( 100, -20 );
 					}
-					// Otherwise dash toward the ball a bit, it's almost close enough to kick
+					// If we're not in the penalty box, get back in there
+					else if( checkPlayerBounds( playerRole, goaliePos, side ) == false )
+					{
+						command = Dash_Cmd( -40 );
+					}
+					// If you can't catch it, get in the line of sight of the ball and goal
 					else
 					{
-						command = Dash_Cmd( 40 );
+						Vector2f goalPos = mStationaryFlags.find( "g " + side )->second;
+						// Will probably need a command queue here: turn then dash
 					}
-				}
-				// If you can't catch it, get in the line of sight of the ball and goal
-				else
-				{
-					Vector2f goalPos = mStationaryFlags.find( "g " + side )->second;
-					// Will probably need a command queue here: turn then dash
 				}
 			}
 			// Otherwise, back up until the ball is visible, or turn if that is not enough
