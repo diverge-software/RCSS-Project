@@ -645,75 +645,74 @@ string Player::think_forward() const
 	 * The following basically just kicks it towards the goal.
 	 * I'll make it better when I can test it. (dribbling, avoiding people, whatever)
 	 **********************************************************************/
-
+	std::ostringstream ostr;
+	string opponentSide(1, getOpponentSide(side));
+	string opponentGoal = "g " + opponentSide;
+	
 	if(visualData.find("b") != visualData.end())								// if the player sees the ball
 	{
-		if(visualData["b"].direction > -15 &&
-		   visualData["b"].direction < 15)
+		if(visualData["b"].distance <= 0.7)										// if the player is within kicking distance of the ball
 		{
-			if(visualData["b"].distance <= 0.7)											// if the player is within kicking distance of the ball
+			if(visualData.find(opponentGoal) != visualData.end())				// if the player sees the goal and the ball and can kick it
 			{
-				string opponentSide(1, getOpponentSide(side));
-				string opponentGoal = "g " + opponentSide;
-				if(visualData.find(opponentGoal) != visualData.end())			// if the player sees the goal and the ball and can kick it
+				// hasn't been tested yet because haven't initialized opposing team.
+				// if you try to uncomment this, the program will crash
+				// because mOpponentListQueue is unpopulated.
+
+				/*
+				bool canSeeGoalie = false;
+				vector<VisiblePlayer> opponents = mOpponentListQueue.back();
+				
+				for(unsigned int i = 0; i <= opponents.size(); i++)
 				{
-					/*
-					bool canSeeGoalie = false;
-					vector<VisiblePlayer> opponents = mOpponentListQueue.back();
-					for(unsigned int i = 0; i <= opponents.size(); i++)
+					if( opponents[i].teamName != teamName &&
+						opponents[i].teamName != INVALID_TEAM_NAME &&
+						opponents[i].isGoalie == true)
 					{
-						if( opponents[i].teamName != teamName &&
-							opponents[i].teamName != INVALID_TEAM_NAME &&
-							opponents[i].isGoalie == true)
-						{
-							canSeeGoalie = true;
-						}
+						canSeeGoalie = true;
 					}
-					*/
-					//if(canSeeGoalie)
-					//{
-					//	/* are you in the penalty box? */
-					//	/* kick it to the widest open area along the goal */
-					//}
-					//else
-					//{
-					std::ostringstream ostr;
-					ostr << visualData[opponentGoal].direction; 
-					if(visualData[opponentGoal].direction > -10 &&
-					   visualData[opponentGoal].direction < 10)
-					{
-						command = "(kick 50 " + ostr.str() + ")";									// kick the ball to the other team's goal
-					}
-					else
-					{
-						command = "(dash 10)";
-						//command = "(turn " + ostr.str() + ")";
-					}
-					//}
 				}
-				else																	// if the player can't see the goal, turn to find it
-				{																		// ** this might end up in some kind of loop where you alternate between
-					command = "(dash 30)";												// ** not finding the ball and not finding the goal
-				}
+				canSeeGoalie;
+				*/
+
+				//if(canSeeGoalie)
+				//{
+				//	/* are you in the penalty box? */
+				//	/* kick it to the widest open area along the goal */
+				//}
+				//else
+				//{
+				ostr.clear();
+				ostr << visualData[opponentGoal].direction; 
+				command = "(kick 50 " + ostr.str() + ")";							// kick the ball to the other team's goal
 			}
-			else
-			{
-				command = "(dash 30)";													// get closer to ball
+			else																	// if the player can't see the goal, reset position so you see both ball and goal
+			{																		
+				/* hacky work around to dash away from the ball and then find it again */
+				command = "(dash 50)";
+
+				// set up queue to command player to back up and or turn
+				//command = "(turn 30)";
 			}
+		}
+		else if(visualData["b"].direction > -15 &&
+		        visualData["b"].direction < 15)										// if your facing the ball within an acceptable range
+		{
+			command = "(dash 50)";													// get closer to ball
 		}
 		else																		// the player is not within kicking distance but sees the ball
 		{
-			std::ostringstream ostr;
+			ostr.clear();
 			ostr << visualData["b"].direction;
-			command = "(turn " + ostr.str() + ")";
+			command = "(turn " + ostr.str() + ")";									// turn towards the ball
 		}
 	}
 	else																			// if the player can't see the ball
 	{
-		command = "(turn 25)";														// turn to find the ball
+		command = "(turn 15)";														// turn to find it
 	}
 
-	return ( command );
+	return ( command );																// return whatever command was made
 }
 
 
