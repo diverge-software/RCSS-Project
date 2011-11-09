@@ -101,9 +101,9 @@ class UDP_client
         static DWORD WINAPI udp_receive_thread( LPVOID udp_client );
         static DWORD WINAPI udp_transmit_thread( LPVOID udp_client );
         static DWORD WINAPI udp_write_thread( LPVOID udp_client );
-
-        
+   
         void udp_receive( void );
+        void udp_send_q( queue<string> tx_q );
         void udp_transmit();
         void udp_write( void );
 

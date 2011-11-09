@@ -830,6 +830,40 @@ return( 0 );
 }   /* udp_receive_thread() */
 
 
+/** Send UDP Queue Data
+* @param tx_q Queue Of Data To Transmit
+* @pre Socket must be open
+* @post Overwrites the current send queue to be sent at the next allowable time
+*/
+
+void UDP_client::udp_send_q	        /* UDP send queue data          */
+	(
+    queue<string>       tx_q        /* transmit queue               */
+    )
+{
+/*----------------------------------------------------------
+Enter the critical section to ensure threads will not
+attempt to concurrently access the same data 
+----------------------------------------------------------*/
+EnterCriticalSection( &this->m_client_cb.tx_crit_sec );
+
+/*----------------------------------------------------------
+Add server command to queue.  This must be a queue to allow
+more than one command to be sent in a single cycle which is
+allowed for the "turn neck" client control command.  The 
+calling function is responsible for determing which commands
+are allowed to be combined
+----------------------------------------------------------*/
+this->m_client_cb.tx_data_q = tx_q;
+
+/*----------------------------------------------------------
+Leave the critical section
+----------------------------------------------------------*/
+LeaveCriticalSection( &this->m_client_cb.tx_crit_sec );
+
+}	/* udp_send_q() */
+
+
 /** UDP Transmit Processing
 * @param None
 * @pre Socket must be open
