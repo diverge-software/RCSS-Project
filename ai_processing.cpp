@@ -500,6 +500,61 @@ VisiblePlayer AI_Processing::getPlayerClosestToLocation( const vector<VisiblePla
 	return closestPlayer;
 }
 
+double AI_Processing::getAbsAngleToLocation( const Vector2f & playerPos, const Vector2f & location )
+{
+	double xDifference = location[0] - playerPos[0];
+	double yDifference = location[1] - playerPos[1];
+
+	if( xDifference != 0 )
+	{
+		double slope = ( yDifference ) / ( xDifference );
+		if( slope == 0 )
+		{
+			if( xDifference > 0 )
+			{
+				return 0.0f;
+			}
+			else
+			{
+				return 180.0f;
+			}
+		}
+		else if( slope > 0 )
+		{
+			if( xDifference > 0 && yDifference > 0 )
+			{
+				return ( 180.0 / PI ) * atan( slope * ( PI / 180 ) );
+			}
+			else
+			{
+				return ( 180.0 / PI ) * atan( slope * ( PI / 180 ) ) - 180;
+			}
+		}
+		else // if( slope < 0 )
+		{
+			if( xDifference > 0 && yDifference < 0 )
+			{
+				return ( 180.0 / PI ) * atan( slope * ( PI / 180 ) );
+			}
+			else
+			{
+				return ( 180.0 / PI ) * atan( slope * ( PI / 180 ) ) + 180;
+			}
+		}
+	}
+	else
+	{
+		if( yDifference > 0 )
+		{
+			return 90.0f;
+		}
+		else
+		{
+			return -90.0f;
+		}
+	}
+}
+
 bool AI_Processing::checkPlayerBounds(player_type_t32 playerRole, Vector2f absLocation, char side)
 {
 	/************ NEEDS TO BE TESTED ************************************
@@ -548,16 +603,17 @@ char AI_Processing::getOpponentSide(char side)
 	{
 		return ( 'r' );
 	}
+	else
+	{
+		alwaysAssert();
+	}
 }
 
-bool AI_Processing::doesClientPossessBall( const double distance )
+bool AI_Processing::doesClientPossessBall( const Vector2f & playerPos, const Vector2f & ballPos )
 {
-	if( distance < 1 && distance > -1 )
-	{
-		return true;
-	}
-	
-	return false;
+	double distance = ( playerPos - ballPos ).magnitude();
+
+	return ( distance < 1 && distance > -1 );
 }
 
 bool AI_Processing::goalieShouldBeActive( const char side, const Vector2f & ballPos )

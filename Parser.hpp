@@ -85,6 +85,7 @@ namespace Parser
 
 		double stamina[3],
 			  speed [2],
+			  absAngle,
 			  head_angle,
 			  kick,
 			  dash,
@@ -246,8 +247,11 @@ namespace Parser
 	* positioning data converted to absolute coordinates, then stored.
 	*/
 	void convertToAbsoluteCoordsAndVelocity( unordered_map<string, VisualData> &visualHash, 
-							vector<VisiblePlayer> &visiblePlayers, SenseBodyData &senseBodyData,
+							vector<VisiblePlayer> &teammateVec, vector<VisiblePlayer> &opponentVec,
+							vector<VisiblePlayer> &unidentifiedVec, SenseBodyData &senseBodyData,
 							unordered_map<string, Vector2f> &stationaryFlags);
+
+	void convertAbsPlayersCoords( vector<VisiblePlayer> &playerVec, SenseBodyData &senseBodyData, double absoluteAngle );
 
 	/** Sums two angles to find the absolute angle between relative to the x-axis
 	 * @param absAngle Angle of client-player relative to the x-axis
@@ -291,8 +295,7 @@ namespace Parser
 	 * @post None
 	 * @return Returns the absolute angle relatve to the x-axis
 	 */
-	double calculateAbsAngle(unordered_map<string, VisualData> &visualHash, string flags[], 
-						     unordered_map<string, Vector2f> &stationaryFlags);
+	double calculateAbsAngle(unordered_map<string, VisualData> &visualHash);
 }
 
 #endif

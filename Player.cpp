@@ -111,6 +111,10 @@ Player::Player()
 	servInitialized		 = false; 
 	kickOffMode			 = false;
 	clientPossessesBall  = false;
+	playOn				 = false;
+	freeKickFriendly	 = false;
+	freeKickOpponent	 = false;
+	teamPossessesBall	 = false;
 }
 
 // Decide the buffer type and pass to respective parsing function
@@ -123,14 +127,8 @@ bool Player::parseBuffer(const string buffer)
 		{
 			vector<VisiblePlayer> playerList;
 			unordered_map<string, VisualData> visualData;
-			parseVisualPacket( buffer, visualData, playerList );
+			parseVisualPacket( buffer, visualData, playerList );		
 			
-			if(mSenseBodyDataQueue.empty())
-			{
-				//convert to abslolute coordinates and velocities
-				convertToAbsoluteCoordsAndVelocity( visualData, playerList, mSenseBodyDataQueue.back(), mStationaryFlags);
-			}
-
 			deque<vector<VisiblePlayer>>			  mTeammateListQueue;
 			deque<vector<VisiblePlayer>>			  mOpponentListQueue;
 			deque<vector<VisiblePlayer>>			  mUnidentifiedPlayerListQueue;
@@ -179,6 +177,30 @@ bool Player::parseBuffer(const string buffer)
 			{
 				mSenseBodyDataQueue.pop_front();
 			}
+
+			// Convert to Absolute Coordinates
+			if( !mVisualDataQueue.empty())
+			{
+				vector<VisiblePlayer> teammates;
+				vector<VisiblePlayer> opponents;
+				vector<VisiblePlayer> unidentified;
+				if( !mTeammateListQueue.empty() )
+				{
+					teammates = mTeammateListQueue.back();
+				}
+				if( !mTeammateListQueue.empty() )
+				{
+					opponents = mOpponentListQueue.back();
+				}
+				if( !mTeammateListQueue.empty() )
+				{
+					unidentified = mUnidentifiedPlayerListQueue.back();
+				}
+	
+				convertToAbsoluteCoordsAndVelocity( mVisualDataQueue.back(), teammates, opponents, 
+													unidentified, senseBodyData, mStationaryFlags);	
+			}
+
 			mSenseBodyDataQueue.push_back( senseBodyData );
 		}
 		else if( !buffer.compare( 0, 5, "(hear" ) )
@@ -219,6 +241,7 @@ bool Player::parseBuffer(const string buffer)
 		else if( !buffer.compare( 0, 13, "(server_param" ) )
 		{
 			parseServerPacket( buffer, this->mServerInfo );
+			servInitialized = true;
 		}
 		else if( !buffer.compare( 0, 12, "(player_type" ) ) 
 		{
@@ -249,219 +272,240 @@ bool Player::parseBuffer(const string buffer)
 
 void Player::printNewestVisualHash( ostream & os ) const
 {
-	os << "############################################" << endl;
-	os << "##            Visual Information          ##" << endl;
-	os << "############################################" << endl;
-
-	// Get the most recent element and print it
-	unordered_map<string, VisualData> visualData = mVisualDataQueue.back();
-
-	for( unordered_map<string, VisualData>::const_iterator it = visualData.begin(); it != visualData.end(); ++it )
+	if( !mVisualDataQueue.empty() )
 	{
-		os << "[\"" << it->first << "\", " << it->second.distance << ", " << it->second.direction;
-		if( it->second.distanceChange != INVALID_FLOAT_VALUE )
+		os << "############################################" << endl;
+		os << "##            Visual Information          ##" << endl;
+		os << "############################################" << endl;
+
+		// Get the most recent element and print it
+		unordered_map<string, VisualData> visualData = mVisualDataQueue.back();
+
+		for( unordered_map<string, VisualData>::const_iterator it = visualData.begin(); it != visualData.end(); ++it )
 		{
-			os << ", " << it->second.distanceChange << ", " << it->second.directionChange << "]" << endl;
-		}
-		else
-		{
-			os << "]" << endl;
+			os << "[\"" << it->first << "\", " << it->second.distance << ", " << it->second.direction;
+			if( it->second.distanceChange != INVALID_FLOAT_VALUE )
+			{
+				os << ", " << it->second.distanceChange << ", " << it->second.directionChange << "]" << endl;
+			}
+			else
+			{
+				os << "]" << endl;
+			}
 		}
 	}
 }
 
 void Player::printServerHash( ostream & os ) const
 {
-	os << "############################################" << endl;
-	os << "##            Server Information          ##" << endl;
-	os << "############################################" << endl;
-	for( unordered_map<string, ServerStruct>::const_iterator it = mServerInfo.begin(); it != mServerInfo.end(); ++it )
-	{
-		if( it->second.fValue == INVALID_FLOAT_VALUE )
+	if( servInitialized )
+	{	
+		os << "############################################" << endl;
+		os << "##            Server Information          ##" << endl;
+		os << "############################################" << endl;
+		for( unordered_map<string, ServerStruct>::const_iterator it = mServerInfo.begin(); it != mServerInfo.end(); ++it )
 		{
-			os << "[\"" << it->first << "\", " << it->second.sValue << "]" << endl;
-		}
-		else
-		{
-			os << "[\"" << it->first << "\", " << it->second.fValue << "]" << endl;
+			if( it->second.fValue == INVALID_FLOAT_VALUE )
+			{
+				os << "[\"" << it->first << "\", " << it->second.sValue << "]" << endl;
+			}
+			else
+			{
+				os << "[\"" << it->first << "\", " << it->second.fValue << "]" << endl;
+			}
 		}
 	}
 }
 
 void Player::printPlayerTypesHash( ostream & os ) const
 {
-	os << "############################################" << endl;
-	os << "##         Player Type Information        ##" << endl;
-	os << "############################################" << endl;
-	for( int i = 0; i < NUM_PLAYER_TYPES; i++ )
+	if( playerInitialized )
 	{
-		os << "PLAYER TYPE #" << i << endl;
-		for( unordered_map<string, PlayerTypeStruct>::const_iterator it = mPlayerTypes[i].begin(); it != mPlayerTypes[i].end(); ++it )
+		os << "############################################" << endl;
+		os << "##         Player Type Information        ##" << endl;
+		os << "############################################" << endl;
+		for( int i = 0; i < NUM_PLAYER_TYPES; i++ )
 		{
-			os << "[\"" << it->first << "\", " << it->second.fValue << "]" << endl;
+			os << "PLAYER TYPE #" << i << endl;
+			for( unordered_map<string, PlayerTypeStruct>::const_iterator it = mPlayerTypes[i].begin(); it != mPlayerTypes[i].end(); ++it )
+			{
+				os << "[\"" << it->first << "\", " << it->second.fValue << "]" << endl;
+			}
 		}
 	}
 }
 
 void Player::printNewestVisiblePlayersList( ostream & os ) const
 {
-	os << "############################################" << endl;
-	os << "##            Player Information          ##" << endl;
-	os << "############################################" << endl;
 
-	vector<VisiblePlayer> players[3];
-	// Get the most recent player list and print it
-	players[0] = mTeammateListQueue.back();
-	players[1] = mOpponentListQueue.back();
-	players[2] = mUnidentifiedPlayerListQueue.back();
+		os << "############################################" << endl;
+		os << "##            Player Information          ##" << endl;
+		os << "############################################" << endl;
 
-	for( int i = 0; i < 3; i++ )
-	{
-		for( unsigned int j = 0; j < players[i].size(); j++ )
+		vector<VisiblePlayer> players[3];
+		// Get the most recent player list and print it
+		players[0] = mTeammateListQueue.back();
+		players[1] = mOpponentListQueue.back();
+		players[2] = mUnidentifiedPlayerListQueue.back();
+
+		for( int i = 0; i < 3; i++ )
 		{
-			os << "[p, teamName = ";
-			if( players[i][j].teamName != INVALID_TEAM_NAME )
+			for( unsigned int j = 0; j < players[i].size(); j++ )
 			{
-				os << players[i][j].teamName;
-			}
-			else
-			{
-				os << "UNKNOWN";
-			}
-			if( players[i][j].uniformNumber != INVALID_UNIFORM_NUMBER )
-			{
-				os << ", uniform = " << players[i][j].uniformNumber;
-			}
-			else
-			{
-				os << ", uniform = UNKNOWN";
-			}
-			if( players[i][j].isGoalie )
-			{
-				os << ", is goalie";
-			}
-			
-			os << ", absLocation[0]" << players[i][j].visualData.absLocation[0]
-		       << ", absLocation[1]" << players[i][j].visualData.absLocation[1]
-			   << ", absVelocity[0]" << players[i][j].visualData.absVelocity[0]
-			   << ", absVelocity[1]" << players[i][j].visualData.absVelocity[1];
-
-			os << ", " << players[i][j].visualData.distance << ", " << players[i][j].visualData.direction;
-
-			if( players[i][j].visualData.directionChange != INVALID_FLOAT_VALUE )
-			{
-				os << ", " << players[i][j].visualData.distanceChange << ", " << players[i][j].visualData.directionChange;
-				if( players[i][j].bodyDirection != INVALID_FLOAT_VALUE )
+				os << "[p, teamName = ";
+				if( players[i][j].teamName != INVALID_TEAM_NAME )
 				{
-					os << ", " << players[i][j].bodyDirection << ", " << players[i][j].headDirection;
+					os << players[i][j].teamName;
 				}
-				os << "]" << endl;
-			}
-			else
-			{
-				os << "]" << endl;
+				else
+				{
+					os << "UNKNOWN";
+				}
+				if( players[i][j].uniformNumber != INVALID_UNIFORM_NUMBER )
+				{
+					os << ", uniform = " << players[i][j].uniformNumber;
+				}
+				else
+				{
+					os << ", uniform = UNKNOWN";
+				}
+				if( players[i][j].isGoalie )
+				{
+					os << ", is goalie";
+				}
+				
+				os << ", absLocation[0]" << players[i][j].visualData.absLocation[0]
+				   << ", absLocation[1]" << players[i][j].visualData.absLocation[1]
+				   << ", absVelocity[0]" << players[i][j].visualData.absVelocity[0]
+				   << ", absVelocity[1]" << players[i][j].visualData.absVelocity[1];
+
+				os << ", " << players[i][j].visualData.distance << ", " << players[i][j].visualData.direction;
+
+				if( players[i][j].visualData.directionChange != INVALID_FLOAT_VALUE )
+				{
+					os << ", " << players[i][j].visualData.distanceChange << ", " << players[i][j].visualData.directionChange;
+					if( players[i][j].bodyDirection != INVALID_FLOAT_VALUE )
+					{
+						os << ", " << players[i][j].bodyDirection << ", " << players[i][j].headDirection;
+					}
+					os << "]" << endl;
+				}
+				else
+				{
+					os << "]" << endl;
+				}
 			}
 		}
-	}
+	
 }
 
 void Player::printNewestAuralStruct( ostream & os ) const
 {
-	os << "############################################" << endl;
-	os << "##            Aural Information           ##" << endl;
-	os << "############################################" << endl;
-
-	// Get the most recent auralData and print it
-	AuralData auralData = mAuralDataQueue.back();
-
-	os << "Time: " << auralData.timestamp << endl;
-
-	if( auralData.sender != INVALID_SENDER_NAME )
+	if( !mAuralDataQueue.empty() )
 	{
-		os << "Sender: " << auralData.sender << endl;
-	}
-	else
-	{
-		os << "Src Direction: " << auralData.direction << endl;
-	}
+		os << "############################################" << endl;
+		os << "##            Aural Information           ##" << endl;
+		os << "############################################" << endl;
 
-	os << "Message: " << auralData.message << endl;
+		// Get the most recent auralData and print it
+		AuralData auralData = mAuralDataQueue.back();
+
+		os << "Time: " << auralData.timestamp << endl;
+
+		if( auralData.sender != INVALID_SENDER_NAME )
+		{
+			os << "Sender: " << auralData.sender << endl;
+		}
+		else
+		{
+			os << "Src Direction: " << auralData.direction << endl;
+		}
+
+		os << "Message: " << auralData.message << endl;
+	}
 }
 
 void Player::printNewestSenseBodyStruct( ostream & os ) const
 {
-	os << "############################################" << endl;
-	os << "##          Sense Body Information        ##" << endl;
-	os << "############################################" << endl;
 
-	// Get most recent sense body data and print it
-	SenseBodyData senseBodyData = mSenseBodyDataQueue.back();
+	if( !mSenseBodyDataQueue.empty() )
+	{
+		os << "############################################" << endl;
+		os << "##          Sense Body Information        ##" << endl;
+		os << "############################################" << endl;
 
-	os << "timestamp" << ": " << senseBodyData.timestamp << endl;
-	
-	os << "view_mode" << ": " << senseBodyData.view_mode.viewQuality << " "
-	                            << senseBodyData.view_mode.viewWidth << endl;
+		// Get most recent sense body data and print it
+		SenseBodyData senseBodyData = mSenseBodyDataQueue.back();
 
-	os << "absLocation[0]" << ": " << senseBodyData.absLocation[0] << endl
-	   << "absLocation[1]" << ": " << senseBodyData.absLocation[1] << endl;
+		os << "timestamp" << ": " << senseBodyData.timestamp << endl;
+		
+		os << "view_mode" << ": " << senseBodyData.view_mode.viewQuality << " "
+									<< senseBodyData.view_mode.viewWidth << endl;
 
-	os << "absVelocity[0]" << ": " << senseBodyData.absVelocity[0] << endl
-	   << "absVelocity[1]" << ": " << senseBodyData.absVelocity[1] << endl;
-	 
-	
-	os << "stamina" << ": " << senseBodyData.stamina[0] << " "
-	                          << senseBodyData.stamina[1] << " "
-	                          << senseBodyData.stamina[2] << endl;
-	
-	os << "speed" << ": " << senseBodyData.speed[0] << " "
-	                        << senseBodyData.speed[1] << endl;
-	
-	os << "head_angle" << ": " << senseBodyData.head_angle << endl;
-	
-	os << "kick" << ": " << senseBodyData.kick << endl;
-	
-	os << "dash" << ": " << senseBodyData.dash << endl;
-	
-	os << "turn" << ": " << senseBodyData.turn << endl;
-	
-	os << "say" << ": " << senseBodyData.say << endl;
-	
-	os << "turn_neck" << ": " << senseBodyData.turn_neck << endl;
-	
-	os << "catch" << ": " << senseBodyData.catchCount << endl;
-	
-	os << "move" << ": " << senseBodyData.move << endl;
-	
-	os << "change_view" << ": " << senseBodyData.change_view << endl;
-	
-	os << "arm" << ": " << senseBodyData.arm.movable << " "
-	                      << senseBodyData.arm.expires << " "
-	                      << senseBodyData.arm.target[0] << " "
-	                      << senseBodyData.arm.target[1] << " "
-	                      << senseBodyData.arm.count << endl;
-	
-	os << "focus" << ": " << senseBodyData.focus.target << " "
-	                        << senseBodyData.focus.count << endl;
-	
-	os << "tackle" << ": " << senseBodyData.tackle.expires << " "
-	                         << senseBodyData.tackle.count << endl;
-	
-	os << "collision" << ": " << senseBodyData.collision << endl;
-	
-	os << "foul" << ": " << senseBodyData.foul.charged << " "
-	                       << senseBodyData.foul.card << endl;
+		os << "absLocation[0]" << ": " << senseBodyData.absLocation[0] << endl
+		   << "absLocation[1]" << ": " << senseBodyData.absLocation[1] << endl;
+
+		os << "absVelocity[0]" << ": " << senseBodyData.absVelocity[0] << endl
+		   << "absVelocity[1]" << ": " << senseBodyData.absVelocity[1] << endl;
+		 
+		
+		os << "stamina" << ": " << senseBodyData.stamina[0] << " "
+								  << senseBodyData.stamina[1] << " "
+								  << senseBodyData.stamina[2] << endl;
+		
+		os << "speed" << ": " << senseBodyData.speed[0] << " "
+								<< senseBodyData.speed[1] << endl;
+		
+		os << "head_angle" << ": " << senseBodyData.head_angle << endl;
+		
+		os << "kick" << ": " << senseBodyData.kick << endl;
+		
+		os << "dash" << ": " << senseBodyData.dash << endl;
+		
+		os << "turn" << ": " << senseBodyData.turn << endl;
+		
+		os << "say" << ": " << senseBodyData.say << endl;
+		
+		os << "turn_neck" << ": " << senseBodyData.turn_neck << endl;
+		
+		os << "catch" << ": " << senseBodyData.catchCount << endl;
+		
+		os << "move" << ": " << senseBodyData.move << endl;
+		
+		os << "change_view" << ": " << senseBodyData.change_view << endl;
+		
+		os << "arm" << ": " << senseBodyData.arm.movable << " "
+							  << senseBodyData.arm.expires << " "
+							  << senseBodyData.arm.target[0] << " "
+							  << senseBodyData.arm.target[1] << " "
+							  << senseBodyData.arm.count << endl;
+		
+		os << "focus" << ": " << senseBodyData.focus.target << " "
+								<< senseBodyData.focus.count << endl;
+		
+		os << "tackle" << ": " << senseBodyData.tackle.expires << " "
+								 << senseBodyData.tackle.count << endl;
+		
+		os << "collision" << ": " << senseBodyData.collision << endl;
+		
+		os << "foul" << ": " << senseBodyData.foul.charged << " "
+							   << senseBodyData.foul.card << endl;
+	}
 }
 
 void Player::printPlayerParamHash( ostream & os ) const
 {
-	os << "############################################" << endl;
-	os << "##         Player Param Information       ##" << endl;
-	os << "############################################" << endl;
-	for( int i = 0; i < 10; i++ )
+	if( playerInitialized )
 	{
-		for( unordered_map<string, PlayerParamStruct>::const_iterator it = mPlayerParams.begin(); it != mPlayerParams.end(); ++it )
+		os << "############################################" << endl;
+		os << "##         Player Param Information       ##" << endl;
+		os << "############################################" << endl;
+		for( int i = 0; i < 10; i++ )
 		{
-			os << "[\"" << it->first << "\", " << it->second.fValue << "]" << endl;
+			for( unordered_map<string, PlayerParamStruct>::const_iterator it = mPlayerParams.begin(); it != mPlayerParams.end(); ++it )
+			{
+				os << "[\"" << it->first << "\", " << it->second.fValue << "]" << endl;
+			}
 		}
 	}
 }
@@ -549,7 +593,7 @@ string Player::think()
 	{
 		//clientPossessesBall = doesClientPossessBall( ballIter->second.distance );
 		// If the client now possesses the ball, let everyone know
-		if( doesClientPossessBall( ballIter->second.distance ) )
+		if( doesClientPossessBall( mSenseBodyDataQueue.back().absLocation, ballIter->second.absLocation ) )
 		{
 			ostringstream temp; 
 			temp << "t " << uniformNumber;
@@ -570,13 +614,35 @@ string Player::think()
 				{
 					Vector2f ballPos = ballIter->second.absLocation;
 					Vector2f goaliePos = mSenseBodyDataQueue.back().absLocation;
+					// Player closest to ball
+					VisiblePlayer closestPlayer = getPlayerClosestToLocation( mTeammateListQueue.back(), mOpponentListQueue.back(), ballPos );
 					// If the ball is within the catchable area (defined in server.conf, manual says it's 2.0)
 					if( ballIter->second.distance < 2.0 )
 					{
 						command = goalieDoCatchOrKick( side, goaliePos, ballIter->second );
 					}
-					// If the ball is in the penalty box
-					else if( checkPlayerBounds( PLAYER_TYPE_GOALIE, ballPos, side ) )
+					// If the player with the ball is in the penalty box, move up to him
+					else if( closestPlayer.teamName != teamName &&
+							 checkPlayerBounds( PLAYER_TYPE_GOALIE, closestPlayer.visualData.absLocation, side ) &&
+							 doesClientPossessBall( closestPlayer.visualData.absLocation, ballPos ) )
+					{
+						// If he's about within our line of sight, dash up to him
+						if( fabs( closestPlayer.visualData.direction ) < 4 )
+						{
+							command = Dash_Cmd( closestPlayer.visualData.distance / 3 );
+						}
+						// Otherwise, turn to see him
+						else
+						{
+							command = Turn_Cmd( closestPlayer.visualData.direction );
+						}
+					}
+					// If the ball is on the lower half of the field, but you're not, get there
+					else if( ballPos[1] < 0 && mSenseBodyDataQueue.back().absLocation[1] > -5 )
+					{
+					}
+					// If the ball is on the upper half of the field, but you're not, get there
+					else if( ballPos[1] > 0 && mSenseBodyDataQueue.back().absLocation[1] < 5 )
 					{
 					}
 					// If we're not in the penalty box, get back in there

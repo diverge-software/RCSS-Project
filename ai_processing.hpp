@@ -137,6 +137,16 @@ namespace AI_Processing
 	VisiblePlayer getPlayerClosestToLocation( const vector<VisiblePlayer> & teammates, const vector<VisiblePlayer> opponents,
 											  const Vector2f & location );
 
+	/** Returns the absolute angle between a player and a location on the field.
+	 * @param playerPos Position of the player we're calculating the absolute angle from.
+	 * @param location Position that we want to find the absolute angle to.
+	 * @pre None.
+	 * @post The angle will be between 180 and -180 degrees, and will be in normal Cartesian fashion, rather
+	 * than the weird way that the soccer server does it.
+	 * @return Absolute angle between the player and the given location.
+	 */
+	double getAbsAngleToLocation( const Vector2f & playerPos, const Vector2f & location );
+
 	/** Checks to see if the player is within defined boundaries based on role on the field.
 	 * @param playerRole the position of the player on the field
 	 * @param absLocation the absolute location of the player on the field
@@ -161,7 +171,7 @@ namespace AI_Processing
 	 * @post None.
 	 * @returns whether or not client possesses the ball 
 	 */
-	bool doesClientPossessBall( const double distance );
+	bool doesClientPossessBall( const Vector2f & playerPos, const Vector2f & ballPos );
 
 	/** Determines if the goalie needs to be active, i.e. positioning himself, intercepting,
 	 * etc. If not, he should just be chilling back at the goal.
