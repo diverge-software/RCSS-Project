@@ -540,14 +540,14 @@ bool AI_Processing::checkPlayerBounds(player_type_t32 playerRole, Vector2f absLo
 
 char AI_Processing::getOpponentSide(char side)
 {
-	char otherSide;
 	if(side == 'r')
-		otherSide = 'l';
+	{
+		return ( 'l' );
+	}
 	else if (side == 'l')
-		otherSide = 'r';
-	else
-		otherSide = side;
-	return otherSide;
+	{
+		return ( 'r' );
+	}
 }
 
 bool AI_Processing::doesClientPossessBall( const double distance )

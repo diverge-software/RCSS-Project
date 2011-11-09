@@ -8,23 +8,6 @@ using std::cout;
 using std::endl;
 using namespace AI_Processing;
 
-/*// Used for stationary flags
-#define RIGHT_LINE_X		50.0f
-#define LEFT_LINE_X			-50.0f
-#define RIGHT_BOUNDARY_X	55.0f
-#define LEFT_BOUNDARY_X		-55.0f
-#define TOP_LINE_Y			40.0f
-#define BOTTOM_LINE_Y		-40.0f
-#define TOP_BOUNDARY_Y		45.0f
-#define BOTTOM_BOUNDARY_Y	-45.0f
-#define PENALTY_RIGHT		( RIGHT_LINE_X - 18.0f )
-#define PENALTY_LEFT		( LEFT_LINE_X + 18.0f )
-#define PENALTY_TOP			22.0f
-#define PENALTY_BOTTOM		-22.0f
-#define GOALPOST_TOP_Y		10.0f
-#define GOALPOST_BOTTOM_Y	-10.0f
-*/
-
 // Initialize internal structs to invalid values
 Player::Player()
 {
@@ -641,76 +624,157 @@ string Player::think_forward() const
 	// Get the most recent visual information
 	unordered_map<string, VisualData> visualData = mVisualDataQueue.back();
 
+	// Get most recent senseBody info
+	SenseBodyData senseBodyData = mSenseBodyDataQueue.back();
+
 	/**********************************************************************
 	 * The following basically just kicks it towards the goal.
 	 * I'll make it better when I can test it. (dribbling, avoiding people, whatever)
 	 **********************************************************************/
-	std::ostringstream ostr;
 	string opponentSide(1, getOpponentSide(side));
 	string opponentGoal = "g " + opponentSide;
 	
-	if(visualData.find("b") != visualData.end())								// if the player sees the ball
+	bool tempInPenaltyBox = false;
+
+	// if you're in possesion of the ball
+
+	//If you see the ball
+	if(visualData.find("b") != visualData.end())
 	{
-		if(visualData["b"].distance <= 0.7)										// if the player is within kicking distance of the ball
+		// If you're within kicking distance
+		if(visualData["b"].distance <= 0.7)
 		{
-			if(visualData.find(opponentGoal) != visualData.end())				// if the player sees the goal and the ball and can kick it
+			// If you see the goal
+			if(visualData.find(opponentGoal) != visualData.end())
 			{
-				// hasn't been tested yet because haven't initialized opposing team.
-				// if you try to uncomment this, the program will crash
-				// because mOpponentListQueue is unpopulated.
+				// :: In the penalty box?
+				//    :: Blocked by the goalie?
+				//       :: kick to the widest open area of the goal
+				//    :: If you aren't
+				//       :: kick into the goal
+				// :: If you're not
+				//    :: Dribble the ball towards the goal, avoiding other people, especially opponents
 
-				/*
-				bool canSeeGoalie = false;
-				vector<VisiblePlayer> opponents = mOpponentListQueue.back();
-				
-				for(unsigned int i = 0; i <= opponents.size(); i++)
+				// If you're within the opponent's penalty box
+				if( checkPlayerBounds(PLAYER_TYPE_GOALIE, senseBodyData.absLocation, getOpponentSide(side)) )
 				{
-					if( opponents[i].teamName != teamName &&
-						opponents[i].teamName != INVALID_TEAM_NAME &&
-						opponents[i].isGoalie == true)
-					{
-						canSeeGoalie = true;
-					}
+					tempInPenaltyBox = true;
+					cout << "tah dah.\n";
 				}
-				canSeeGoalie;
-				*/
-
-				//if(canSeeGoalie)
-				//{
-				//	/* are you in the penalty box? */
-				//	/* kick it to the widest open area along the goal */
-				//}
-				//else
-				//{
-				ostr.clear();
-				ostr << visualData[opponentGoal].direction; 
-				command = "(kick 50 " + ostr.str() + ")";							// kick the ball to the other team's goal
+				else
+				{
+					// should probably be dribbling the ball here
+					command = Kick_Cmd( 50, visualData[opponentGoal].direction );
+				}
 			}
-			else																	// if the player can't see the goal, reset position so you see both ball and goal
-			{																		
-				/* hacky work around to dash away from the ball and then find it again */
-				command = "(dash 50)";
-
-				// set up queue to command player to back up and or turn
-				//command = "(turn 30)";
+			// If you don't see the goal
+			else
+			{
+				// Run a bit away from the ball to get a new perspective
+				// Maybe you'll see both the goal and the ball.
+				command = Dash_Cmd( 30 );
+				//command = Turn_Cmd( 30 );
 			}
 		}
-		else if(visualData["b"].direction > -15 &&
-		        visualData["b"].direction < 15)										// if your facing the ball within an acceptable range
+		// If you see the ball, but it's at too wide an angle,
+		// turn so you're more directly facing it.
+		else if ( visualData["b"].direction < -10 ||
+			      visualData["b"].direction > 10 )
 		{
-			command = "(dash 50)";													// get closer to ball
+			// Interesting thing I found...
+			// Don't run straight at the ball,
+			// Instead, run slightly outside of it (I added '2.0' to the direction)
+			// This helps so you're not always in a battle
+			// trying to find the ball and the goal at the same time
+			command = Turn_Cmd( visualData["b"].direction + 2.0 );
 		}
-		else																		// the player is not within kicking distance but sees the ball
+		// If you're not within kicking distance, get closer to the ball
+		else
 		{
-			ostr.clear();
-			ostr << visualData["b"].direction;
-			command = "(turn " + ostr.str() + ")";									// turn towards the ball
+			command = Dash_Cmd( 50 );
 		}
 	}
-	else																			// if the player can't see the ball
+	// If you can't see the ball, then turn to find it
+	else
 	{
-		command = "(turn 15)";														// turn to find it
+		command = Turn_Cmd( 25 );
 	}
+
+
+
+
+
+//	if(visualData.find("b") != visualData.end())								// if the player sees the ball
+//	{
+//		if(visualData["b"].distance <= 5)										// if the player is within kicking distance of the ball
+//		{
+//			if(visualData.find(opponentGoal) != visualData.end())
+//			{
+//				if (visualData["b"].distance <= 0.7)				// if the player sees the goal and the ball and can kick it
+//				{
+//					// hasn't been tested yet because haven't initialized opposing team.
+//					// if you try to uncomment this, the program will crash
+//					// because mOpponentListQueue is unpopulated.
+//
+//					/*
+//					bool canSeeGoalie = false;
+//					vector<VisiblePlayer> opponents = mOpponentListQueue.back();
+//					
+//					for(unsigned int i = 0; i <= opponents.size(); i++)
+//					{
+//						if( opponents[i].teamName != teamName &&
+//							opponents[i].teamName != INVALID_TEAM_NAME &&
+//							opponents[i].isGoalie == true)
+//						{
+//							canSeeGoalie = true;
+//						}
+//					}
+//					canSeeGoalie;
+//					*/
+//
+//					//if(canSeeGoalie)
+//					//{
+//					//	/* are you in the penalty box? */
+//					//	/* kick it to the widest open area along the goal */
+//					//}
+//					//else
+//					//{
+//					command = Kick_Cmd(50, visualData[opponentGoal].direction);							// kick the ball to the other team's goal			
+//				}
+//				else
+//				{
+//					command = Dash_Cmd(30);
+//				}
+//			}
+//			else
+//			{
+//				command = Turn_Cmd(20);
+//			}
+/////*			}
+////			else																	// if the player can't see the goal, reset position so you see both ball and goal
+////			{																		
+////				/* hacky work around to dash away from the ball and then find it again */
+////				command = Dash_Cmd(50);
+////
+////				// set up queue to command player to back up and or turn
+////				//command = "(turn 30)";
+////			}
+////			*/
+//		}
+//		else /*if(visualData["b"].direction > -15 &&
+//		        visualData["b"].direction < 15)	*/									// if your facing the ball within an acceptable range
+//		{
+//			command = Dash_Cmd(50);													// get closer to ball
+//		}
+//		//else																		// the player is not within kicking distance but sees the ball
+//		//{
+//		//	command = Turn_Cmd(visualData["b"].direction);								// turn towards the ball
+//		//}
+//	}
+//	else																			// if the player can't see the ball
+//	{
+//		command = Turn_Cmd(30);														// turn to find it
+//	}
 
 	return ( command );																// return whatever command was made
 }

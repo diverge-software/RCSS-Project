@@ -641,10 +641,16 @@ if( udp_client_ptr->m_client_cb.socket_open )
         //Decision_Processing();
 
 		//string txt_str = udp_client_ptr->m_player.getPlayMode();
- 
+
 		// if play_on, or some other correct mode
-		if(udp_client_ptr->m_player.getPlayMode().compare("play_on") == 0 &&
-			udp_client_ptr->m_player.getUniformNumber() == 5)					/* actions restricted to player #5, the first forward */
+
+		// ******************************************************************
+		//  I've currently restricted this so it only thinkss
+		//  For player #5 (the first forward)
+		//  Just so I have control. Things get weird with multiple players.
+		// ******************************************************************
+		if(udp_client_ptr->m_player.getPlayMode().compare( "play_on" ) == 0 &&
+			udp_client_ptr->m_player.getUniformNumber() == 5)
 		{
 			tx_str = udp_client_ptr->m_player.think();
 			if( !tx_str.empty() )
