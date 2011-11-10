@@ -228,7 +228,7 @@ bool Player::parseBuffer(const string buffer)
 			// server is ready for them, so deal with it specially.
 			if( !buffer.compare( 5, 4, " ok)" ) && playerRole == PLAYER_TYPE_TRAINER )
 			{
-				uniformNumber = -1;
+				uniformNumber = 12;
 				side = 'n';    // n for no side
 			}
 			else
@@ -253,13 +253,27 @@ bool Player::parseBuffer(const string buffer)
 		}
 		else if( !buffer.compare( 0, 6, "(error" ) )
 		{
-            cout << "Error parsing this: " << buffer << endl;
-			alwaysAssert();
+            if( this->playerRole == PLAYER_TYPE_TRAINER )
+                {
+                cout << "Trainer: " << buffer << endl;
+                }
+            else
+                {
+                cout << "Error parsing this: " << buffer << endl;
+			    alwaysAssert();
+                }
 		}
 		else
 		{
-			cout << "Error parsing this: " << buffer << endl;
-			softAssert( false );    // Always soft asserts
+            if( this->playerRole == PLAYER_TYPE_TRAINER )
+                {
+                cout << "Trainer: " << buffer << endl;
+                }
+            else
+                {
+			    cout << "Error parsing this: " << buffer << endl;
+			    softAssert( false );
+                }
 		}
 
 		return true;
