@@ -649,8 +649,7 @@ if( udp_client_ptr->m_client_cb.socket_open )
 		//  For player #5 (the first forward)
 		//  Just so I have control. Things get weird with multiple players.
 		// ******************************************************************
-		if(udp_client_ptr->m_player.getPlayMode().compare( "play_on" ) == 0 &&
-			udp_client_ptr->m_player.getUniformNumber() == 5)
+		if(udp_client_ptr->m_player.getPlayMode().compare( "play_on" ) == 0)
 		{
 			tx_str = udp_client_ptr->m_player.think();
 			if( !tx_str.empty() )
