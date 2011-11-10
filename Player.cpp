@@ -713,8 +713,9 @@ string Player::think_forward() const
 	 **********************************************************************/
 	string opponentSide(1, getOpponentSide(side));
 	string opponentGoal = "g " + opponentSide;
-	
-	bool tempInPenaltyBox = false;
+
+
+	cout << " SBD: " << senseBodyData.absLocation[0] << ", " << senseBodyData.absLocation[1] << endl;
 
 	// if you're in possesion of the ball
 
@@ -736,17 +737,52 @@ string Player::think_forward() const
 				//    :: Dribble the ball towards the goal, avoiding other people, especially opponents
 
 				// If you're within the opponent's penalty box
-				/** currently does not word because absLocation is inaccurate when player is moving **/
-				//if( checkPlayerBounds(PLAYER_TYPE_GOALIE, senseBodyData.absLocation, getOpponentSide(side)) )
-				//{
-				//	tempInPenaltyBox = true;
-				//	cout << "tah dah.\n";
-				//}
-				//else
-				//{
-					// should probably be dribbling the ball here
-					command = Kick_Cmd( 50, visualData[opponentGoal].direction );
-				//}
+				// **** absLocation may give odd results if far away from flags ****
+				if( checkPlayerBounds(PLAYER_TYPE_GOALIE, visualData["b"].absLocation, getOpponentSide(side)) )
+				{
+					int goalieInt;
+					bool canSeeGoalie = false;
+					vector<VisiblePlayer> opponents;
+					////** no opponents to fill queue **//
+					if( !mOpponentListQueue.empty() )
+					{
+						opponents = mOpponentListQueue.back();
+						
+						for(unsigned int i = 0; i <= opponents.size(); i++)
+						{
+							if( opponents[i].teamName != teamName &&
+								opponents[i].teamName != INVALID_TEAM_NAME &&
+								opponents[i].isGoalie == true)
+							{
+								canSeeGoalie = true;
+								goalieInt = i;
+							}
+						}
+					}
+
+
+					if(canSeeGoalie)
+					{
+						if( opponents[goalieInt].visualData.absLocation[1] >= 0)
+						{
+							command = Kick_Cmd ( 50, visualData[opponentGoal + "b"].direction - 2.0 );
+						}
+						else
+						{
+							command = Kick_Cmd( 50, visualData[opponentGoal + "t"].direction + 2.0 );
+						}
+					}
+					else
+					{
+						command = Kick_Cmd( 50, visualData[opponentGoal].direction );
+					}
+				}
+				else
+				{
+					// Dribble the ball
+					//** This needs some work, player sometimes loses the ball and has to find it again. **//
+					command = Kick_Cmd( 5, visualData[opponentGoal].direction );
+				}
 			}
 			// If you don't see the goal
 			else

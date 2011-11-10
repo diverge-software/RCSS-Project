@@ -84,6 +84,24 @@ namespace AI_Processing
 	#define GOALPOST_TOP_Y		10.0f
 	#define GOALPOST_BOTTOM_Y	-10.0f
 
+	// Redefined these. Based on move command sent to server.
+	/*	
+	#define RIGHT_LINE_X		52.5f
+	#define LEFT_LINE_X			-52.5f
+	#define RIGHT_BOUNDARY_X	57.6f
+	#define LEFT_BOUNDARY_X		-57.6f
+	#define TOP_LINE_Y			33.8f		// y-axis is inverted
+	#define BOTTOM_LINE_Y		-33.8f		// y-axis is inverted
+	#define TOP_BOUNDARY_Y		39.0f		// y-axis is inverted
+	#define BOTTOM_BOUNDARY_Y	-39.0f		// y-axis is inverted
+	#define PENALTY_RIGHT		36.0f
+	#define PENALTY_LEFT		-36.0f
+	#define PENALTY_TOP			20.0f		// y-axis inverted
+	#define PENALTY_BOTTOM		-20.0f		// y-axis inverted
+	#define GOALPOST_TOP_Y		7.0f		// y-axis inverted
+	#define GOALPOST_BOTTOM_Y	-7.0f		// y-axis inverted
+	*/
+
     void Decision_Processing( void );
 
     string Catch_Cmd( double direction );
