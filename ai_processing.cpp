@@ -450,9 +450,9 @@ bool AI_Processing::isTeammateOpenForPass(VisiblePlayer teammate, vector<Visible
 	return true;	
 }
 
-Vector2f AI_Processing::getFuturePlayerPos(Vector2f cPos, Vector2f cVec, double tInterval)
+Vector2f AI_Processing::getFuturePlayerPos(Vector2f cPos, Vector2f cVec, double tInterval, double playerDecay)
 {
-	return cPos + cVec * tInterval;
+	return cPos + cVec * pow( playerDecay, tInterval );
 }
 
 Vector2f AI_Processing::getFutureBallPos( const Vector2f & cPos, const Vector2f & cVec, double tInterval, double ballDecay)

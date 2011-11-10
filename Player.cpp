@@ -130,10 +130,7 @@ bool Player::parseBuffer(const string buffer)
 			vector<VisiblePlayer> playerList;
 			unordered_map<string, VisualData> visualData;
 			parseVisualPacket( buffer, visualData, playerList );		
-			
-			deque<vector<VisiblePlayer>>			  mTeammateListQueue;
-			deque<vector<VisiblePlayer>>			  mOpponentListQueue;
-			deque<vector<VisiblePlayer>>			  mUnidentifiedPlayerListQueue;
+
 			vector<VisiblePlayer> teammates = getTeammateIdentities( this->teamName, playerList );
 			vector<VisiblePlayer> opponents = getOpponentIdentities( this->teamName, playerList );
 			vector<VisiblePlayer> unidentified = getUnidentifiedIdentities( this->teamName, playerList );
@@ -144,21 +141,32 @@ bool Player::parseBuffer(const string buffer)
 			{
 				mTeammateListQueue.pop_front();
 			}
-			mTeammateListQueue.push_back( teammates );
+			if( !teammates.empty() )
+			{
+				mTeammateListQueue.push_back( teammates );
+			}
+
 			// Remove the oldest visible opponent list if necessary,
 			// then push the new one onto the back
 			if( mOpponentListQueue.size() >= MAX_QUEUE_SIZE )
 			{
 				mOpponentListQueue.pop_front();
 			}
-			mOpponentListQueue.push_back( opponents );
+			if( !opponents.empty() )
+			{
+				mOpponentListQueue.push_back( opponents );
+			}
+
 			// Remove the oldest visible unidentified list if necessary,
 			// then push the new one onto the back
 			if( mUnidentifiedPlayerListQueue.size() >= MAX_QUEUE_SIZE )
 			{
 				mUnidentifiedPlayerListQueue.pop_front();
 			}
-			mUnidentifiedPlayerListQueue.push_back( unidentified );
+			if( !unidentified.empty() )
+			{
+				mUnidentifiedPlayerListQueue.push_back( unidentified );
+			}
 
 			// Remove the oldest visual data hash if necessary,
 			// then push the new one onto the back
@@ -189,18 +197,33 @@ bool Player::parseBuffer(const string buffer)
 				if( !mTeammateListQueue.empty() )
 				{
 					teammates = mTeammateListQueue.back();
+					mTeammateListQueue.pop_back();
 				}
-				if( !mTeammateListQueue.empty() )
+				if( !mOpponentListQueue.empty() )
 				{
 					opponents = mOpponentListQueue.back();
+					mOpponentListQueue.pop_back();
 				}
-				if( !mTeammateListQueue.empty() )
+				if( !mUnidentifiedPlayerListQueue.empty() )
 				{
 					unidentified = mUnidentifiedPlayerListQueue.back();
+					mUnidentifiedPlayerListQueue.pop_back();
 				}
 	
 				convertToAbsoluteCoordsAndVelocity( mVisualDataQueue.back(), teammates, opponents, 
 													unidentified, senseBodyData, mStationaryFlags);	
+				if( !teammates.empty() )
+				{
+					mTeammateListQueue.push_back( teammates );
+				}
+				if( !opponents.empty() )
+				{
+					mOpponentListQueue.push_back( opponents );
+				}
+				if( !unidentified.empty() )
+				{
+					mUnidentifiedPlayerListQueue.push_back( unidentified );
+				}
 			}
 
 			mSenseBodyDataQueue.push_back( senseBodyData );
@@ -296,7 +319,7 @@ void Player::printNewestVisualHash( ostream & os ) const
 
 		// Get the most recent element and print it
 		unordered_map<string, VisualData> visualData = mVisualDataQueue.back();
-
+		
 		for( unordered_map<string, VisualData>::const_iterator it = visualData.begin(); it != visualData.end(); ++it )
 		{
 			os << "[\"" << it->first << "\", " << it->second.distance << ", " << it->second.direction;
@@ -309,6 +332,12 @@ void Player::printNewestVisualHash( ostream & os ) const
 				os << "]" << endl;
 			}
 		}
+
+		// Print ball info
+		os << "Ball.absLocation[0]: " << visualData["b"].absLocation[0] << endl
+		   << "Ball.absLocation[1]: " << visualData["b"].absLocation[1] << endl
+		   << "Ball.absVelocity[0]: " << visualData["b"].absVelocity[0] << endl
+		   << "Ball.absVelocity[1]: " << visualData["b"].absVelocity[1] << endl;
 	}
 }
 
@@ -354,65 +383,76 @@ void Player::printPlayerTypesHash( ostream & os ) const
 void Player::printNewestVisiblePlayersList( ostream & os ) const
 {
 
-		os << "############################################" << endl;
-		os << "##            Player Information          ##" << endl;
-		os << "############################################" << endl;
+	os << "############################################" << endl;
+	os << "##            Player Information          ##" << endl;
+	os << "############################################" << endl;
 
-		vector<VisiblePlayer> players[3];
-		// Get the most recent player list and print it
-		players[0] = mTeammateListQueue.back();
-		players[1] = mOpponentListQueue.back();
-		players[2] = mUnidentifiedPlayerListQueue.back();
+	// Get the most recent player list and print it
 
-		for( int i = 0; i < 3; i++ )
+	if( !mTeammateListQueue.empty() )
+	{	
+		os << "###### TEAMMATES ######" << endl;
+		printNewestVisiblePlayersListHelper(os, mTeammateListQueue.back());		
+	}
+	if( !mOpponentListQueue.empty() )
+	{
+		os << "###### OPPONENTS ######" << endl;
+		printNewestVisiblePlayersListHelper(os, mOpponentListQueue.back());
+	}
+	if( !mUnidentifiedPlayerListQueue.empty() )
+	{
+		os << "###### UNIDENTIFIED ######" << endl;
+		printNewestVisiblePlayersListHelper(os, mUnidentifiedPlayerListQueue.back());
+	}
+}
+
+void Player::printNewestVisiblePlayersListHelper( ostream & os, vector<VisiblePlayer> players ) const
+{
+	for( unsigned int j = 0; j < players.size(); j++ )
+	{
+		os << "[p, teamName = ";
+		if( players[j].teamName != INVALID_TEAM_NAME )
 		{
-			for( unsigned int j = 0; j < players[i].size(); j++ )
-			{
-				os << "[p, teamName = ";
-				if( players[i][j].teamName != INVALID_TEAM_NAME )
-				{
-					os << players[i][j].teamName;
-				}
-				else
-				{
-					os << "UNKNOWN";
-				}
-				if( players[i][j].uniformNumber != INVALID_UNIFORM_NUMBER )
-				{
-					os << ", uniform = " << players[i][j].uniformNumber;
-				}
-				else
-				{
-					os << ", uniform = UNKNOWN";
-				}
-				if( players[i][j].isGoalie )
-				{
-					os << ", is goalie";
-				}
-				
-				os << ", absLocation[0]" << players[i][j].visualData.absLocation[0]
-				   << ", absLocation[1]" << players[i][j].visualData.absLocation[1]
-				   << ", absVelocity[0]" << players[i][j].visualData.absVelocity[0]
-				   << ", absVelocity[1]" << players[i][j].visualData.absVelocity[1];
-
-				os << ", " << players[i][j].visualData.distance << ", " << players[i][j].visualData.direction;
-
-				if( players[i][j].visualData.directionChange != INVALID_FLOAT_VALUE )
-				{
-					os << ", " << players[i][j].visualData.distanceChange << ", " << players[i][j].visualData.directionChange;
-					if( players[i][j].bodyDirection != INVALID_FLOAT_VALUE )
-					{
-						os << ", " << players[i][j].bodyDirection << ", " << players[i][j].headDirection;
-					}
-					os << "]" << endl;
-				}
-				else
-				{
-					os << "]" << endl;
-				}
-			}
+			os << players[j].teamName;
 		}
-	
+		else
+		{
+			os << "UNKNOWN";
+		}
+		if( players[j].uniformNumber != INVALID_UNIFORM_NUMBER )
+		{
+			os << ", uniform = " << players[j].uniformNumber;
+		}
+		else
+		{
+			os << ", uniform = UNKNOWN";
+		}
+		if( players[j].isGoalie )
+		{
+				os << ", is goalie";
+		}
+				
+		os << ", absLocation[0]" << players[j].visualData.absLocation[0]
+		   << ", absLocation[1]" << players[j].visualData.absLocation[1]
+		   << ", absVelocity[0]" << players[j].visualData.absVelocity[0]
+		   << ", absVelocity[1]" << players[j].visualData.absVelocity[1];
+
+		os << ", " << players[j].visualData.distance << ", " << players[j].visualData.direction;
+
+		if( players[j].visualData.directionChange != INVALID_FLOAT_VALUE )
+		{
+			os << ", " << players[j].visualData.distanceChange << ", " << players[j].visualData.directionChange;
+			if( players[j].bodyDirection != INVALID_FLOAT_VALUE )
+			{
+				os << ", " << players[j].bodyDirection << ", " << players[j].headDirection;
+			}
+			os << "]" << endl;
+		}
+		else
+		{
+			os << "]" << endl;
+		}
+	}
 }
 
 void Player::printNewestAuralStruct( ostream & os ) const
@@ -569,8 +609,31 @@ Vector2f Player::getObjectPosition( string objName, int currentTimestamp ) const
 			Vector2f oldPosition = findIter->second.absLocation;
 			Vector2f oldVelocity = findIter->second.absVelocity;
 
-			// Use linear estimation, although the server seems to exhibit friction
-			result = oldPosition + oldVelocity * ( currentTimestamp - oldTimestamp );
+			if( objName[0] == 'b' )
+			{
+				unordered_map<string, ServerStruct>::const_iterator ballDecayIter = mServerInfo.find( "ball_decay" );
+				if( ballDecayIter != mServerInfo.end() )
+				{
+					result = getFutureBallPos( oldPosition, oldVelocity, currentTimestamp - oldTimestamp, ballDecayIter->second.fValue );
+				}
+				else
+				{
+					alwaysAssert();
+				}
+			}
+			else if( objName[0] == 'p' )
+			{
+				unordered_map<string, ServerStruct>::const_iterator playerDecayIter = mServerInfo.find( "player_decay" );
+				if( playerDecayIter != mServerInfo.end() )
+				{
+					result = getFuturePlayerPos( oldPosition, oldVelocity, currentTimestamp - oldTimestamp, playerDecayIter->second.fValue );
+				}
+				else
+				{
+					alwaysAssert();
+				}
+			}
+
 			break;
 		}
 	}
@@ -720,6 +783,11 @@ queue<string> Player::think()
 
 						commandQueue.push( Turn_Cmd( turnAngle ) );
 					}
+				}
+				// If the ball is on the other side of the field, just get back into position
+				else
+				{
+					// TURN THEN DASH TO CENTER OF GOAL BOX
 				}
 			}
 			// Otherwise, back up until the ball is visible, or turn if that is not enough

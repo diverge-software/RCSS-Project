@@ -34,6 +34,7 @@ using std::tr1::unordered_map;
 --------------------------------------------------------------------*/
 
 
+
 /*--------------------------------------------------------------------
                                  TYPES
 --------------------------------------------------------------------*/
@@ -130,7 +131,7 @@ namespace AI_Processing
 	 * @post Client-Player knows future of position a player
 	 * @return returns future position as a vector
 	 */
-	Vector2f getFuturePlayerPos(Vector2f cPos, Vector2f cVec, double tInterval);
+	Vector2f getFuturePlayerPos(Vector2f cPos, Vector2f cVec, double tInterval, double playerDecay);
 	
 	/** Determines future position of a player given its current position and velocity 
      * @param cPos Current position of ball.

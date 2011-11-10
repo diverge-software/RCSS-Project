@@ -56,6 +56,7 @@ class Player
 		* @post The contents of the visible player vector will be printed to the output stream.
 		*/
 		void printNewestVisiblePlayersList( ostream & os ) const;
+		void printNewestVisiblePlayersListHelper( ostream & os, vector<VisiblePlayer> players ) const;
 		
 		/** Prints the most recently stored aural information struct to the specified output stream.
 		* @param os The output stream to write to.

@@ -575,52 +575,6 @@ void Parser::convertToAbsoluteCoordsAndVelocity( unordered_map<string, VisualDat
 	
 	// Store absAngle in sensebody info
 	senseBodyData.absAngle = absAngle;
-
-	/*
-	for(unordered_map<string, VisualData>::const_iterator it = visualHash.begin(); it != visualHash.end(); ++it )
-	{	
-		//Find three closest flags and ball 
-		//NOTE: only need one flat to find absolulute position. Finding three and averaging them
-		//		will make the estimate more accurate
-		if(it->first[0] == 'f') //it->first returns key at this iteration 
-		{	
-			if(index < 3)
-			{
-				flags[index] = it->first;
-				index++; 
-			}
-			else //Compare distances of each flag to find closest flags
-			{
-				//Find flag with largest distance, replace it with it->first if necessary
-				int largesti = 0; //stores index to key associated with largest distance
-				for(int i=0; i<index - 1; i++)
-				{
-					if(visualHash[flags[i+1]].distance > visualHash[flags[largesti]].distance)
-					{
-						largesti = i+1;
-					}
-				}
-				if(visualHash[flags[largesti]].distance > it->second.distance)
-				{
-					flags[largesti] = it->first;
-				}
-			}
-		}
-	}	
-		
-	//Find absolute client-player location
-	//Takes the average of locations derived from the three flags
-	for(int i=0; i<index; i++)
-	{
-		//AbsoluteAngleSum is the sum of the player's angle with respect to the field and 
-		//	the flag's angle with respect to the client-player's
-		double absoluteAngleSum = getAbsoluteAngleSum(absAngle, visualHash[flags[i]].direction); 
-		
-		xAvg += stationaryFlags[flags[i]][0] - visualHash[flags[i]].distance*cos((PI/180)*absoluteAngleSum);
-		yAvg += stationaryFlags[flags[i]][1] - visualHash[flags[i]].distance*sin((PI/180)*absoluteAngleSum); 			
-	}*/
-
-	
 	
 	string closestFlag;
 	//find a visible flag
@@ -667,7 +621,7 @@ void Parser::convertToAbsoluteCoordsAndVelocity( unordered_map<string, VisualDat
 	
 		//check if ball is close enough to have observe distance change and direction change
 		if( (visualHash["b"].distanceChange != INVALID_FLOAT_VALUE) 
-			 && (visualHash["b"].directionChange != INVALID_DIRECTION) )
+		  &&(visualHash["b"].directionChange != INVALID_DIRECTION) )
 		{
 			//convert ball's velocity to abslolute vector velocity
 			double absVecAngle = getAbsoluteAngleSum( absoluteAngle, visualHash["b"].directionChange );
