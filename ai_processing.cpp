@@ -455,7 +455,7 @@ Vector2f AI_Processing::getFuturePlayerPos(Vector2f cPos, Vector2f cVec, double 
 	return cPos + cVec * tInterval;
 }
 
-Vector2f AI_Processing::getFutureBallPos(Vector2f cPos, Vector2f cVec, double tInterval, double ballDecay)
+Vector2f AI_Processing::getFutureBallPos( const Vector2f & cPos, const Vector2f & cVec, double tInterval, double ballDecay)
 {
 	return cPos + cVec * pow(ballDecay, tInterval-1); 
 }
@@ -644,4 +644,37 @@ string AI_Processing::goalieDoCatchOrKick( const char side, const Vector2f & goa
 	}
 
 	return command;
+}
+
+string AI_Processing::turnThenDash( const Vector2f & currentPos, const Vector2f & targetPos, double absFacingAngle, bool & dashAfterTurnMode )
+{
+	if( !dashAfterTurnMode )
+	{
+		double turnAngle = absFacingAngle - getAbsAngleToLocation( currentPos, targetPos );
+
+		if( turnAngle < -180 )
+		{
+			turnAngle += 360;
+		}
+		else if( turnAngle > 180 )
+		{
+			turnAngle -= 360;
+		}
+
+		// If we can basically see the point, just dash to it
+		if( fabs( turnAngle ) < 4 )
+		{
+			return Dash_Cmd( ( currentPos - targetPos ).magnitude() );
+		}
+		else
+		{
+			return Turn_Cmd( turnAngle );
+			dashAfterTurnMode = true;
+		}
+	}
+	else
+	{
+		return Dash_Cmd( ( currentPos - targetPos ).magnitude() );
+		dashAfterTurnMode = false;
+	}
 }

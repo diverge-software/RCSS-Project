@@ -14,6 +14,7 @@
 #include <cstdlib>
 #include <unordered_map>
 #include <deque>
+#include <queue>
 
 using namespace std;
 using namespace Parser;
@@ -132,7 +133,7 @@ class Player
 		 * @post None.
 		 * @return String command to send to the server for the client's action.
 		 */
-		string think();
+		queue<string> think();
 
 		/** Determines the actions for forwards
 		 * @pre Player should be intialized with data from the server.
@@ -173,6 +174,11 @@ class Player
 		bool	teamPossessesBall;
 
 		bool	clientPossessesBall;
+
+		// Used to keep track of if we're trying to turn, then dash to a location.
+		// This should be used if the turn has just been sent, and the dash needs
+		// to happen
+		bool	dashAfterTurnMode;
 
 		string  playMode;
 };

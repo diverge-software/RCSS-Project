@@ -562,7 +562,7 @@ void CALLBACK UDP_client::udp_completion_routine
 /*----------------------------------------------------------
 Local Variables
 ----------------------------------------------------------*/
-string                  tx_str;     /* transmit string              */
+queue<string>                  tx_str_q;     /* transmit string              */
 UDP_client *            udp_client_ptr;
                                     /* UDP client pointer           */
 
@@ -651,11 +651,14 @@ if( udp_client_ptr->m_client_cb.socket_open )
 		// ******************************************************************
 		if(udp_client_ptr->m_player.getPlayMode().compare( "play_on" ) == 0)
 		{
-			tx_str = udp_client_ptr->m_player.think();
-			if( !tx_str.empty() )
+			if( tx_str_q.empty() )
+			{
+				tx_str_q = udp_client_ptr->m_player.think();
+				if( !tx_str_q.empty() )
 				{
-				udp_client_ptr->UDP_send( tx_str );
+					udp_client_ptr->udp_send_q( tx_str_q );
 				}
+			}
 		}
 
         /*--------------------------------------------------
