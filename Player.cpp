@@ -596,10 +596,10 @@ bool Player::isPlayerInitialized() const
 	return playerInitialized;
 }
 
-string Player::think()
+queue<string> Player::think()
 {
 	// This will be returned, so set this in your section, then break
-	string command = "";
+	queue<string> commandQueue;
 
 	// Use this to retrieve information about the ball
 	unordered_map<string, VisualData>::const_iterator ballIter = mVisualDataQueue.back().find( "b" );
@@ -611,7 +611,7 @@ string Player::think()
 		{
 			ostringstream temp; 
 			temp << "t " << uniformNumber;
-			command = Say_Cmd( temp.str() ); 
+			commandQueue.push( Say_Cmd( temp.str() ) );
 		}
 	}
 
@@ -633,7 +633,7 @@ string Player::think()
 					// If the ball is within the catchable area (defined in server.conf, manual says it's 2.0)
 					if( ballIter->second.distance < 2.0 )
 					{
-						command = goalieDoCatchOrKick( side, goaliePos, ballIter->second );
+						commandQueue.push( goalieDoCatchOrKick( side, goaliePos, ballIter->second ) );
 					}
 					// If the player with the ball is in the penalty box, move up to him
 					else if( closestPlayer.teamName != teamName &&
@@ -643,12 +643,12 @@ string Player::think()
 						// If he's about within our line of sight, dash up to him
 						if( fabs( closestPlayer.visualData.direction ) < 4 )
 						{
-							command = Dash_Cmd( closestPlayer.visualData.distance / 3 );
+							commandQueue.push( Dash_Cmd( closestPlayer.visualData.distance / 3 ) );
 						}
 						// Otherwise, turn to see him
 						else
 						{
-							command = Turn_Cmd( closestPlayer.visualData.direction );
+							commandQueue.push( Turn_Cmd( closestPlayer.visualData.direction ) );
 						}
 					}
 					// If the ball is on the lower half of the field, but you're not, get there
@@ -662,7 +662,7 @@ string Player::think()
 					// If we're not in the penalty box, get back in there
 					else if( checkPlayerBounds( playerRole, goaliePos, side ) == false )
 					{
-						command = Dash_Cmd( -40 );
+						commandQueue.push( Dash_Cmd( -40 ) );
 					}
 					// If you can't catch it, get in the line of sight of the ball and goal
 					else
@@ -675,12 +675,12 @@ string Player::think()
 			// Otherwise, back up until the ball is visible, or turn if that is not enough
 			else
 			{
-				command = Dash_Cmd( -40 );
+				commandQueue.push( Dash_Cmd( -40 ) );
 			}
 			break;
 		}
 		case PLAYER_TYPE_FORWARD:
-			command = this->think_forward();
+			commandQueue.push( this->think_forward() );
 			break;
 		case PLAYER_TYPE_MIDFIELDER:
 			break;
@@ -690,7 +690,7 @@ string Player::think()
 			break;
 	}
 
-	return ( command );
+	return ( commandQueue );
 }
 
 string Player::think_forward() const

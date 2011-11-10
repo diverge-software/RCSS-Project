@@ -14,6 +14,7 @@
 #include <cstdlib>
 #include <unordered_map>
 #include <deque>
+#include <queue>
 
 using namespace std;
 using namespace Parser;
@@ -132,7 +133,7 @@ class Player
 		 * @post None.
 		 * @return String command to send to the server for the client's action.
 		 */
-		string think();
+		queue<string> think();
 
 		/** Determines the actions for forwards
 		 * @pre Player should be intialized with data from the server.
