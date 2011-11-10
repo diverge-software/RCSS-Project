@@ -722,16 +722,17 @@ string Player::think_forward() const
 				//    :: Dribble the ball towards the goal, avoiding other people, especially opponents
 
 				// If you're within the opponent's penalty box
-				if( checkPlayerBounds(PLAYER_TYPE_GOALIE, senseBodyData.absLocation, getOpponentSide(side)) )
-				{
-					tempInPenaltyBox = true;
-					cout << "tah dah.\n";
-				}
-				else
-				{
+				/** currently does not word because absLocation is inaccurate when player is moving **/
+				//if( checkPlayerBounds(PLAYER_TYPE_GOALIE, senseBodyData.absLocation, getOpponentSide(side)) )
+				//{
+				//	tempInPenaltyBox = true;
+				//	cout << "tah dah.\n";
+				//}
+				//else
+				//{
 					// should probably be dribbling the ball here
 					command = Kick_Cmd( 50, visualData[opponentGoal].direction );
-				}
+				//}
 			}
 			// If you don't see the goal
 			else
