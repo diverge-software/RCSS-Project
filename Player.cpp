@@ -115,6 +115,8 @@ Player::Player()
 	freeKickFriendly	 = false;
 	freeKickOpponent	 = false;
 	teamPossessesBall	 = false;
+
+	dashAfterTurnMode	 = false;
 }
 
 // Decide the buffer type and pass to respective parsing function
@@ -654,21 +656,69 @@ queue<string> Player::think()
 					// If the ball is on the lower half of the field, but you're not, get there
 					else if( ballPos[1] < 0 && mSenseBodyDataQueue.back().absLocation[1] > -5 )
 					{
+						SenseBodyData currSbd = mSenseBodyDataQueue.back();
+						Vector2f targetPoint;
+						if( side == 'l' )
+						{
+							targetPoint = Vector2f( LEFT_LINE_X + 7.0, -6.0 );
+						}
+						else
+						{
+							targetPoint = Vector2f( RIGHT_LINE_X - 7.0, -6.0 );
+						}
+
+						commandQueue.push( turnThenDash( currSbd.absLocation, targetPoint, currSbd.absAngle, this->dashAfterTurnMode ) );
 					}
 					// If the ball is on the upper half of the field, but you're not, get there
 					else if( ballPos[1] > 0 && mSenseBodyDataQueue.back().absLocation[1] < 5 )
 					{
+						SenseBodyData currSbd = mSenseBodyDataQueue.back();
+						Vector2f targetPoint;
+						if( side == 'l' )
+						{
+							targetPoint = Vector2f( LEFT_LINE_X + 7.0, 6.0 );
+						}
+						else
+						{
+							targetPoint = Vector2f( RIGHT_LINE_X - 7.0, 6.0 );
+						}
+
+						commandQueue.push( turnThenDash( currSbd.absLocation, targetPoint, currSbd.absAngle, this->dashAfterTurnMode ) );
 					}
 					// If we're not in the penalty box, get back in there
 					else if( checkPlayerBounds( playerRole, goaliePos, side ) == false )
 					{
-						commandQueue.push( Dash_Cmd( -40 ) );
+						SenseBodyData currSbd = mSenseBodyDataQueue.back();
+						Vector2f targetPoint;
+						if( side == 'l' )
+						{
+							targetPoint = Vector2f( LEFT_LINE_X + 7.0, 0.0 );
+						}
+						else
+						{
+							targetPoint = Vector2f( RIGHT_LINE_X - 7.0, 0.0 );
+						}
+
+						commandQueue.push( turnThenDash( currSbd.absLocation, targetPoint, currSbd.absAngle, this->dashAfterTurnMode ) );
 					}
-					// If you can't catch it, get in the line of sight of the ball and goal
+					// Otherwise, stay in position but follow the ball
 					else
 					{
-						Vector2f goalPos = mStationaryFlags.find( "g " + side )->second;
-						// Will probably need a command queue here: turn then dash
+						SenseBodyData currSbd = mSenseBodyDataQueue.back();
+						Vector2f futureBallPos = getFutureBallPos( ballPos, ballIter->second.absVelocity, 1, mServerInfo["ball_decay"].fValue );
+
+						double turnAngle = currSbd.absAngle - getAbsAngleToLocation( currSbd.absLocation, futureBallPos );
+
+						if( turnAngle < -180 )
+						{
+							turnAngle += 360;
+						}
+						else if( turnAngle > 180 )
+						{
+							turnAngle -= 360;
+						}
+
+						commandQueue.push( Turn_Cmd( turnAngle ) );
 					}
 				}
 			}

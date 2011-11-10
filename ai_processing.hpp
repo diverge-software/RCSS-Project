@@ -34,7 +34,6 @@ using std::tr1::unordered_map;
 --------------------------------------------------------------------*/
 
 
-
 /*--------------------------------------------------------------------
                                  TYPES
 --------------------------------------------------------------------*/
@@ -116,13 +115,15 @@ namespace AI_Processing
 	Vector2f getFuturePlayerPos(Vector2f cPos, Vector2f cVec, double tInterval);
 	
 	/** Determines future position of a player given its current position and velocity 
-     * @param cPos
-     * @param cVec
+     * @param cPos Current position of ball.
+     * @param cVec Current velocity of ball.
+	 * @param tInterval Number of cycles in the future.
+	 * @param ballDecay Global server value, how much the ball slows down per cycle.
 	 * @pre Non
 	 * @post Client-Player knows future of position a player
 	 * @return returns future position as a vector
 	 */
-	Vector2f getFutureBallPos(Vector2f cPos, Vector2f cVec, double tInterval, double ballDecay);
+	Vector2f getFutureBallPos( const Vector2f & cPos, const Vector2f & cVec, double tInterval, double ballDecay);
 
 	/** Returns the data on the player closest to the given position. This position could be that of the
 	 * ball, for example, but this function works generally on any object's location.
@@ -196,6 +197,17 @@ namespace AI_Processing
 	 * @return Command to send to the server: catch, kick, or potentially a turn (to face the ball).
 	 */
 	string goalieDoCatchOrKick( const char side, const Vector2f & goaliePos, const VisualData & ballData );
+
+	/** Use this to turn towards a point, then dash to it in the next cycle.
+	 * @param currentPos Player's current position.
+	 * @param targetPos Where the player wants to be.
+	 * @param dashAfterTurnMode True if the player should dash after the turn command returned, false otherwise.
+	 * @pre None.
+	 * @post dashAfterTurnMode will be set to true if a dash is needed in the next cycle to complete moving
+	 * to the target position.
+	 * @return Command necessary to reach the location, either a turn or a dash.
+	 */
+	string turnThenDash( const Vector2f & currentPos, const Vector2f & targetPos, double absFacingAngle, bool & dashAfterTurnMode );
 };
 
 /*--------------------------------------------------------------------

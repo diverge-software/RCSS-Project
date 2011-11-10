@@ -175,6 +175,11 @@ class Player
 
 		bool	clientPossessesBall;
 
+		// Used to keep track of if we're trying to turn, then dash to a location.
+		// This should be used if the turn has just been sent, and the dash needs
+		// to happen
+		bool	dashAfterTurnMode;
+
 		string  playMode;
 };
 	
