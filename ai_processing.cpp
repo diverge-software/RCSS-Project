@@ -516,19 +516,19 @@ bool AI_Processing::checkPlayerBounds(player_type_t32 playerRole, Vector2f absLo
      ********************************************************************/
 
 	// Check if the player's position is within the defined boundaries
-	if(side == 'l' &&									// evaluate if on the left side
+	if( side == 'l' &&									// evaluate if on the left side
 		absLocation[0] < bounds[playerRole][0] &&
 		absLocation[0] > bounds[playerRole][1] &&
 		absLocation[1] < bounds[playerRole][2] &&
-		absLocation[1] > bounds[playerRole][3])
+		absLocation[1] > bounds[playerRole][3] )
 	{
 		return true;
 	}
-	else if (side == 'r' &&								// evaluate if on the right side
+	else if ( side == 'r' &&								// evaluate if on the right side
 		absLocation[0] < -1 * bounds[playerRole][1] &&	// swap the x bounds and multiply by -1.
 		absLocation[0] > -1 * bounds[playerRole][0] &&
 		absLocation[1] < bounds[playerRole][2] &&		// y values should be the same
-		absLocation[1] > bounds[playerRole][3])
+		absLocation[1] > bounds[playerRole][3] )
 	{
 		return true;
 	}
