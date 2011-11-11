@@ -620,13 +620,13 @@ if( udp_client_ptr->m_client_cb.socket_open )
         udp_client_ptr->m_client_cb.dbg_log_ss << "##################################" << endl;
         udp_client_ptr->m_client_cb.dbg_log_ss << "Message: " << udp_client_ptr->m_client_cb.buffer << endl;
 
-        //udp_client_ptr->m_player.printNewestVisualHash( udp_client_ptr->m_client_cb.dbg_log_ss );
-	    //this->m_player.printNewestVisiblePlayersList( this->udp_client_cb.dbg_log );
-        //this->m_player.printNewestAuralStruct( this->udp_client_cb.dbg_log );
-        //this->m_player.printNewestSenseBodyStruct( this->udp_client_cb.dbg_log );
-        //this->m_player.printServerHash( this->udp_client_cb.dbg_log );
-        //this->m_player.printPlayerTypesHash( this->udp_client_cb.dbg_log );
-        //this->m_player.printPlayerParamHash( this->udp_client_cb.dbg_log );
+        udp_client_ptr->m_player.printNewestVisualHash( udp_client_ptr->m_client_cb.dbg_log_ss );
+	    udp_client_ptr->m_player.printNewestVisiblePlayersList( udp_client_ptr->m_client_cb.dbg_log_ss );
+        //udp_client_ptr->m_player.printNewestAuralStruct( udp_client_ptr->m_client_cb.dbg_log_ss );
+        udp_client_ptr->m_player.printNewestSenseBodyStruct( udp_client_ptr->m_client_cb.dbg_log_ss );
+        //udp_client_ptr->m_player.printServerHash( udp_client_ptr->m_client_cb.dbg_log_ss );
+        //udp_client_ptr->m_player.printPlayerTypesHash( udp_client_ptr->m_client_cb.dbg_log_ss );
+        //udp_client_ptr->m_player.printPlayerParamHash( thudp_client_ptris->m_client_cb.dbg_log_ss );
 
         /*--------------------------------------------------
         Todo: When the Decision_Processing() is implemented, 
