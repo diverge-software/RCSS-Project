@@ -15,6 +15,7 @@
 #include <conio.h>
 
 #include "udp_client.hpp"
+#include "Debug.hpp"
 
 using namespace std;
 
@@ -95,6 +96,20 @@ UDP_client *            udp_client_ptr;
                                     /* UDP client pointer           */
 int                     uniform_num;/* uniform number               */
 vector< string >        vec_str;    /* vector string                */
+
+string teamName;
+if( argc == 1 )
+{
+	teamName = TEAM_NAME;
+}
+else if( argc == 2 )
+{
+	teamName = argv[1];
+}
+else
+{
+	alwaysAssert();
+}
 
 /*----------------------------------------------------------
 Get server information for user
@@ -217,7 +232,7 @@ for( i = 0; i < player_cnt; i++ )
     ------------------------------------------------------*/
     if( goalie-- > 0 )
         {
-        uniform_num = udp_client_ptr->UDP_open_socket( server_ip, server_port, TEAM_NAME, PLAYER_TYPE_GOALIE );
+        uniform_num = udp_client_ptr->UDP_open_socket( server_ip, server_port, teamName, PLAYER_TYPE_GOALIE );
         pt_str = "Goalie";
         }
 
@@ -226,7 +241,7 @@ for( i = 0; i < player_cnt; i++ )
     ------------------------------------------------------*/
     else if( defender-- > 0 )
         {
-        uniform_num = udp_client_ptr->UDP_open_socket( server_ip, server_port, TEAM_NAME, PLAYER_TYPE_DEFENDER );
+        uniform_num = udp_client_ptr->UDP_open_socket( server_ip, server_port, teamName, PLAYER_TYPE_DEFENDER );
         pt_str = "Defender";
         }
 
@@ -235,7 +250,7 @@ for( i = 0; i < player_cnt; i++ )
     ------------------------------------------------------*/
     else if( forward-- > 0 )
         {
-        uniform_num = udp_client_ptr->UDP_open_socket( server_ip, server_port, TEAM_NAME, PLAYER_TYPE_FORWARD );
+        uniform_num = udp_client_ptr->UDP_open_socket( server_ip, server_port, teamName, PLAYER_TYPE_FORWARD );
         pt_str = "Forward";
         }
 
@@ -244,7 +259,7 @@ for( i = 0; i < player_cnt; i++ )
     ------------------------------------------------------*/
     else if( midfielder-- > 0 )
         {
-        uniform_num = udp_client_ptr->UDP_open_socket( server_ip, server_port, TEAM_NAME, PLAYER_TYPE_MIDFIELDER );
+        uniform_num = udp_client_ptr->UDP_open_socket( server_ip, server_port, teamName, PLAYER_TYPE_MIDFIELDER );
         pt_str = "Midfielder";
         }
 
@@ -253,7 +268,7 @@ for( i = 0; i < player_cnt; i++ )
     ------------------------------------------------------*/
     else if( trainer-- > 0 )
         {
-        uniform_num = udp_client_ptr->UDP_open_socket( server_ip, server_port + 1, TEAM_NAME, PLAYER_TYPE_TRAINER );
+        uniform_num = udp_client_ptr->UDP_open_socket( server_ip, server_port + 1, teamName, PLAYER_TYPE_TRAINER );
         pt_str = "Trainer";
         }
 
@@ -370,7 +385,7 @@ if( !error )
                 else
                     {
                     tmp_str.str( "" );
-                    tmp_str << "(move (player " << TEAM_NAME << " " << vec_str[ 2 ] << ") " << vec_str[ 3 ] << " " << vec_str[ 4 ] << ")";
+                    tmp_str << "(move (player " << teamName << " " << vec_str[ 2 ] << ") " << vec_str[ 3 ] << " " << vec_str[ 4 ] << ")";
 
                     udp_client[ TRNR_UNUM - 1 ]->UDP_send( tmp_str.str() );
                     }
