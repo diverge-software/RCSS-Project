@@ -505,54 +505,7 @@ double AI_Processing::getAbsAngleToLocation( const Vector2f & playerPos, const V
 	double xDifference = location[0] - playerPos[0];
 	double yDifference = location[1] - playerPos[1];
 
-	if( xDifference != 0 )
-	{
-		double slope = ( yDifference ) / ( xDifference );
-		if( slope == 0 )
-		{
-			if( xDifference > 0 )
-			{
-				return 0.0f;
-			}
-			else
-			{
-				return 180.0f;
-			}
-		}
-		else if( slope > 0 )
-		{
-			if( xDifference > 0 && yDifference > 0 )
-			{
-				return ( 180.0 / PI ) * atan( slope * ( PI / 180 ) );
-			}
-			else
-			{
-				return ( 180.0 / PI ) * atan( slope * ( PI / 180 ) ) - 180;
-			}
-		}
-		else // if( slope < 0 )
-		{
-			if( xDifference > 0 && yDifference < 0 )
-			{
-				return ( 180.0 / PI ) * atan( slope * ( PI / 180 ) );
-			}
-			else
-			{
-				return ( 180.0 / PI ) * atan( slope * ( PI / 180 ) ) + 180;
-			}
-		}
-	}
-	else
-	{
-		if( yDifference > 0 )
-		{
-			return 90.0f;
-		}
-		else
-		{
-			return -90.0f;
-		}
-	}
+	return atan2( yDifference, xDifference ) * ( 180 / PI );
 }
 
 bool AI_Processing::checkPlayerBounds(player_type_t32 playerRole, Vector2f absLocation, char side)
@@ -563,19 +516,19 @@ bool AI_Processing::checkPlayerBounds(player_type_t32 playerRole, Vector2f absLo
      ********************************************************************/
 
 	// Check if the player's position is within the defined boundaries
-	if(side == 'l' &&									// evaluate if on the left side
+	if( side == 'l' &&									// evaluate if on the left side
 		absLocation[0] < bounds[playerRole][0] &&
 		absLocation[0] > bounds[playerRole][1] &&
 		absLocation[1] < bounds[playerRole][2] &&
-		absLocation[1] > bounds[playerRole][3])
+		absLocation[1] > bounds[playerRole][3] )
 	{
 		return true;
 	}
-	else if (side == 'r' &&								// evaluate if on the right side
+	else if ( side == 'r' &&								// evaluate if on the right side
 		absLocation[0] < -1 * bounds[playerRole][1] &&	// swap the x bounds and multiply by -1.
 		absLocation[0] > -1 * bounds[playerRole][0] &&
 		absLocation[1] < bounds[playerRole][2] &&		// y values should be the same
-		absLocation[1] > bounds[playerRole][3])
+		absLocation[1] > bounds[playerRole][3] )
 	{
 		return true;
 	}
@@ -618,8 +571,8 @@ bool AI_Processing::doesClientPossessBall( const Vector2f & playerPos, const Vec
 
 bool AI_Processing::goalieShouldBeActive( const char side, const Vector2f & ballPos )
 {
-	return ( side == 'l' && ballPos[0] < 0 ||
-			 side == 'r' && ballPos[0] > 0 );
+	return ( ( side == 'l' && ballPos[0] <= 0 ) ||
+			 ( side == 'r' && ballPos[0] >= 0 ) );
 }
 
 string AI_Processing::goalieDoCatchOrKick( const char side, const Vector2f & goaliePos, const VisualData & ballData )

@@ -642,13 +642,8 @@ if( udp_client_ptr->m_client_cb.socket_open )
 
 		//string txt_str = udp_client_ptr->m_player.getPlayMode();
 
-		// if play_on, or some other correct mode
+		// if play_on, or some other valid mode
 
-		// ******************************************************************
-		//  I've currently restricted this so it only thinkss
-		//  For player #5 (the first forward)
-		//  Just so I have control. Things get weird with multiple players.
-		// ******************************************************************
 		if(udp_client_ptr->m_player.getPlayMode().compare( "play_on" ) == 0)
 		{
 			if( tx_str_q.empty() )
