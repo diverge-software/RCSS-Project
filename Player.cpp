@@ -691,7 +691,17 @@ void Player::think( queue<string> & commandQueue )
 					Vector2f ballPos = ballIter->second.absLocation;
 					Vector2f goaliePos = mSenseBodyDataQueue.back().absLocation;
 					// Player closest to ball
-					VisiblePlayer closestPlayer = getPlayerClosestToLocation( mTeammateListQueue.back(), mOpponentListQueue.back(), ballPos );
+					vector<VisiblePlayer> teammates;
+					vector<VisiblePlayer> opponents;
+					if( !mTeammateListQueue.empty() )
+					{
+						teammates = mTeammateListQueue.back();
+					}
+					if( !mOpponentListQueue.empty() )
+					{
+						opponents = mOpponentListQueue.back();
+					}
+					VisiblePlayer closestPlayer = getPlayerClosestToLocation( teammates, opponents, ballPos );
 					// If the ball is within the catchable area (defined in server.conf, manual says it's 2.0)
 					if( ballIter->second.distance < 2.0 )
 					{

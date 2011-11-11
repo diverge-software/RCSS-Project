@@ -618,8 +618,8 @@ bool AI_Processing::doesClientPossessBall( const Vector2f & playerPos, const Vec
 
 bool AI_Processing::goalieShouldBeActive( const char side, const Vector2f & ballPos )
 {
-	return ( side == 'l' && ballPos[0] < 0 ||
-			 side == 'r' && ballPos[0] > 0 );
+	return ( ( side == 'l' && ballPos[0] <= 0 ) ||
+			 ( side == 'r' && ballPos[0] >= 0 ) );
 }
 
 string AI_Processing::goalieDoCatchOrKick( const char side, const Vector2f & goaliePos, const VisualData & ballData )
