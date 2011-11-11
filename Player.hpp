@@ -132,17 +132,22 @@ class Player
 		 * @param None.
 		 * @pre The player should be initialized with data from the server.
 		 * @post None.
-		 * @return String command to send to the server for the client's action.
+		 * @return Queue of string commands to send to the server for the client's action.
 		 */
 		void think( queue<string> & commandQueue );
 
 		/** Determines the actions for forwards
 		 * @pre Player should be intialized with data from the server.
-		 * @post 
+		 * @post None.
 		 * @return command initialized with string to send to server to make the forward do something.
 		 */
 		string think_forward() const;
 
+		/** Retrieves the contents of playMode
+		 * @pre Player initialized.
+		 * @post None.
+		 * @return the contents of playMode
+		 */
 		string getPlayMode() const;
 
 	private:	

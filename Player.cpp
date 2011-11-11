@@ -838,10 +838,10 @@ void Player::think( queue<string> & commandQueue )
 string Player::think_forward() const
 {
 	string command;
-	/**********************************************************************
-	 * Is calling the hash table every time less efficient than calling 
-	 * them once at the top then referencing a local variable?
-	 **********************************************************************/
+	//-------------------------------------------------------------------------
+	// Is calling the hash table every time less efficient than calling 
+	// them once at the top then referencing a local variable?
+	//-------------------------------------------------------------------------
 
 	// Get the most recent visual information
 	unordered_map<string, VisualData> visualData = mVisualDataQueue.back();
@@ -849,10 +849,10 @@ string Player::think_forward() const
 	// Get most recent senseBody info
 	SenseBodyData senseBodyData = mSenseBodyDataQueue.back();
 
-	/**********************************************************************
-	 * The following basically just kicks it towards the goal.
-	 * I'll make it better when I can test it. (dribbling, avoiding people, whatever)
-	 **********************************************************************/
+	//-------------------------------------------------------------------------
+	// The following basically just kicks it towards the goal.
+	// I'll make it better when I can test it. (dribbling, avoiding people, whatever)
+	//-------------------------------------------------------------------------
 	string opponentSide(1, getOpponentSide(side));
 	string opponentGoal = "g " + opponentSide;
 
@@ -881,13 +881,14 @@ string Player::think_forward() const
 				//    :: Dribble the ball towards the goal, avoiding other people, especially opponents
 
 				// If you're within the opponent's penalty box
-				// **** absLocation may give odd results if far away from flags ****
-				if( checkPlayerBounds(PLAYER_TYPE_GOALIE, visualData["b"].absLocation, getOpponentSide(side)) )
+				// absLocation may give odd results if far away from flags
+				if(visualData[opponentGoal].distance < 20)
+				//if( checkPlayerBounds(PLAYER_TYPE_GOALIE, visualData["b"].absLocation, getOpponentSide(side)) )
 				{
 					int goalieInt;
 					bool canSeeGoalie = false;
 					vector<VisiblePlayer> opponents;
-					////** no opponents to fill queue **//
+					/// no opponents to fill queue
 					if( !mOpponentListQueue.empty() )
 					{
 						// get the most recent list of opponents player can see
@@ -932,7 +933,7 @@ string Player::think_forward() const
 				else
 				{
 					// Dribble the ball
-					//** This needs some work, player sometimes loses the ball and has to find it again. **//
+					// This needs some work, player sometimes loses the ball and has to find it again.
 					command = Kick_Cmd( 5, visualData[opponentGoal].direction );
 				}
 			}
