@@ -505,54 +505,7 @@ double AI_Processing::getAbsAngleToLocation( const Vector2f & playerPos, const V
 	double xDifference = location[0] - playerPos[0];
 	double yDifference = location[1] - playerPos[1];
 
-	if( xDifference != 0 )
-	{
-		double slope = ( yDifference ) / ( xDifference );
-		if( slope == 0 )
-		{
-			if( xDifference > 0 )
-			{
-				return 0.0f;
-			}
-			else
-			{
-				return 180.0f;
-			}
-		}
-		else if( slope > 0 )
-		{
-			if( xDifference > 0 && yDifference > 0 )
-			{
-				return ( 180.0 / PI ) * atan( slope * ( PI / 180 ) );
-			}
-			else
-			{
-				return ( 180.0 / PI ) * atan( slope * ( PI / 180 ) ) - 180;
-			}
-		}
-		else // if( slope < 0 )
-		{
-			if( xDifference > 0 && yDifference < 0 )
-			{
-				return ( 180.0 / PI ) * atan( slope * ( PI / 180 ) );
-			}
-			else
-			{
-				return ( 180.0 / PI ) * atan( slope * ( PI / 180 ) ) + 180;
-			}
-		}
-	}
-	else
-	{
-		if( yDifference > 0 )
-		{
-			return 90.0f;
-		}
-		else
-		{
-			return -90.0f;
-		}
-	}
+	return atan2( yDifference, xDifference ) * ( 180 / PI );
 }
 
 bool AI_Processing::checkPlayerBounds(player_type_t32 playerRole, Vector2f absLocation, char side)
