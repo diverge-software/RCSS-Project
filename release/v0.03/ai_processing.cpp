@@ -35,7 +35,7 @@ using namespace AI_Processing;
 #define MIN_X_COORDINATE ( -52.5 )  /* minimum X coordinate         */
 #define MAX_X_COORDINATE ( 52.5  )  /* maximum X coordinate         */
 #define MIN_Y_COORDINATE ( -34   )  /* minimum Y coordinate         */
-#define MAX_Y_COORDINATE ( -34   )  /* maximum Y coordinate         */
+#define MAX_Y_COORDINATE ( 34    )  /* maximum Y coordinate         */
 
 /*--------------------------------------------------------------------
                                 TYPES
