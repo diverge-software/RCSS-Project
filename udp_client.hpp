@@ -21,7 +21,6 @@
 #include <queue>
 
 #include "ai_processing.hpp"
-#include "demo.hpp"
 #include "Player.hpp"
 
 using namespace std;
