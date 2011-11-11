@@ -889,20 +889,20 @@ string Player::think_forward() const
 						// kick the ball to the bottom side
 						if( opponents[goalieInt].visualData.absLocation[1] >= 0)
 						{
-							command = Kick_Cmd ( 50, visualData[opponentGoal + "b"].direction - 3.0 );
+							command = Kick_Cmd ( 100, visualData[opponentGoal + "b"].direction - 3.0 );
 						}
 						// if the goalie is on the lower side of the goal,
 						// kick the ball to the top side
 						else
 						{
-							command = Kick_Cmd( 50, visualData[opponentGoal + "t"].direction + 3.0 );
+							command = Kick_Cmd( 100, visualData[opponentGoal + "t"].direction + 3.0 );
 						}
 					}
 					else
 					{
 						// if you can't see the goalie, the goal is open.
 						// kick it hard towards the middle
-						command = Kick_Cmd( 50, visualData[opponentGoal].direction );
+						command = Kick_Cmd( 100, visualData[opponentGoal].direction );
 					}
 				}
 				else
