@@ -134,7 +134,7 @@ class Player
 		 * @post None.
 		 * @return String command to send to the server for the client's action.
 		 */
-		queue<string> think();
+		void think( queue<string> & commandQueue );
 
 		/** Determines the actions for forwards
 		 * @pre Player should be intialized with data from the server.

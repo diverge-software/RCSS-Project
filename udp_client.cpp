@@ -653,7 +653,7 @@ if( udp_client_ptr->m_client_cb.socket_open )
 		{
 			if( tx_str_q.empty() )
 			{
-				tx_str_q = udp_client_ptr->m_player.think();
+				udp_client_ptr->m_player.think( tx_str_q );
 				if( !tx_str_q.empty() )
 				{
 					udp_client_ptr->udp_send_q( tx_str_q );

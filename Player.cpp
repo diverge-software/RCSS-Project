@@ -661,11 +661,8 @@ bool Player::isPlayerInitialized() const
 	return playerInitialized;
 }
 
-queue<string> Player::think()
+void Player::think( queue<string> & commandQueue )
 {
-	// This will be returned, so set this in your section, then break
-	queue<string> commandQueue;
-
 	// Use this to retrieve information about the ball
 	unordered_map<string, VisualData>::const_iterator ballIter = mVisualDataQueue.back().find( "b" );
 	if( ballIter != mVisualDataQueue.back().end() )
@@ -807,8 +804,6 @@ queue<string> Player::think()
 		case PLAYER_TYPE_TRAINER:
 			break;
 	}
-
-	return ( commandQueue );
 }
 
 string Player::think_forward() const
