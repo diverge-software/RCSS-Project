@@ -830,7 +830,9 @@ string Player::think_forward() const
 
 	cout << " SBD: " << senseBodyData.absLocation[0] << ", " << senseBodyData.absLocation[1] << endl;
 
-	// if you're in possesion of the ball
+	command = Turn_Cmd ( 10 );
+
+	//// if you're in possesion of the ball
 
 	//If you see the ball
 	if(visualData.find("b") != visualData.end())
@@ -859,10 +861,12 @@ string Player::think_forward() const
 					////** no opponents to fill queue **//
 					if( !mOpponentListQueue.empty() )
 					{
+						// get the most recent list of opponents player can see
 						opponents = mOpponentListQueue.back();
 						
 						for(unsigned int i = 0; i <= opponents.size(); i++)
 						{
+							// if you see the goalie, set flag
 							if( opponents[i].teamName != teamName &&
 								opponents[i].teamName != INVALID_TEAM_NAME &&
 								opponents[i].isGoalie == true)
@@ -876,17 +880,23 @@ string Player::think_forward() const
 
 					if(canSeeGoalie)
 					{
+						// if the goalie is on the upper side of the goal,
+						// kick the ball to the bottom side
 						if( opponents[goalieInt].visualData.absLocation[1] >= 0)
 						{
-							command = Kick_Cmd ( 50, visualData[opponentGoal + "b"].direction - 2.0 );
+							command = Kick_Cmd ( 50, visualData[opponentGoal + "b"].direction - 3.0 );
 						}
+						// if the goalie is on the lower side of the goal,
+						// kick the ball to the top side
 						else
 						{
-							command = Kick_Cmd( 50, visualData[opponentGoal + "t"].direction + 2.0 );
+							command = Kick_Cmd( 50, visualData[opponentGoal + "t"].direction + 3.0 );
 						}
 					}
 					else
 					{
+						// if you can't see the goalie, the goal is open.
+						// kick it hard towards the middle
 						command = Kick_Cmd( 50, visualData[opponentGoal].direction );
 					}
 				}
@@ -929,82 +939,6 @@ string Player::think_forward() const
 	{
 		command = Turn_Cmd( 25 );
 	}
-
-
-
-
-
-//	if(visualData.find("b") != visualData.end())								// if the player sees the ball
-//	{
-//		if(visualData["b"].distance <= 5)										// if the player is within kicking distance of the ball
-//		{
-//			if(visualData.find(opponentGoal) != visualData.end())
-//			{
-//				if (visualData["b"].distance <= 0.7)				// if the player sees the goal and the ball and can kick it
-//				{
-//					// hasn't been tested yet because haven't initialized opposing team.
-//					// if you try to uncomment this, the program will crash
-//					// because mOpponentListQueue is unpopulated.
-//
-//					/*
-//					bool canSeeGoalie = false;
-//					vector<VisiblePlayer> opponents = mOpponentListQueue.back();
-//					
-//					for(unsigned int i = 0; i <= opponents.size(); i++)
-//					{
-//						if( opponents[i].teamName != teamName &&
-//							opponents[i].teamName != INVALID_TEAM_NAME &&
-//							opponents[i].isGoalie == true)
-//						{
-//							canSeeGoalie = true;
-//						}
-//					}
-//					canSeeGoalie;
-//					*/
-//
-//					//if(canSeeGoalie)
-//					//{
-//					//	/* are you in the penalty box? */
-//					//	/* kick it to the widest open area along the goal */
-//					//}
-//					//else
-//					//{
-//					command = Kick_Cmd(50, visualData[opponentGoal].direction);							// kick the ball to the other team's goal			
-//				}
-//				else
-//				{
-//					command = Dash_Cmd(30);
-//				}
-//			}
-//			else
-//			{
-//				command = Turn_Cmd(20);
-//			}
-/////*			}
-////			else																	// if the player can't see the goal, reset position so you see both ball and goal
-////			{																		
-////				/* hacky work around to dash away from the ball and then find it again */
-////				command = Dash_Cmd(50);
-////
-////				// set up queue to command player to back up and or turn
-////				//command = "(turn 30)";
-////			}
-////			*/
-//		}
-//		else /*if(visualData["b"].direction > -15 &&
-//		        visualData["b"].direction < 15)	*/									// if your facing the ball within an acceptable range
-//		{
-//			command = Dash_Cmd(50);													// get closer to ball
-//		}
-//		//else																		// the player is not within kicking distance but sees the ball
-//		//{
-//		//	command = Turn_Cmd(visualData["b"].direction);								// turn towards the ball
-//		//}
-//	}
-//	else																			// if the player can't see the ball
-//	{
-//		command = Turn_Cmd(30);														// turn to find it
-//	}
 
 	return ( command );																// return whatever command was made
 }
