@@ -210,14 +210,6 @@
 					>
 				</File>
 			</Filter>
-			<Filter
-				Name="Demo"
-				>
-				<File
-					RelativePath="..\demo.cpp"
-					>
-				</File>
-			</Filter>
 		</Filter>
 		<Filter
 			Name="Header Files"
@@ -265,14 +257,6 @@
 				>
 				<File
 					RelativePath="..\ai_processing.hpp"
-					>
-				</File>
-			</Filter>
-			<Filter
-				Name="Demo"
-				>
-				<File
-					RelativePath="..\demo.hpp"
 					>
 				</File>
 			</Filter>
