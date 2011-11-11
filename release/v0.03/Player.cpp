@@ -681,7 +681,7 @@ void Player::think( queue<string> & commandQueue )
 	{
 		case PLAYER_TYPE_GOALIE:
 		{
-			// If the ball is visible, try to intercept it
+			/*// If the ball is visible, try to intercept it
 			if( ballIter != mVisualDataQueue.back().end() )
 			{
 				// If the ball is on our side of the field, wake up and defend, otherwise
@@ -690,7 +690,7 @@ void Player::think( queue<string> & commandQueue )
 				{
 					Vector2f ballPos = ballIter->second.absLocation;
 					Vector2f goaliePos = mSenseBodyDataQueue.back().absLocation;
-					// Player closest to ball
+					// Get list of teammates
 					vector<VisiblePlayer> teammates;
 					vector<VisiblePlayer> opponents;
 					if( !mTeammateListQueue.empty() )
@@ -701,6 +701,7 @@ void Player::think( queue<string> & commandQueue )
 					{
 						opponents = mOpponentListQueue.back();
 					}
+					// Player closest to the ball, not to this client
 					VisiblePlayer closestPlayer = getPlayerClosestToLocation( teammates, opponents, ballPos );
 					// If the ball is within the catchable area (defined in server.conf, manual says it's 2.0)
 					if( ballIter->second.distance < 2.0 )
@@ -798,9 +799,9 @@ void Player::think( queue<string> & commandQueue )
 				}
 			}
 			// Otherwise, back up until the ball is visible, or turn if that is not enough
-			else
+			else*/
 			{
-				SenseBodyData currSbd = mSenseBodyDataQueue.back(); 
+				SenseBodyData currSbd = mSenseBodyDataQueue.back();
 				Vector2f targetPoint;
 				if( side == 'l' )
 				{
@@ -811,15 +812,7 @@ void Player::think( queue<string> & commandQueue )
 					targetPoint = Vector2f( RIGHT_LINE_X - 7.0, 0.0 );
 				}
 
-				if( ( currSbd.absLocation - targetPoint ).magnitude() > 4.0 )
-				{
-					commandQueue.push( turnThenDash( currSbd.absLocation, targetPoint, currSbd.absAngle, this->dashAfterTurnMode ) );
-				}
-				else
-				{
-					double turnAngle = currSbd.absAngle - getAbsAngleToLocation( currSbd.absLocation, Vector2f( 0, 0 ) );
-					commandQueue.push( Turn_Cmd( turnAngle ) );
-				}
+				commandQueue.push( turnThenDash( currSbd.absLocation, targetPoint, currSbd.absAngle, this->dashAfterTurnMode ) );
 			}
 			break;
 		}

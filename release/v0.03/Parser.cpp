@@ -684,7 +684,7 @@ double Parser::calculateAbsAngle(unordered_map<string, VisualData> &visualHash)
 	//find a line
 	for( unordered_map<string, VisualData>::reverse_iterator it = visualHash.rbegin(); it != visualHash.rend(); ++it )
 	{
-		if( it->first[0] == 'l' )
+		if( !lineName.compare( 0, 2, "l " ) )
 		{
 			angle = it->second.direction;
 			lineName = it->first;
@@ -694,7 +694,7 @@ double Parser::calculateAbsAngle(unordered_map<string, VisualData> &visualHash)
 
 	if( !lineName.compare( 0, 3, "l t" ) )	
 	{
-		angle -= 180;
+		angle += 180;
 	}
 	else if( !lineName.compare( 0, 3, "l r" ) )	
 	{
@@ -706,7 +706,7 @@ double Parser::calculateAbsAngle(unordered_map<string, VisualData> &visualHash)
 	}
 	else //line must bet bottom	
 	{
-		angle += 180;
+		angle -= 180;
 	}
 	
 	return angle;
@@ -714,18 +714,23 @@ double Parser::calculateAbsAngle(unordered_map<string, VisualData> &visualHash)
 
 double Parser::getAbsoluteAngleSum(double absAngle, double refAngle)
 {
-	double absoluteAngleSum = absAngle + refAngle;
+	double absoluteAngleSum = absAngle - refAngle;
+
+//	if( absAngle < 0 )
+//	{
+//		absoluteAngleSum = absoluteAngleSum;
+//	}
+
 	if(absoluteAngleSum > 180)
 	{
-			absoluteAngleSum -= 360;
+		absoluteAngleSum -= 360;
 	}
 	else if(absoluteAngleSum < -180)
 	{
 		absoluteAngleSum += 360;
 	}
 
-	//server is retarded
-	return (-1)*absoluteAngleSum;
+	return absoluteAngleSum;
 }
 
 vector<Parser::VisiblePlayer> Parser::getTeammateIdentities( string teamName, const vector<VisiblePlayer> & visiblePlayers )
