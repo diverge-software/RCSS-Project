@@ -800,7 +800,26 @@ void Player::think( queue<string> & commandQueue )
 			// Otherwise, back up until the ball is visible, or turn if that is not enough
 			else
 			{
-				commandQueue.push( Dash_Cmd( -40 ) );
+				SenseBodyData currSbd = mSenseBodyDataQueue.back(); 
+				Vector2f targetPoint;
+				if( side == 'l' )
+				{
+					targetPoint = Vector2f( LEFT_LINE_X + 7.0, 0.0 );
+				}
+				else
+				{
+					targetPoint = Vector2f( RIGHT_LINE_X - 7.0, 0.0 );
+				}
+
+				if( ( currSbd.absLocation - targetPoint ).magnitude() > 4.0 )
+				{
+					commandQueue.push( turnThenDash( currSbd.absLocation, targetPoint, currSbd.absAngle, this->dashAfterTurnMode ) );
+				}
+				else
+				{
+					double turnAngle = currSbd.absAngle - getAbsAngleToLocation( currSbd.absLocation, Vector2f( 0, 0 ) );
+					commandQueue.push( Turn_Cmd( turnAngle ) );
+				}
 			}
 			break;
 		}
