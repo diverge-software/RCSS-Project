@@ -202,11 +202,14 @@ ostringstream           ret_val;    /* return value                 */
 Verify the input parameter(s) are within the defined 
 server boundaries
 ----------------------------------------------------------*/
-if( ( power < MIN_POWER )
- || ( power > MAX_POWER ) )
-    {
-    alwaysAssert();
-    }
+if( power < MIN_POWER )
+{
+	power = MIN_POWER;
+}
+else if( power > MAX_POWER )
+{
+	power = MAX_POWER;
+}
 
 ret_val << "(dash " << power << ")";
 
@@ -601,33 +604,54 @@ string AI_Processing::goalieDoCatchOrKick( const char side, const Vector2f & goa
 
 string AI_Processing::turnThenDash( const Vector2f & currentPos, const Vector2f & targetPos, double absFacingAngle, bool & dashAfterTurnMode )
 {
-	if( !dashAfterTurnMode )
+	string command;
+
+	if( ( targetPos - currentPos ).magnitude()  > 4.0 )
 	{
-		double turnAngle = absFacingAngle - getAbsAngleToLocation( currentPos, targetPos );
+		// If we haven't turned toward the point yet, we need to turn to it
+		if( !dashAfterTurnMode )
+		{
+			cout << "############" << endl;
+			cout << "currPos: " << currentPos << endl;
+			cout << "target:  " << targetPos << endl;
+			cout << "Not dash after turn mode." << endl;
+			cout << "absfacing angle: " << absFacingAngle << endl;
+			double turnAngle = absFacingAngle + getAbsAngleToLocation( currentPos, targetPos );
+			cout << "turn angle: " << turnAngle << endl;
+			cout << "#############" << endl;
 
-		if( turnAngle < -180 )
-		{
-			turnAngle += 360;
-		}
-		else if( turnAngle > 180 )
-		{
-			turnAngle -= 360;
-		}
+			if( turnAngle < -180 )
+			{
+				turnAngle += 360;
+			}
+			else if( turnAngle > 180 )
+			{
+				turnAngle -= 360;
+			}
 
-		// If we can basically see the point, just dash to it
-		if( fabs( turnAngle ) < 4 )
-		{
-			return Dash_Cmd( ( currentPos - targetPos ).magnitude() );
+			// If we can basically see the point, just dash to it
+			if( fabs( turnAngle ) < 3 )
+			{
+				return Dash_Cmd( ( currentPos - targetPos ).magnitude() );
+			}
+			else
+			{
+				command = Turn_Cmd( -turnAngle );
+				dashAfterTurnMode = true;
+			}
 		}
 		else
 		{
-			return Turn_Cmd( turnAngle );
-			dashAfterTurnMode = true;
+			cout << "##########" << endl;
+			cout << "dashing after turn" << endl;
+			cout << "currPos: " << currentPos << endl;
+			cout << "target:  " << targetPos << endl;
+			cout << "absfacing angle: " << absFacingAngle << endl;
+			cout << "###########" << endl;
+			command = Dash_Cmd( ( currentPos - targetPos ).magnitude() );
+			dashAfterTurnMode = false;
 		}
 	}
-	else
-	{
-		return Dash_Cmd( ( currentPos - targetPos ).magnitude() );
-		dashAfterTurnMode = false;
-	}
+
+	return command;
 }

@@ -642,7 +642,7 @@ if( udp_client_ptr->m_client_cb.socket_open )
 
 		//string txt_str = udp_client_ptr->m_player.getPlayMode();
 
-		// if play_on, or some other valid mode
+		// if play_on, or some other correct mode
 
 		if(udp_client_ptr->m_player.getPlayMode().compare( "play_on" ) == 0)
 		{
