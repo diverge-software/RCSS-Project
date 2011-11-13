@@ -432,12 +432,12 @@ void Player::printNewestVisiblePlayersListHelper( ostream & os, vector<VisiblePl
 				os << ", is goalie";
 		}
 				
-		os << ", absLocation[0]" << players[j].visualData.absLocation[0]
-		   << ", absLocation[1]" << players[j].visualData.absLocation[1]
-		   << ", absVelocity[0]" << players[j].visualData.absVelocity[0]
-		   << ", absVelocity[1]" << players[j].visualData.absVelocity[1];
+		os << endl << "absLocation[0]: " << players[j].visualData.absLocation[0] << endl
+		   << "absLocation[1]: " << players[j].visualData.absLocation[1] << endl
+		   << "absVelocity[0]: " << players[j].visualData.absVelocity[0] << endl
+		   << "absVelocity[1]: " << players[j].visualData.absVelocity[1] << endl;
 
-		os << ", " << players[j].visualData.distance << ", " << players[j].visualData.direction;
+		os << "Distanc: " << players[j].visualData.distance << ", " << "Direction: " << players[j].visualData.direction << endl;;
 
 		if( players[j].visualData.directionChange != INVALID_FLOAT_VALUE )
 		{
@@ -835,7 +835,7 @@ string Player::think_forward() const
 	// Is calling the hash table every time less efficient than calling 
 	// them once at the top then referencing a local variable?
 	//-------------------------------------------------------------------------
-
+	
 	// Get the most recent visual information
 	unordered_map<string, VisualData> visualData = mVisualDataQueue.back();
 
@@ -963,6 +963,7 @@ string Player::think_forward() const
 		command = Turn_Cmd( 25 );
 	}
 
+	//command = "(turn 3)";
 	return ( command );																// return whatever command was made
 }
 

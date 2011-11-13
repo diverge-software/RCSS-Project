@@ -566,6 +566,8 @@ void Parser::convertToAbsoluteCoordsAndVelocity( unordered_map<string, VisualDat
 	double absAngle = senseBodyData.speed[1];
 	double xAvg = 0;
 	double yAvg = 0;
+	
+	double dummyBeforeCalculation = absAngle;
 
 	// If speed is velocity is greater than 0, the angle value will be garbage. 
 	if(absoluteSpeedMagnitude != 0)
@@ -573,6 +575,8 @@ void Parser::convertToAbsoluteCoordsAndVelocity( unordered_map<string, VisualDat
 		absAngle = calculateAbsAngle(visualHash);		
 	}
 	
+	double dummyAfterCalculation = absAngle;
+
 	// Store absAngle in sensebody info
 	senseBodyData.absAngle = absAngle;
 	
@@ -684,7 +688,7 @@ double Parser::calculateAbsAngle(unordered_map<string, VisualData> &visualHash)
 	//find a line
 	for( unordered_map<string, VisualData>::reverse_iterator it = visualHash.rbegin(); it != visualHash.rend(); ++it )
 	{
-		if( !lineName.compare( 0, 2, "l " ) )
+		if( it->first[0] == 'l' )
 		{
 			angle = it->second.direction;
 			lineName = it->first;
@@ -692,19 +696,27 @@ double Parser::calculateAbsAngle(unordered_map<string, VisualData> &visualHash)
 		}
 	}
 
-	if( !lineName.compare( 0, 3, "l t" ) )	
+	if( !lineName.compare( 0, 3, "l t" ) && angle < 0 )	
 	{
 		angle += 180;
 	}
-	else if( !lineName.compare( 0, 3, "l r" ) )	
-	{
-		angle -= 90;
-	}
-	else if( !lineName.compare( 0, 3, "l l" ) )	
+	else if( !lineName.compare( 0, 3, "l r" ) && angle < 0 )	
 	{
 		angle += 90;
 	}
-	else //line must bet bottom	
+	else if( !lineName.compare( 0, 3, "l r" ) && angle > 0 )
+	{
+		angle -= 90;
+	}	
+	else if( !lineName.compare( 0, 3, "l l" ) && angle > 0 )	
+	{
+		angle += 90;
+	}
+	else if( !lineName.compare( 0, 3, "l l" ) && angle < 0 )	
+	{
+		angle -= 90;
+	}
+	else if( !lineName.compare( 0, 3, "l b") && angle > 0 )
 	{
 		angle -= 180;
 	}
@@ -715,11 +727,6 @@ double Parser::calculateAbsAngle(unordered_map<string, VisualData> &visualHash)
 double Parser::getAbsoluteAngleSum(double absAngle, double refAngle)
 {
 	double absoluteAngleSum = absAngle - refAngle;
-
-//	if( absAngle < 0 )
-//	{
-//		absoluteAngleSum = absoluteAngleSum;
-//	}
 
 	if(absoluteAngleSum > 180)
 	{
