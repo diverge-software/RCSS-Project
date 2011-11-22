@@ -562,9 +562,8 @@ void CALLBACK UDP_client::udp_completion_routine
 /*----------------------------------------------------------
 Local Variables
 ----------------------------------------------------------*/
-queue<string>                  tx_str_q;     /* transmit string              */
-UDP_client *            udp_client_ptr;
-                                    /* UDP client pointer           */
+UDP_client *            udp_client_ptr;		/* UDP client pointer           */
+queue<string>           tx_str_q;   /* transmit queue              */
 
 /*----------------------------------------------------------
 Assign the void pointer which contains the class "this"
@@ -643,8 +642,7 @@ if( udp_client_ptr->m_client_cb.socket_open )
 		//string txt_str = udp_client_ptr->m_player.getPlayMode();
 
 		// if play_on, or some other correct mode
-
-		if(udp_client_ptr->m_player.getPlayMode().compare( "play_on" ) == 0)
+		if( udp_client_ptr->m_player.getPlayMode().compare( "play_on" ) == 0 )
 		{
 			if( tx_str_q.empty() )
 			{

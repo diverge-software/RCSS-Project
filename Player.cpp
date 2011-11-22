@@ -117,6 +117,7 @@ Player::Player()
 	teamPossessesBall	 = false;
 
 	dashAfterTurnMode	 = false;
+	goalieInPosition	 = false;
 }
 
 // Decide the buffer type and pass to respective parsing function
@@ -598,8 +599,10 @@ Vector2f Player::getObjectPosition( string objName, int currentTimestamp ) const
 	// Otherwise, we need to estimate its position
 	// Traverse backwards through the queue, since the newest data is toward the back
 	Vector2f result( INVALID_FLOAT_VALUE, INVALID_FLOAT_VALUE );
-	for( unsigned int i = mVisualDataQueue.size() - 1; i >= 0; i-- )
+	cout << "Size: " << mVisualDataQueue.size() << endl;
+	for( int i = mVisualDataQueue.size() - 1; i >= 0; --i )
 	{
+		cout << i << endl;
 		// Try to find the object in the currently considered visualHash
 		unordered_map<string, VisualData>::const_iterator findIter = mVisualDataQueue[i].find( objName );
 		// If it has been found, then estimate the position of the object
@@ -648,7 +651,19 @@ void Player::setTeamName(string teamname)
 
 void Player::setPlayerRole( AI_Processing::player_type_t32 role )
 {
-		playerRole = role;
+	playerRole = role;
+
+	if( playerRole == PLAYER_TYPE_GOALIE )
+	{
+		if( side == 'l' )
+		{
+			targetPoint = Vector2f( LEFT_LINE_X + 7.5, 0.0 );
+		}
+		else
+		{
+			targetPoint = Vector2f( RIGHT_LINE_X - 7.5, 0.0 );
+		}
+	}
 }
 
 int Player::getUniformNumber() const
@@ -681,7 +696,7 @@ void Player::think( queue<string> & commandQueue )
 	{
 		case PLAYER_TYPE_GOALIE:
 		{
-			/*// If the ball is visible, try to intercept it
+			// If the ball is visible, try to intercept it
 			if( ballIter != mVisualDataQueue.back().end() )
 			{
 				// If the ball is on our side of the field, wake up and defend, otherwise
@@ -690,7 +705,7 @@ void Player::think( queue<string> & commandQueue )
 				{
 					Vector2f ballPos = ballIter->second.absLocation;
 					Vector2f goaliePos = mSenseBodyDataQueue.back().absLocation;
-					// Get list of teammates
+					/*// Get list of teammates
 					vector<VisiblePlayer> teammates;
 					vector<VisiblePlayer> opponents;
 					if( !mTeammateListQueue.empty() )
@@ -725,40 +740,59 @@ void Player::think( queue<string> & commandQueue )
 						}
 					}
 					// If the ball is on the lower half of the field, but you're not, get there
-					else if( ballPos[1] < 0 && mSenseBodyDataQueue.back().absLocation[1] > -5 )
+					else*/ if( ballPos[1] < 0 )
 					{
+						cout << "BOTTOM" << endl;
 						SenseBodyData currSbd = mSenseBodyDataQueue.back();
-						Vector2f targetPoint;
 						if( side == 'l' )
 						{
-							targetPoint = Vector2f( LEFT_LINE_X + 7.0, -6.0 );
+							targetPoint = Vector2f( LEFT_LINE_X + 10.0, -7.0 );
 						}
 						else
 						{
-							targetPoint = Vector2f( RIGHT_LINE_X - 7.0, -6.0 );
+							targetPoint = Vector2f( RIGHT_LINE_X - 10.0, -7.0 );
 						}
 
-						commandQueue.push( turnThenDash( currSbd.absLocation, targetPoint, currSbd.absAngle, this->dashAfterTurnMode ) );
+						if( ( currSbd.absLocation - targetPoint ).magnitude() > 1.0 )
+						{
+							cout << "MOVE" << endl;
+							turnThenDash( currSbd.absLocation, targetPoint, currSbd.absAngle, currSbd.head_angle, this->dashAfterTurnMode, commandQueue );
+						}
+						else if( fabs( ballIter->second.direction ) > 5 || fabs( currSbd.head_angle ) > 0 )
+						{
+							cout << "FACE IT" << endl;
+							commandQueue.push( Turn_Cmd( -( ballIter->second.direction - currSbd.head_angle ) ) );
+							commandQueue.push( Turn_Neck_Cmd( -currSbd.head_angle ) );
+						}
 					}
 					// If the ball is on the upper half of the field, but you're not, get there
-					else if( ballPos[1] > 0 && mSenseBodyDataQueue.back().absLocation[1] < 5 )
+					else if( ballPos[1] > 0 )
 					{
 						SenseBodyData currSbd = mSenseBodyDataQueue.back();
-						Vector2f targetPoint;
 						if( side == 'l' )
 						{
-							targetPoint = Vector2f( LEFT_LINE_X + 7.0, 6.0 );
+							targetPoint = Vector2f( LEFT_LINE_X + 10.0, 7.0 );
 						}
 						else
 						{
-							targetPoint = Vector2f( RIGHT_LINE_X - 7.0, 6.0 );
+							targetPoint = Vector2f( RIGHT_LINE_X - 10.0, 7.0 );
 						}
 
-						commandQueue.push( turnThenDash( currSbd.absLocation, targetPoint, currSbd.absAngle, this->dashAfterTurnMode ) );
+						if( ( currSbd.absLocation - targetPoint ).magnitude() > 2.0 )
+						{
+							turnThenDash( currSbd.absLocation, targetPoint, currSbd.absAngle, currSbd.head_angle, this->dashAfterTurnMode, commandQueue );
+						}
+						else if( fabs( ballIter->second.direction ) > 5 || fabs( currSbd.head_angle ) > 0 )
+						{
+							commandQueue.push( Turn_Cmd( -ballIter->second.direction ) );
+							commandQueue.push( Turn_Neck_Cmd( -currSbd.head_angle ) );
+						}
 					}
+					/*
 					// If we're not in the penalty box, get back in there
 					else if( checkPlayerBounds( playerRole, goaliePos, side ) == false )
 					{
+						cout << "See ball, return" << endl;
 						SenseBodyData currSbd = mSenseBodyDataQueue.back();
 						Vector2f targetPoint;
 						if( side == 'l' )
@@ -770,11 +804,12 @@ void Player::think( queue<string> & commandQueue )
 							targetPoint = Vector2f( RIGHT_LINE_X - 7.0, 0.0 );
 						}
 
-						commandQueue.push( turnThenDash( currSbd.absLocation, targetPoint, currSbd.absAngle, this->dashAfterTurnMode ) );
+						turnThenDash( currSbd.absLocation, targetPoint, currSbd.absAngle, currSbd.head_angle, this->dashAfterTurnMode, commandQueue );
 					}
 					// Otherwise, stay in position but follow the ball
 					else
 					{
+						cout << "Don't see ball, return" << endl;
 						SenseBodyData currSbd = mSenseBodyDataQueue.back();
 						Vector2f futureBallPos = getFutureBallPos( ballPos, ballIter->second.absVelocity, 1, mServerInfo["ball_decay"].fValue );
 
@@ -790,30 +825,45 @@ void Player::think( queue<string> & commandQueue )
 						}
 
 						commandQueue.push( Turn_Cmd( turnAngle ) );
-					}
+					}*/
 				}
 				// If the ball is on the other side of the field, just get back into position
 				else
 				{
 					// TURN THEN DASH TO CENTER OF GOAL BOX
 				}
+
 			}
 			// Otherwise, back up until the ball is visible, or turn if that is not enough
-			else*/
+			/*else
 			{
 				SenseBodyData currSbd = mSenseBodyDataQueue.back();
-				Vector2f targetPoint;
+
 				if( side == 'l' )
 				{
-					targetPoint = Vector2f( LEFT_LINE_X + 7.0, 0.0 );
+					targetPoint = Vector2f( LEFT_LINE_X + 7.5, 0.0 );
 				}
 				else
 				{
-					targetPoint = Vector2f( RIGHT_LINE_X - 7.0, 0.0 );
+					targetPoint = Vector2f( RIGHT_LINE_X - 7.5, 0.0 );
 				}
 
-				commandQueue.push( turnThenDash( currSbd.absLocation, targetPoint, currSbd.absAngle, this->dashAfterTurnMode ) );
-			}
+				if( !goalieInPosition && ( targetPoint - currSbd.absLocation ).magnitude() > 1.0 )
+				{
+					reverseTurnThenDash( currSbd.absLocation, targetPoint, currSbd.absAngle, currSbd.head_angle, this->dashAfterTurnMode, commandQueue );
+					goalieInPosition = false;
+				}
+				else if( currSbd.speed[0] != 0 && ( fabs( currSbd.absAngle ) > 4 || fabs( currSbd.head_angle ) > 4 ) )
+				{
+					commandQueue.push( Turn_Cmd( currSbd.absAngle ) );
+					commandQueue.push( Turn_Neck_Cmd( -currSbd.head_angle ) );
+					goalieInPosition = true;
+				}
+				else
+				{
+					goalieInPosition = false;
+				}
+			}*/
 			break;
 		}
 		case PLAYER_TYPE_FORWARD:

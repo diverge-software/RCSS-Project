@@ -574,8 +574,8 @@ bool AI_Processing::doesClientPossessBall( const Vector2f & playerPos, const Vec
 
 bool AI_Processing::goalieShouldBeActive( const char side, const Vector2f & ballPos )
 {
-	return ( ( side == 'l' && ballPos[0] <= 0 ) ||
-			 ( side == 'r' && ballPos[0] >= 0 ) );
+	return ( ( side == 'l' && ballPos[0] < 0 ) ||
+			 ( side == 'r' && ballPos[0] > 0 ) );
 }
 
 string AI_Processing::goalieDoCatchOrKick( const char side, const Vector2f & goaliePos, const VisualData & ballData )
@@ -602,23 +602,53 @@ string AI_Processing::goalieDoCatchOrKick( const char side, const Vector2f & goa
 	return command;
 }
 
-string AI_Processing::turnThenDash( const Vector2f & currentPos, const Vector2f & targetPos, double absFacingAngle, bool & dashAfterTurnMode )
+void AI_Processing::turnThenDash( const Vector2f & currentPos, const Vector2f & targetPos,
+								  double absFacingAngle, double headAngle,
+								  bool & dashAfterTurnMode, queue<string> & commandQueue )
 {
-	string command;
+	// If we haven't turned toward the point yet, we need to turn to it
+	if( !dashAfterTurnMode )
+	{
+		double turnAngle = getAbsAngleToLocation( currentPos, targetPos ) - ( absFacingAngle + headAngle );
 
-	if( ( targetPos - currentPos ).magnitude()  > 4.0 )
+		if( turnAngle < -180 )
+		{
+			turnAngle += 360;
+		}
+		else if( turnAngle > 180 )
+		{
+			turnAngle -= 360;
+		}
+
+		// If we can basically see the point, just dash to it
+		if( fabs( turnAngle ) < 5 )
+		{
+			commandQueue.push( Dash_Cmd( 100 ) );
+		}
+		else
+		{
+			commandQueue.push( Turn_Cmd( -turnAngle ) );
+			commandQueue.push( Turn_Neck_Cmd( turnAngle ) );
+			dashAfterTurnMode = true;
+		}
+	}
+	else
+	{
+		commandQueue.push( Dash_Cmd( 100 ) );
+		dashAfterTurnMode = false;
+	}
+}
+
+void AI_Processing::reverseTurnThenDash( const Vector2f & currentPos, const Vector2f & targetPos,
+										 double absFacingAngle, double headAngle,
+										 bool & dashAfterTurnMode, queue<string> & commandQueue )
+{
+	if( ( targetPos - currentPos ).magnitude() > 1.0 )
 	{
 		// If we haven't turned toward the point yet, we need to turn to it
 		if( !dashAfterTurnMode )
 		{
-			cout << "############" << endl;
-			cout << "currPos: " << currentPos << endl;
-			cout << "target:  " << targetPos << endl;
-			cout << "Not dash after turn mode." << endl;
-			cout << "absfacing angle: " << absFacingAngle << endl;
-			double turnAngle = absFacingAngle + getAbsAngleToLocation( currentPos, targetPos );
-			cout << "turn angle: " << turnAngle << endl;
-			cout << "#############" << endl;
+			double turnAngle = 180 + getAbsAngleToLocation( currentPos, targetPos ) - ( absFacingAngle + headAngle );
 
 			if( turnAngle < -180 )
 			{
@@ -630,28 +660,25 @@ string AI_Processing::turnThenDash( const Vector2f & currentPos, const Vector2f 
 			}
 
 			// If we can basically see the point, just dash to it
-			if( fabs( turnAngle ) < 3 )
+			if( fabs( turnAngle + 180 ) < 5 )
 			{
-				return Dash_Cmd( ( currentPos - targetPos ).magnitude() );
+				commandQueue.push( Dash_Cmd( -100 ) );
 			}
 			else
 			{
-				command = Turn_Cmd( -turnAngle );
+				commandQueue.push( Turn_Cmd( -( turnAngle ) ) );
+				commandQueue.push( Turn_Neck_Cmd( turnAngle ) );
 				dashAfterTurnMode = true;
 			}
 		}
 		else
 		{
-			cout << "##########" << endl;
-			cout << "dashing after turn" << endl;
-			cout << "currPos: " << currentPos << endl;
-			cout << "target:  " << targetPos << endl;
-			cout << "absfacing angle: " << absFacingAngle << endl;
-			cout << "###########" << endl;
-			command = Dash_Cmd( ( currentPos - targetPos ).magnitude() );
+			commandQueue.push( Dash_Cmd( -100 ) );
 			dashAfterTurnMode = false;
 		}
 	}
-
-	return command;
+	else
+	{
+		commandQueue.push( Say_Cmd( "Goalie in position." ) );
+	}
 }

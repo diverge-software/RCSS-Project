@@ -21,6 +21,7 @@
 #include <cstdlib>
 #include <cmath>
 #include <deque>
+#include <queue>
 
 #include "Vector2f.hpp"
 #include "Parser.hpp"
@@ -200,13 +201,32 @@ namespace AI_Processing
 	/** Use this to turn towards a point, then dash to it in the next cycle.
 	 * @param currentPos Player's current position.
 	 * @param targetPos Where the player wants to be.
+	 * @param absFacingAngle The absolute angle at which the player's head faces.
+	 * @param headAngle The angle of the player's head relative to its body.
 	 * @param dashAfterTurnMode True if the player should dash after the turn command returned, false otherwise.
+	 * @param commandQueue Queue of commands, modified to include necessary turn, dash, turn head, etc.
 	 * @pre None.
 	 * @post dashAfterTurnMode will be set to true if a dash is needed in the next cycle to complete moving
 	 * to the target position.
-	 * @return Command necessary to reach the location, either a turn or a dash.
 	 */
-	string turnThenDash( const Vector2f & currentPos, const Vector2f & targetPos, double absFacingAngle, bool & dashAfterTurnMode );
+	void turnThenDash( const Vector2f & currentPos, const Vector2f & targetPos,
+					   double absFacingAngle, double headAngle,
+					   bool & dashAfterTurnMode, queue<string> & commandQueue );
+
+	/** Use this to backpedal toward a target point. Much like turnThenDash(), but he dashes back instead.
+	 * @param currentPos Player's current position.
+	 * @param targetPos Where the player wants to be.
+	 * @param absFacingAngle The absolute angle at which the player's head faces.
+	 * @param headAngle The angle of the player's head relative to its body.
+	 * @param dashAfterTurnMode True if the player should dash after the turn command returned, false otherwise.
+	 * @param commandQueue Queue of commands, modified to include necessary turn, dash, turn head, etc.
+	 * @pre None.
+	 * @post dashAfterTurnMode will be set to true if a dash is needed in the next cycle to complete moving
+	 * to the target position.
+	 */
+	void reverseTurnThenDash( const Vector2f & currentPos, const Vector2f & targetPos,
+							  double absFacingAngle, double headAngle,
+							  bool & dashAfterTurnMode, queue<string> & commandQueue );
 };
 
 /*--------------------------------------------------------------------
