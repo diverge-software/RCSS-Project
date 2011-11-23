@@ -876,10 +876,12 @@ void Player::think( queue<string> & commandQueue )
 		case PLAYER_TYPE_TRAINER:
 			break;
 	}
+
 }
 
 string Player::think_forward() const
 {
+	
 	string command;
 	//-------------------------------------------------------------------------
 	// Is calling the hash table every time less efficient than calling 
@@ -900,111 +902,179 @@ string Player::think_forward() const
 	string opponentGoal = "g " + opponentSide;
 
 
-	cout << " SBD: " << senseBodyData.absLocation[0] << ", " << senseBodyData.absLocation[1] << endl;
+	//cout << " SBD: " << senseBodyData.absLocation[0] << ", " << senseBodyData.absLocation[1] << endl;
 
-	command = Turn_Cmd ( 10 );
+	//command = Turn_Cmd ( 10 );
 
 	//// if you're in possesion of the ball
 
 	//If you see the ball
 	if(visualData.find("b") != visualData.end())
 	{
-		// If you're within kicking distance
-		if(visualData["b"].distance <= 0.7)
-		{
-			// If you see the goal
-			if(visualData.find(opponentGoal) != visualData.end())
-			{
-				// :: In the penalty box?
-				//    :: Blocked by the goalie?
-				//       :: kick to the widest open area of the goal
-				//    :: If you aren't
-				//       :: kick into the goal
-				// :: If you're not
-				//    :: Dribble the ball towards the goal, avoiding other people, especially opponents
+		cout << "Ball loc: " << visualData["b"].absLocation[0] << " " << visualData["b"].absLocation[1] << endl;
+		cout << "Ball Dist: " << visualData["b"].distance << endl;
+		cout << "------------------------------\n";
 
-				// If you're within the opponent's penalty box
-				// absLocation may give odd results if far away from flags
-				if(visualData[opponentGoal].distance < 20)
-				//if( checkPlayerBounds(PLAYER_TYPE_GOALIE, visualData["b"].absLocation, getOpponentSide(side)) )
+		// You have possession of the ball if you're within 4
+		// This is approx. the max distance from the ball when dribbling
+		if(visualData["b"].distance < 4)
+		{
+			// If you're within kicking distance
+			if(visualData["b"].distance <= 0.7)
+			{
+				// If you see the goal
+				if(visualData.find(opponentGoal) != visualData.end())
 				{
-					int goalieInt;
-					bool canSeeGoalie = false;
-					vector<VisiblePlayer> opponents;
-					/// no opponents to fill queue
-					if( !mOpponentListQueue.empty() )
+					// :: In the penalty box?
+					//    :: Blocked by the goalie?
+					//       :: kick to the widest open area of the goal
+					//    :: If you aren't
+					//       :: kick into the goal
+					// :: If you're not
+					//    :: Dribble the ball towards the goal, avoiding other people, especially opponents
+
+					// If you're within the opponent's penalty box
+					// absLocation may give odd results if far away from flags
+					if(visualData[opponentGoal].distance < 20)
+					//if( checkPlayerBounds(PLAYER_TYPE_GOALIE, visualData["b"].absLocation, getOpponentSide(side)) )
 					{
-						// get the most recent list of opponents player can see
-						opponents = mOpponentListQueue.back();
-						
-						for(unsigned int i = 0; i <= opponents.size(); i++)
+						int goalieInt;
+						bool canSeeOpponent = false;
+						bool canSeeGoalie = false;
+						vector<VisiblePlayer> opponents;
+						/// no opponents to fill queue
+						if( !mOpponentListQueue.empty() )
 						{
-							// if you see the goalie, set flag
-							if( opponents[i].teamName != teamName &&
-								opponents[i].teamName != INVALID_TEAM_NAME &&
-								opponents[i].isGoalie == true)
+							// get the most recent list of opponents player can see
+							opponents = mOpponentListQueue.back();
+							
+							for(unsigned int i = 0; i <= opponents.size(); i++)
 							{
-								canSeeGoalie = true;
-								goalieInt = i;
+								// if you see the goalie, set flag
+								if( opponents[i].teamName != teamName &&
+									opponents[i].teamName != INVALID_TEAM_NAME)
+								{
+									canSeeOpponent = true;
+									if ( opponents[i].isGoalie == true )
+									{
+										canSeeGoalie = true;
+										goalieInt = i;
+									}
+								}
+								
 							}
 						}
-					}
 
 
-					if(canSeeGoalie)
-					{
-						// if the goalie is on the upper side of the goal,
-						// kick the ball to the bottom side
-						if( opponents[goalieInt].visualData.absLocation[1] >= 0)
+						if(canSeeGoalie)
 						{
-							command = Kick_Cmd ( 100, visualData[opponentGoal + "b"].direction - 3.0 );
+							// if the goalie is on the upper side of the goal,
+							// kick the ball to the bottom side
+							if( opponents[goalieInt].visualData.absLocation[1] >= 0)
+							{
+								command = Kick_Cmd ( 100, visualData[opponentGoal + "b"].direction - 3.0 );
+							}
+							// if the goalie is on the lower side of the goal,
+							// kick the ball to the top side
+							else
+							{
+								command = Kick_Cmd( 100, visualData[opponentGoal + "t"].direction + 3.0 );
+							}
 						}
-						// if the goalie is on the lower side of the goal,
-						// kick the ball to the top side
 						else
 						{
-							command = Kick_Cmd( 100, visualData[opponentGoal + "t"].direction + 3.0 );
+							// if you can't see the goalie, the goal is open.
+							// kick it hard towards the middle
+							command = Kick_Cmd( 100, visualData[opponentGoal].direction );
 						}
 					}
 					else
 					{
-						// if you can't see the goalie, the goal is open.
-						// kick it hard towards the middle
-						command = Kick_Cmd( 100, visualData[opponentGoal].direction );
+						// Dribble the ball
+						// This needs some work, player sometimes loses the ball and has to find it again.
+						command = Kick_Cmd( 20, visualData[opponentGoal].direction );
 					}
 				}
+				// If you don't see the goal
 				else
 				{
-					// Dribble the ball
-					// This needs some work, player sometimes loses the ball and has to find it again.
-					command = Kick_Cmd( 5, visualData[opponentGoal].direction );
+					// Run a bit away from the ball to get a new perspective
+					// Maybe you'll see both the goal and the ball.
+					command = Dash_Cmd( 35 );
+					//command = Turn_Cmd( 30 );
 				}
 			}
-			// If you don't see the goal
+			// If you see the ball, but it's at too wide an angle,
+			// turn so you're more directly facing it.
+			else if ( visualData["b"].direction < -10 ||
+						  visualData["b"].direction > 10 )
+			{
+				// Interesting thing I found...
+				// Don't run straight at the ball,
+				// Instead, run slightly outside of it (I added '2.0' to the direction)
+				// This helps so you're not always in a battle
+				// trying to find the ball and the goal at the same time
+				command = Turn_Cmd( visualData["b"].direction + 1.0 );
+			}
 			else
 			{
-				// Run a bit away from the ball to get a new perspective
-				// Maybe you'll see both the goal and the ball.
-				command = Dash_Cmd( 30 );
-				//command = Turn_Cmd( 30 );
+				command = Dash_Cmd( 50 );
 			}
 		}
 		// If you see the ball, but it's at too wide an angle,
 		// turn so you're more directly facing it.
 		else if ( visualData["b"].direction < -10 ||
-			      visualData["b"].direction > 10 )
+					  visualData["b"].direction > 10 )
 		{
 			// Interesting thing I found...
 			// Don't run straight at the ball,
 			// Instead, run slightly outside of it (I added '2.0' to the direction)
 			// This helps so you're not always in a battle
 			// trying to find the ball and the goal at the same time
-			command = Turn_Cmd( visualData["b"].direction + 2.0 );
+			command = Turn_Cmd( visualData["b"].direction + 1.0 );
 		}
-		// If you're not within kicking distance, get closer to the ball
+		// If you're not in possessions of the ball
 		else
 		{
-			command = Dash_Cmd( 50 );
+			///////////////////////////////////////////////////////////////////
+			// I suppose this is ambiguous... Are we in defensive or offensive mode?
+			///////////////////////////////////////////////////////////////////
+
+
+			// Is there a teammate in your field of view that is closer to the ball than you?
+			vector<VisiblePlayer> teammates;
+			bool isTeammateCloser = false;
+			
+			if( !mTeammateListQueue.empty() )
+			{
+				// get the most recent list of teammates player can see
+				teammates = mTeammateListQueue.back();
+
+				for(unsigned int i = 0; i <= teammates.size(); i++)
+				{
+					double distFromBall = ( teammates[i].visualData.absLocation - visualData["b"].absLocation ).magnitude();
+
+					// if you see a teammate closer to ball, set flag
+					if( teammates[i].teamName == teamName &&
+						teammates[i].teamName != INVALID_TEAM_NAME &&
+						distFromBall < visualData["b"].distance )
+					{
+						isTeammateCloser = true;
+					}
+				}
+			}
+			
+			// If yes, get open for pass
+			if(isTeammateCloser == true)
+			{
+				// try to prepare for a pass
+				// keep a suitable distance away from the player w/ ball
+			}
+			// if no, try to get the ball
+			else
+			{
+				command = Dash_Cmd( 100 );
+			}
 		}
 	}
 	// If you can't see the ball, then turn to find it
@@ -1013,7 +1083,6 @@ string Player::think_forward() const
 		command = Turn_Cmd( 25 );
 	}
 
-	//command = "(turn 3)";
 	return ( command );																// return whatever command was made
 }
 
