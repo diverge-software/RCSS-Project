@@ -689,6 +689,9 @@ void Player::think( queue<string> & commandQueue )
 			ostringstream temp; 
 			temp << "t " << uniformNumber;
 			commandQueue.push( Say_Cmd( temp.str() ) );
+
+			clientPossessesBall = true;
+			teamPossessesBall = true;
 		}
 	}
 
@@ -1090,4 +1093,58 @@ string Player::think_forward() const
 string Player::getPlayMode() const
 {
 	return ( playMode );
+}
+
+void Player::determinePossession( queue<string> & commandQueue )
+{
+	// Determine if ball is visible
+	unordered_map<string, VisualData>::const_iterator ballIter = mVisualDataQueue.back().find( "b" );
+	if( ballIter != mVisualDataQueue.back().end() )
+	{
+		// If the this client now possesses the ball, let everyone know
+		if( !clientPossessesBall  && doesClientPossessBall( mSenseBodyDataQueue.back().absLocation, ballIter->second.absLocation ) )
+		{
+			ostringstream temp; 
+			temp << "t " << uniformNumber;
+			commandQueue.push( Say_Cmd( temp.str() ) );
+			clientPossessesBall = true;
+			teamPossessesBall = true;
+		}
+	
+		// Check if an opponent possesses the ball 
+		if( teamPossessesBall )
+		{
+			vector<VisiblePlayer> opponentList = mOpponentListQueue.back();
+		
+			for( unsigned int i=0; i < opponentList.size(); i++ )
+			{
+				if( doesClientPossessBall( opponentList[i].visualData.absLocation, ballIter->second.absLocation ) )
+				{	
+					ostringstream temp; 
+					temp << "o " << opponentList[i].uniformNumber;
+					commandQueue.push( Say_Cmd( temp.str() ) );
+					teamPossessesBall = false;
+					break;
+				}
+			}
+		}
+
+		// Check if a teammate possesses the ball 
+		if( !teamPossessesBall )
+		{
+			vector<VisiblePlayer> teammateList = mTeammateListQueue.back();
+		
+			for( unsigned int i=0; i < teammateList.size(); i++ )
+			{
+				if( doesClientPossessBall( teammateList[i].visualData.absLocation, ballIter->second.absLocation ) )
+				{	
+					ostringstream temp; 
+					temp << "t " << teammateList[i].uniformNumber;
+					commandQueue.push( Say_Cmd( temp.str() ) );
+					teamPossessesBall = true;
+					break;
+				}
+			}
+		}
+	}
 }

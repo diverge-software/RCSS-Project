@@ -149,6 +149,14 @@ class Player
 		 * @return the contents of playMode
 		 */
 		string getPlayMode() const;
+		
+		/** Determines which team possesses the ball
+		 * @param commandQueue Holds list of commands to send to server 
+		 * @pre None
+		 * @post Possession booleans are updated
+		 * @return Nothing
+		 */
+		void determinePossession( queue<string> & commandQueue );
 
 	private:	
 		// Sensory data passed from the server
@@ -177,8 +185,8 @@ class Player
 		bool	playOn;
 		bool	freeKickFriendly;
 		bool	freeKickOpponent;
-		bool	teamPossessesBall;
 
+		bool	teamPossessesBall;
 		bool	clientPossessesBall;
 
 		// Used to keep track of if we're trying to turn, then dash to a location.

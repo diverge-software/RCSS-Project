@@ -569,7 +569,7 @@ bool AI_Processing::doesClientPossessBall( const Vector2f & playerPos, const Vec
 {
 	double distance = ( playerPos - ballPos ).magnitude();
 
-	return ( distance < 1 && distance > -1 );
+	return ( (distance < 1) && (distance > -1) );
 }
 
 bool AI_Processing::goalieShouldBeActive( const char side, const Vector2f & ballPos )
