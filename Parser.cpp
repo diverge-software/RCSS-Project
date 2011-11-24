@@ -1,5 +1,6 @@
 #include "Parser.hpp"
 #include "Debug.hpp"
+#include "ai_processing.hpp"
 #include <iostream>
 
 using namespace std;
@@ -566,20 +567,9 @@ void Parser::convertToAbsoluteCoordsAndVelocity( unordered_map<string, VisualDat
 	double absAngle = senseBodyData.speed[1];
 	double xAvg = 0;
 	double yAvg = 0;
-	
-	double dummyBeforeCalculation = absAngle;
 
-	// If speed is velocity is greater than 0, the angle value will be garbage. 
-	if(absoluteSpeedMagnitude != 0)
-	{
-		absAngle = calculateAbsAngle(visualHash);		
-	}
-	
-	double dummyAfterCalculation = absAngle;
-
-	// Store absAngle in sensebody info
-	senseBodyData.absAngle = absAngle;
-	
+	// Use this to find the closest visible flag.
+	// The closer the flag is, the less noise the measurements have, so it's more accurate
 	string closestFlag;
 	//find a visible flag
 	for(unordered_map<string, VisualData>::const_iterator it = visualHash.begin(); it != visualHash.end(); ++it )
@@ -602,16 +592,26 @@ void Parser::convertToAbsoluteCoordsAndVelocity( unordered_map<string, VisualDat
 			}
 		}
 	}
-	
-	absAngle = getAbsoluteAngleSum(absAngle, visualHash[closestFlag].direction);		
 
+	// If speed is velocity is greater than 0, the angle value given by sense body data will be garbage. 
+	if(absoluteSpeedMagnitude != 0)
+	{
+		absAngle = calculateAbsAngle(visualHash);		
+	}
+
+	// Store absAngle in sensebody info
+	senseBodyData.absAngle = absAngle;
+
+	double flagAngle = getAbsoluteAngleSum(absAngle, visualHash[closestFlag].direction);
 	//Assign client-player's location vales to absLocation vector
-	senseBodyData.absLocation[0] = stationaryFlags[closestFlag][0] - visualHash[closestFlag].distance*cos((PI/180)*absAngle);
-	senseBodyData.absLocation[1] = stationaryFlags[closestFlag][1] - visualHash[closestFlag].distance*sin((PI/180)*absAngle);	
+	senseBodyData.absLocation[0] = stationaryFlags[closestFlag][0] - visualHash[closestFlag].distance*cos((PI/180)*flagAngle);
+	senseBodyData.absLocation[1] = stationaryFlags[closestFlag][1] - visualHash[closestFlag].distance*sin((PI/180)*flagAngle);	
 	
 	//convert client-player's absolute velocity to a vector
-	senseBodyData.absVelocity[0] = absoluteSpeedMagnitude*cos((PI/180)*absAngle);
-	senseBodyData.absVelocity[1] = absoluteSpeedMagnitude*sin((PI/180)*absAngle);
+	// Need to use the client's body direction, becuase they can be looking in a different
+	// direction from their motion
+	senseBodyData.absVelocity[0] = absoluteSpeedMagnitude*cos( (PI/180)*AI_Processing::getAbsoluteBodyAngle( absAngle, senseBodyData.head_angle ) );
+	senseBodyData.absVelocity[1] = absoluteSpeedMagnitude*sin( (PI/180)*AI_Processing::getAbsoluteBodyAngle( absAngle, senseBodyData.head_angle ) );
 	
 	//find absolute ball location
 	unordered_map<string, VisualData>::const_iterator findIter = visualHash.find( "b" );
@@ -619,10 +619,13 @@ void Parser::convertToAbsoluteCoordsAndVelocity( unordered_map<string, VisualDat
 	{
 		//calculate absolute position
 		double absoluteAngle = getAbsoluteAngleSum(absAngle, visualHash["b"].direction);
-		
+		cout << "Angle to ball: " << absoluteAngle << endl;
+		cout << "SBD pos: " << senseBodyData.absLocation << endl;
+		cout << "Before: " << visualHash["b"].absLocation << endl;
 		visualHash["b"].absLocation[0] = senseBodyData.absLocation[0] + visualHash["b"].distance*cos((PI/180)*absoluteAngle);
 		visualHash["b"].absLocation[1] = senseBodyData.absLocation[1] + visualHash["b"].distance*sin((PI/180)*absoluteAngle);
-	
+		cout << "After: " << visualHash["b"].absLocation << endl;
+
 		//check if ball is close enough to have observe distance change and direction change
 		if( (visualHash["b"].distanceChange != INVALID_FLOAT_VALUE) 
 		  &&(visualHash["b"].directionChange != INVALID_DIRECTION) )

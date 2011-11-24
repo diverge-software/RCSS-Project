@@ -870,7 +870,7 @@ void Player::think( queue<string> & commandQueue )
 			break;
 		}
 		case PLAYER_TYPE_FORWARD:
-			commandQueue.push( this->think_forward() );
+			this->think_forward( commandQueue );
 			break;
 		case PLAYER_TYPE_MIDFIELDER:
 			break;
@@ -882,10 +882,9 @@ void Player::think( queue<string> & commandQueue )
 
 }
 
-string Player::think_forward() const
+void Player::think_forward( queue<string> & commandQueue ) //const
 {
 	
-	string command;
 	//-------------------------------------------------------------------------
 	// Is calling the hash table every time less efficient than calling 
 	// them once at the top then referencing a local variable?
@@ -897,17 +896,28 @@ string Player::think_forward() const
 	// Get most recent senseBody info
 	SenseBodyData senseBodyData = mSenseBodyDataQueue.back();
 
-	//-------------------------------------------------------------------------
-	// The following basically just kicks it towards the goal.
-	// I'll make it better when I can test it. (dribbling, avoiding people, whatever)
-	//-------------------------------------------------------------------------
+	// get the most recent list of teammates player can see
+	vector<VisiblePlayer> teammates;
+	if(!mTeammateListQueue.empty())
+	{
+		teammates = mTeammateListQueue.back();
+	}
+
+	// get the most recent list of opponents player can see
+	vector<VisiblePlayer> opponents;			
+	if(!mOpponentListQueue.empty())
+	{
+		opponents = mOpponentListQueue.back();
+	}
+
+	// useful strings:
 	string opponentSide(1, getOpponentSide(side));
 	string opponentGoal = "g " + opponentSide;
 
 
 	//cout << " SBD: " << senseBodyData.absLocation[0] << ", " << senseBodyData.absLocation[1] << endl;
 
-	//command = Turn_Cmd ( 10 );
+	//commandQueue.push( Turn_Cmd ( 10 );
 
 	//// if you're in possesion of the ball
 
@@ -944,14 +954,12 @@ string Player::think_forward() const
 						int goalieInt;
 						bool canSeeOpponent = false;
 						bool canSeeGoalie = false;
-						vector<VisiblePlayer> opponents;
-						/// no opponents to fill queue
+
+						
+						// no opponents to fill queue
 						if( !mOpponentListQueue.empty() )
-						{
-							// get the most recent list of opponents player can see
-							opponents = mOpponentListQueue.back();
-							
-							for(unsigned int i = 0; i <= opponents.size(); i++)
+						{	
+							for(unsigned int i = 0; i <= opponents.size() - 1; i++)
 							{
 								// if you see the goalie, set flag
 								if( opponents[i].teamName != teamName &&
@@ -975,27 +983,27 @@ string Player::think_forward() const
 							// kick the ball to the bottom side
 							if( opponents[goalieInt].visualData.absLocation[1] >= 0)
 							{
-								command = Kick_Cmd ( 100, visualData[opponentGoal + "b"].direction - 3.0 );
+								commandQueue.push( Kick_Cmd ( 100, visualData[opponentGoal + "b"].direction - 1.5 ) );
 							}
 							// if the goalie is on the lower side of the goal,
 							// kick the ball to the top side
 							else
 							{
-								command = Kick_Cmd( 100, visualData[opponentGoal + "t"].direction + 3.0 );
+								commandQueue.push( Kick_Cmd( 100, visualData[opponentGoal + "t"].direction + 1.5 ) );
 							}
 						}
 						else
 						{
 							// if you can't see the goalie, the goal is open.
 							// kick it hard towards the middle
-							command = Kick_Cmd( 100, visualData[opponentGoal].direction );
+							commandQueue.push( Kick_Cmd( 100, visualData[opponentGoal].direction ) );
 						}
 					}
 					else
 					{
 						// Dribble the ball
 						// This needs some work, player sometimes loses the ball and has to find it again.
-						command = Kick_Cmd( 20, visualData[opponentGoal].direction );
+						commandQueue.push( Kick_Cmd( 20, visualData[opponentGoal].direction ) );
 					}
 				}
 				// If you don't see the goal
@@ -1003,8 +1011,8 @@ string Player::think_forward() const
 				{
 					// Run a bit away from the ball to get a new perspective
 					// Maybe you'll see both the goal and the ball.
-					command = Dash_Cmd( 35 );
-					//command = Turn_Cmd( 30 );
+					commandQueue.push( Dash_Cmd( 35 ) );
+					//commandQueue.push( Turn_Cmd( 30 );
 				}
 			}
 			// If you see the ball, but it's at too wide an angle,
@@ -1017,11 +1025,11 @@ string Player::think_forward() const
 				// Instead, run slightly outside of it (I added '2.0' to the direction)
 				// This helps so you're not always in a battle
 				// trying to find the ball and the goal at the same time
-				command = Turn_Cmd( visualData["b"].direction + 1.0 );
+				commandQueue.push( Turn_Cmd( visualData["b"].direction + 1.0 ) );
 			}
 			else
 			{
-				command = Dash_Cmd( 50 );
+				commandQueue.push( Dash_Cmd( 50 ) );
 			}
 		}
 		// If you see the ball, but it's at too wide an angle,
@@ -1034,7 +1042,7 @@ string Player::think_forward() const
 			// Instead, run slightly outside of it (I added '2.0' to the direction)
 			// This helps so you're not always in a battle
 			// trying to find the ball and the goal at the same time
-			command = Turn_Cmd( visualData["b"].direction + 1.0 );
+			commandQueue.push( Turn_Cmd( visualData["b"].direction + 1.0 ) );
 		}
 		// If you're not in possessions of the ball
 		else
@@ -1045,24 +1053,37 @@ string Player::think_forward() const
 
 
 			// Is there a teammate in your field of view that is closer to the ball than you?
-			vector<VisiblePlayer> teammates;
 			bool isTeammateCloser = false;
+			bool isSomeoneInYourWay = false;
+			int closestPlayer = 0;			
 			
 			if( !mTeammateListQueue.empty() )
 			{
-				// get the most recent list of teammates player can see
-				teammates = mTeammateListQueue.back();
-
-				for(unsigned int i = 0; i <= teammates.size(); i++)
+				for(unsigned int i = 0; i <= teammates.size() - 1; i++)
 				{
 					double distFromBall = ( teammates[i].visualData.absLocation - visualData["b"].absLocation ).magnitude();
 
 					// if you see a teammate closer to ball, set flag
+					// also record the closest player to the ball
 					if( teammates[i].teamName == teamName &&
 						teammates[i].teamName != INVALID_TEAM_NAME &&
-						distFromBall < visualData["b"].distance )
+						distFromBall < visualData["b"].distance)
 					{
 						isTeammateCloser = true;
+						if( ( teammates[i].visualData.absLocation - visualData["b"].absLocation ).magnitude() <
+							( teammates[closestPlayer].visualData.absLocation - visualData["b"].absLocation ).magnitude() )
+						{
+							closestPlayer = i;
+						}
+					}
+
+					// determine if there's an open path between you and the ball
+					// there's a 10 degree 
+					double ballDir = visualData["b"].direction;
+					if(	( teammates[i].visualData.direction > ballDir && teammates[i].visualData.direction - ballDir < 10 ) ||
+						( teammates[i].visualData.direction < ballDir && ballDir - teammates[i].visualData.direction < 10 ) )
+					{
+						isSomeoneInYourWay = true;
 					}
 				}
 			}
@@ -1070,23 +1091,58 @@ string Player::think_forward() const
 			// If yes, get open for pass
 			if(isTeammateCloser == true)
 			{
-				// try to prepare for a pass
-				// keep a suitable distance away from the player w/ ball
+				if( visualData["b"].absLocation[0] - senseBodyData.absLocation[0] > 0 )
+				{
+					commandQueue.push( Dash_Cmd( 100 ) );
+				}
+				else
+				{
+					// keep a suitable distance away from the player w/ ball
+					// If you're too far, try to get closer
+					if( teammates[closestPlayer].visualData.distance > 15 )
+					{
+						commandQueue.push( Dash_Cmd( 100 ) );
+					}
+					// If you're too close, spread out
+					else if (teammates[closestPlayer].visualData.distance < 5 )
+					{
+						commandQueue.push( Dash_Cmd ( -50 ) );
+					}
+					else
+					{
+						// try to get open
+						// have a direct path between you and the person with the ball
+						if( isSomeoneInYourWay == true)
+						{
+							if(senseBodyData.absLocation[1] >= 0 )
+							{
+								commandQueue.push( Turn_Cmd ( 10 ) );
+							}
+							else
+							{
+								commandQueue.push( Turn_Cmd ( -10) );
+							}
+							commandQueue.push( Dash_Cmd( 30 ) );
+						}
+						else
+						{
+							// prepare for a pass here
+						}
+					}
+				}
 			}
 			// if no, try to get the ball
 			else
 			{
-				command = Dash_Cmd( 100 );
+				commandQueue.push( Dash_Cmd( 100 ) );
 			}
 		}
 	}
 	// If you can't see the ball, then turn to find it
 	else
 	{
-		command = Turn_Cmd( 25 );
-	}
-
-	return ( command );																// return whatever command was made
+		commandQueue.push( Turn_Cmd( 25 ) );
+	}														// return whatever command was made
 }
 
 

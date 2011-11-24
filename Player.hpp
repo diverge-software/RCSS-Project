@@ -141,7 +141,7 @@ class Player
 		 * @post None.
 		 * @return command initialized with string to send to server to make the forward do something.
 		 */
-		string think_forward() const;
+		void think_forward( queue<string> & commandQueue );
 
 		/** Retrieves the contents of playMode
 		 * @pre Player initialized.
