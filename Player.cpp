@@ -599,10 +599,8 @@ Vector2f Player::getObjectPosition( string objName, int currentTimestamp ) const
 	// Otherwise, we need to estimate its position
 	// Traverse backwards through the queue, since the newest data is toward the back
 	Vector2f result( INVALID_FLOAT_VALUE, INVALID_FLOAT_VALUE );
-	cout << "Size: " << mVisualDataQueue.size() << endl;
 	for( int i = mVisualDataQueue.size() - 1; i >= 0; --i )
 	{
-		cout << i << endl;
 		// Try to find the object in the currently considered visualHash
 		unordered_map<string, VisualData>::const_iterator findIter = mVisualDataQueue[i].find( objName );
 		// If it has been found, then estimate the position of the object
@@ -617,7 +615,15 @@ Vector2f Player::getObjectPosition( string objName, int currentTimestamp ) const
 				unordered_map<string, ServerStruct>::const_iterator ballDecayIter = mServerInfo.find( "ball_decay" );
 				if( ballDecayIter != mServerInfo.end() )
 				{
-					result = getFutureBallPos( oldPosition, oldVelocity, currentTimestamp - oldTimestamp, ballDecayIter->second.fValue );
+					if( oldVelocity[0] == INVALID_FLOAT_VALUE || oldVelocity[1] == INVALID_FLOAT_VALUE )
+					{
+						// Invalid means it wasn't parsed, just assume velocity was 0 and return the old position
+						result = oldPosition;
+					}
+					else
+					{
+						result = getFutureBallPos( oldPosition, oldVelocity, currentTimestamp - oldTimestamp, ballDecayIter->second.fValue );
+					}
 				}
 				else
 				{
@@ -652,18 +658,6 @@ void Player::setTeamName(string teamname)
 void Player::setPlayerRole( AI_Processing::player_type_t32 role )
 {
 	playerRole = role;
-
-	if( playerRole == PLAYER_TYPE_GOALIE )
-	{
-		if( side == 'l' )
-		{
-			targetPoint = Vector2f( LEFT_LINE_X + 7.5, 0.0 );
-		}
-		else
-		{
-			targetPoint = Vector2f( RIGHT_LINE_X - 7.5, 0.0 );
-		}
-	}
 }
 
 int Player::getUniformNumber() const
@@ -745,7 +739,6 @@ void Player::think( queue<string> & commandQueue )
 					// If the ball is on the lower half of the field, but you're not, get there
 					else*/ if( ballPos[1] < 0 )
 					{
-						cout << "BOTTOM" << endl;
 						SenseBodyData currSbd = mSenseBodyDataQueue.back();
 						if( side == 'l' )
 						{
@@ -758,13 +751,11 @@ void Player::think( queue<string> & commandQueue )
 
 						if( ( currSbd.absLocation - targetPoint ).magnitude() > 1.0 )
 						{
-							cout << "MOVE" << endl;
-							turnThenDash( currSbd.absLocation, targetPoint, currSbd.absAngle, currSbd.head_angle, this->dashAfterTurnMode, commandQueue );
+							turnThenDash( currSbd.absLocation, targetPoint, currSbd.absAngle, currSbd.head_angle, ballIter->second.direction, this->dashAfterTurnMode, commandQueue );
 						}
-						else if( fabs( ballIter->second.direction ) > 5 || fabs( currSbd.head_angle ) > 0 )
+						else if( fabs( currSbd.head_angle ) > 0 )
 						{
-							cout << "FACE IT" << endl;
-							commandQueue.push( Turn_Cmd( -( ballIter->second.direction - currSbd.head_angle ) ) );
+							commandQueue.push( Turn_Cmd( currSbd.head_angle ) );
 							commandQueue.push( Turn_Neck_Cmd( -currSbd.head_angle ) );
 						}
 					}
@@ -781,13 +772,13 @@ void Player::think( queue<string> & commandQueue )
 							targetPoint = Vector2f( RIGHT_LINE_X - 10.0, 7.0 );
 						}
 
-						if( ( currSbd.absLocation - targetPoint ).magnitude() > 2.0 )
+						if( ( currSbd.absLocation - targetPoint ).magnitude() > 1.0 )
 						{
-							turnThenDash( currSbd.absLocation, targetPoint, currSbd.absAngle, currSbd.head_angle, this->dashAfterTurnMode, commandQueue );
+							turnThenDash( currSbd.absLocation, targetPoint, currSbd.absAngle, currSbd.head_angle, ballIter->second.direction, this->dashAfterTurnMode, commandQueue );
 						}
-						else if( fabs( ballIter->second.direction ) > 5 || fabs( currSbd.head_angle ) > 0 )
+						else if( fabs( currSbd.head_angle ) > 0 )
 						{
-							commandQueue.push( Turn_Cmd( -ballIter->second.direction ) );
+							commandQueue.push( Turn_Cmd( currSbd.head_angle ) );
 							commandQueue.push( Turn_Neck_Cmd( -currSbd.head_angle ) );
 						}
 					}
@@ -837,6 +828,27 @@ void Player::think( queue<string> & commandQueue )
 				}
 
 			}
+			/*
+			else
+			{
+				SenseBodyData currSbd = mSenseBodyDataQueue.back();
+				Vector2f predictedBallPos = getObjectPosition( "b", mSenseBodyDataQueue.back().timestamp );
+				cout << "Ball pos: " << predictedBallPos << endl;
+
+				double turnAngle = getAbsAngleToLocation( currSbd.absLocation, predictedBallPos ) - ( currSbd.absAngle + currSbd.head_angle );
+
+				if( turnAngle < -180 )
+				{
+					turnAngle += 360;
+				}
+				else if( turnAngle > 180 )
+				{
+					turnAngle -= 360;
+				}
+
+				commandQueue.push( Turn_Neck_Cmd( -turnAngle ) );
+			}
+			*/
 			// Otherwise, back up until the ball is visible, or turn if that is not enough
 			/*else
 			{

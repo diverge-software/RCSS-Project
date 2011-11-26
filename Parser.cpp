@@ -564,7 +564,7 @@ void Parser::convertToAbsoluteCoordsAndVelocity( unordered_map<string, VisualDat
 	//	and speed[1] = the client-player's location angle relative to the field's x-axis
 	//double absoluteSpeedAngle = senseBodyData.speed[1];
 	double absoluteSpeedMagnitude = senseBodyData.speed[0];  
-	double absAngle = senseBodyData.speed[1];
+	double absAngle = calculateAbsAngle(visualHash);
 	double xAvg = 0;
 	double yAvg = 0;
 
@@ -593,12 +593,6 @@ void Parser::convertToAbsoluteCoordsAndVelocity( unordered_map<string, VisualDat
 		}
 	}
 
-	// If speed is velocity is greater than 0, the angle value given by sense body data will be garbage. 
-	if(absoluteSpeedMagnitude != 0)
-	{
-		absAngle = calculateAbsAngle(visualHash);		
-	}
-
 	// Store absAngle in sensebody info
 	senseBodyData.absAngle = absAngle;
 
@@ -619,12 +613,8 @@ void Parser::convertToAbsoluteCoordsAndVelocity( unordered_map<string, VisualDat
 	{
 		//calculate absolute position
 		double absoluteAngle = getAbsoluteAngleSum(absAngle, visualHash["b"].direction);
-		cout << "Angle to ball: " << absoluteAngle << endl;
-		cout << "SBD pos: " << senseBodyData.absLocation << endl;
-		cout << "Before: " << visualHash["b"].absLocation << endl;
 		visualHash["b"].absLocation[0] = senseBodyData.absLocation[0] + visualHash["b"].distance*cos((PI/180)*absoluteAngle);
 		visualHash["b"].absLocation[1] = senseBodyData.absLocation[1] + visualHash["b"].distance*sin((PI/180)*absoluteAngle);
-		cout << "After: " << visualHash["b"].absLocation << endl;
 
 		//check if ball is close enough to have observe distance change and direction change
 		if( (visualHash["b"].distanceChange != INVALID_FLOAT_VALUE) 

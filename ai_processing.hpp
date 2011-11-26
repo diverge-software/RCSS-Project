@@ -113,6 +113,14 @@ namespace AI_Processing
 	 * @return returns future position as a vector
 	 */
 	Vector2f getFuturePlayerPos(Vector2f cPos, Vector2f cVec, double tInterval, double playerDecay);
+
+	/* Returns the absolute angle the player's body is at, i.e. which direction he would dash in.
+	 * Takes into account the angle which the head is turned.
+	 * @param absFacingAngle The absolute angle at which the player is facing. In sense body data struct.
+	 * @param headAngle Angle the head is turned to. Also in sense body data.
+	 * @return Absolute angle the body faces.
+	 */
+	double getAbsoluteBodyAngle( double absFacingAngle, double headAngle );
 	
 	/** Determines future position of a player given its current position and velocity 
      * @param cPos Current position of ball.
@@ -203,6 +211,7 @@ namespace AI_Processing
 	 * @param targetPos Where the player wants to be.
 	 * @param absFacingAngle The absolute angle at which the player's head faces.
 	 * @param headAngle The angle of the player's head relative to its body.
+	 * @param angleToBall Relative angle to ball.
 	 * @param dashAfterTurnMode True if the player should dash after the turn command returned, false otherwise.
 	 * @param commandQueue Queue of commands, modified to include necessary turn, dash, turn head, etc.
 	 * @pre None.
@@ -210,7 +219,7 @@ namespace AI_Processing
 	 * to the target position.
 	 */
 	void turnThenDash( const Vector2f & currentPos, const Vector2f & targetPos,
-					   double absFacingAngle, double headAngle,
+					   double absFacingAngle, double headAngle, double angleToBall,
 					   bool & dashAfterTurnMode, queue<string> & commandQueue );
 
 	/** Use this to backpedal toward a target point. Much like turnThenDash(), but he dashes back instead.

@@ -390,11 +390,14 @@ ostringstream           ret_val;    /* return value                 */
 Verify the input parameter(s) are within the defined 
 server boundaries
 ----------------------------------------------------------*/
-if( ( direction < MIN_MOMENT )
- || ( direction > MAX_MOMENT ) )
-    {
-    alwaysAssert();
-    }
+if( direction < MIN_MOMENT )
+{
+	direction = MIN_MOMENT;
+}
+else if( direction > MAX_MOMENT )
+{
+	direction = MAX_MOMENT;
+}
 
 ret_val << "(turn " << direction << ")";
 
@@ -425,11 +428,14 @@ ostringstream           ret_val;    /* return value                 */
 Verify the input parameter(s) are within the defined 
 server boundaries
 ----------------------------------------------------------*/
-if( ( direction < MIN_MOMENT )
- || ( direction > MAX_MOMENT ) )
-    {
-    alwaysAssert();
-    }
+if( direction < MIN_MOMENT )
+{
+	direction = MIN_MOMENT;
+}
+else if( direction > MAX_MOMENT )
+{
+	direction = MAX_MOMENT;
+}
 
 ret_val << "(turn_neck " << direction << ")";
 
@@ -451,6 +457,11 @@ bool AI_Processing::isTeammateOpenForPass(VisiblePlayer teammate, vector<Visible
 	}
 
 	return true;	
+}
+
+double AI_Processing::getAbsoluteBodyAngle( double absFacingAngle, double headAngle )
+{
+	return absFacingAngle + headAngle;
 }
 
 Vector2f AI_Processing::getFuturePlayerPos(Vector2f cPos, Vector2f cVec, double tInterval, double playerDecay)
@@ -603,13 +614,13 @@ string AI_Processing::goalieDoCatchOrKick( const char side, const Vector2f & goa
 }
 
 void AI_Processing::turnThenDash( const Vector2f & currentPos, const Vector2f & targetPos,
-								  double absFacingAngle, double headAngle,
+								  double absFacingAngle, double headAngle, double angleToBall,
 								  bool & dashAfterTurnMode, queue<string> & commandQueue )
 {
 	// If we haven't turned toward the point yet, we need to turn to it
 	if( !dashAfterTurnMode )
 	{
-		double turnAngle = getAbsAngleToLocation( currentPos, targetPos ) - ( absFacingAngle + headAngle );
+		double turnAngle = getAbsAngleToLocation( currentPos, targetPos ) - getAbsoluteBodyAngle( absFacingAngle, headAngle );
 
 		if( turnAngle < -180 )
 		{
@@ -621,20 +632,24 @@ void AI_Processing::turnThenDash( const Vector2f & currentPos, const Vector2f & 
 		}
 
 		// If we can basically see the point, just dash to it
-		if( fabs( turnAngle ) < 5 )
+		if( fabs( turnAngle ) < 3 )
 		{
-			commandQueue.push( Dash_Cmd( 100 ) );
+			commandQueue.push( Dash_Cmd( 50 ) );
 		}
 		else
 		{
 			commandQueue.push( Turn_Cmd( -turnAngle ) );
-			commandQueue.push( Turn_Neck_Cmd( turnAngle ) );
+
+			if( fabs( angleToBall ) > 1 )
+			{
+				commandQueue.push( Turn_Neck_Cmd( turnAngle + angleToBall ) );
+			}
 			dashAfterTurnMode = true;
 		}
 	}
 	else
 	{
-		commandQueue.push( Dash_Cmd( 100 ) );
+		commandQueue.push( Dash_Cmd( 50 ) );
 		dashAfterTurnMode = false;
 	}
 }

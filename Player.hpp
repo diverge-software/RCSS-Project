@@ -20,7 +20,7 @@ using namespace std;
 using namespace Parser;
 
 #define NUM_PLAYER_TYPES	17
-#define MAX_QUEUE_SIZE		10
+#define MAX_QUEUE_SIZE		30
 
 /** @class Player
 * A class which represents a player: memory, sensory processing, and thinking.
