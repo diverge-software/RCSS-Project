@@ -236,6 +236,17 @@ namespace AI_Processing
 	void reverseTurnThenDash( const Vector2f & currentPos, const Vector2f & targetPos,
 							  double absFacingAngle, double headAngle,
 							  bool & dashAfterTurnMode, queue<string> & commandQueue );
+
+	/* Calculate the position the goalie should be in based on where the ball is, and how far away from the goal
+	 * he should be.
+	 * @param side The side which he should be on, either 'l' or 'r'.
+	 * @param goalPos Absolute position of the goal the goalie is tending.
+	 * @param ballPos Absolute position of the ball.
+	 * @param radius How far away from the goal the goalie should be standing.
+	 * @pre Assumes that side matches the goal that the goalie is tending. E.g. 'l' corresponds to the position of "g l".
+	 * @return Position that the goalie should move toward.
+	 */
+	Vector2f getGoalieTargetPosition( char side, const Vector2f & goalPos, Vector2f ballPos, double radius );
 };
 
 /*--------------------------------------------------------------------

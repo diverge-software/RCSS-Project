@@ -194,6 +194,7 @@ class Player
 		// to happen
 		bool		dashAfterTurnMode;
 		bool		goalieInPosition;
+		bool		viewModeSet;
 		Vector2f	targetPoint;
 
 		string  playMode;

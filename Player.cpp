@@ -118,6 +118,7 @@ Player::Player()
 
 	dashAfterTurnMode	 = false;
 	goalieInPosition	 = false;
+	viewModeSet			 = false;
 }
 
 // Decide the buffer type and pass to respective parsing function
@@ -693,6 +694,11 @@ void Player::think( queue<string> & commandQueue )
 	{
 		case PLAYER_TYPE_GOALIE:
 		{
+//			if( !viewModeSet )
+//			{
+//				commandQueue.push( Change_View_Cmd( CV_WIDTH_WIDE, CV_QUALITY_HIGH ) );
+//				viewModeSet = true;
+//			}
 			// If the ball is visible, try to intercept it
 			if( ballIter != mVisualDataQueue.back().end() )
 			{
@@ -702,7 +708,7 @@ void Player::think( queue<string> & commandQueue )
 				{
 					Vector2f ballPos = ballIter->second.absLocation;
 					Vector2f goaliePos = mSenseBodyDataQueue.back().absLocation;
-					/*// Get list of teammates
+
 					vector<VisiblePlayer> teammates;
 					vector<VisiblePlayer> opponents;
 					if( !mTeammateListQueue.empty() )
@@ -715,170 +721,46 @@ void Player::think( queue<string> & commandQueue )
 					}
 					// Player closest to the ball, not to this client
 					VisiblePlayer closestPlayer = getPlayerClosestToLocation( teammates, opponents, ballPos );
-					// If the ball is within the catchable area (defined in server.conf, manual says it's 2.0)
-					if( ballIter->second.distance < 2.0 )
+					// If the ball is within the catchable area (defined in server.conf, somewhere around 1.2 - 2.0)
+					if( ballIter->second.distance <= mServerInfo["catchable_area_l"].fValue )
 					{
 						commandQueue.push( goalieDoCatchOrKick( side, goaliePos, ballIter->second ) );
 					}
-					// If the player with the ball is in the penalty box, move up to him
-					else if( closestPlayer.teamName != teamName &&
-							 checkPlayerBounds( PLAYER_TYPE_GOALIE, closestPlayer.visualData.absLocation, side ) &&
-							 doesClientPossessBall( closestPlayer.visualData.absLocation, ballPos ) )
-					{
-						// If he's about within our line of sight, dash up to him
-						if( fabs( closestPlayer.visualData.direction ) < 4 )
-						{
-							commandQueue.push( Dash_Cmd( closestPlayer.visualData.distance / 3 ) );
-						}
-						// Otherwise, turn to see him
-						else
-						{
-							commandQueue.push( Turn_Cmd( closestPlayer.visualData.direction ) );
-						}
-					}
-					// If the ball is on the lower half of the field, but you're not, get there
-					else*/ if( ballPos[1] < 0 )
-					{
-						SenseBodyData currSbd = mSenseBodyDataQueue.back();
-						if( side == 'l' )
-						{
-							targetPoint = Vector2f( LEFT_LINE_X + 10.0, -7.0 );
-						}
-						else
-						{
-							targetPoint = Vector2f( RIGHT_LINE_X - 10.0, -7.0 );
-						}
-
-						if( ( currSbd.absLocation - targetPoint ).magnitude() > 1.0 )
-						{
-							turnThenDash( currSbd.absLocation, targetPoint, currSbd.absAngle, currSbd.head_angle, ballIter->second.direction, this->dashAfterTurnMode, commandQueue );
-						}
-						else if( fabs( currSbd.head_angle ) > 0 )
-						{
-							commandQueue.push( Turn_Cmd( currSbd.head_angle ) );
-							commandQueue.push( Turn_Neck_Cmd( -currSbd.head_angle ) );
-						}
-					}
-					// If the ball is on the upper half of the field, but you're not, get there
-					else if( ballPos[1] > 0 )
-					{
-						SenseBodyData currSbd = mSenseBodyDataQueue.back();
-						if( side == 'l' )
-						{
-							targetPoint = Vector2f( LEFT_LINE_X + 10.0, 7.0 );
-						}
-						else
-						{
-							targetPoint = Vector2f( RIGHT_LINE_X - 10.0, 7.0 );
-						}
-
-						if( ( currSbd.absLocation - targetPoint ).magnitude() > 1.0 )
-						{
-							turnThenDash( currSbd.absLocation, targetPoint, currSbd.absAngle, currSbd.head_angle, ballIter->second.direction, this->dashAfterTurnMode, commandQueue );
-						}
-						else if( fabs( currSbd.head_angle ) > 0 )
-						{
-							commandQueue.push( Turn_Cmd( currSbd.head_angle ) );
-							commandQueue.push( Turn_Neck_Cmd( -currSbd.head_angle ) );
-						}
-					}
-					/*
-					// If we're not in the penalty box, get back in there
-					else if( checkPlayerBounds( playerRole, goaliePos, side ) == false )
-					{
-						cout << "See ball, return" << endl;
-						SenseBodyData currSbd = mSenseBodyDataQueue.back();
-						Vector2f targetPoint;
-						if( side == 'l' )
-						{
-							targetPoint = Vector2f( LEFT_LINE_X + 7.0, 0.0 );
-						}
-						else
-						{
-							targetPoint = Vector2f( RIGHT_LINE_X - 7.0, 0.0 );
-						}
-
-						turnThenDash( currSbd.absLocation, targetPoint, currSbd.absAngle, currSbd.head_angle, this->dashAfterTurnMode, commandQueue );
-					}
-					// Otherwise, stay in position but follow the ball
 					else
 					{
-						cout << "Don't see ball, return" << endl;
 						SenseBodyData currSbd = mSenseBodyDataQueue.back();
-						Vector2f futureBallPos = getFutureBallPos( ballPos, ballIter->second.absVelocity, 1, mServerInfo["ball_decay"].fValue );
+						string mySide( 1, side );
+						string myGoal = "g " + mySide;
 
-						double turnAngle = currSbd.absAngle - getAbsAngleToLocation( currSbd.absLocation, futureBallPos );
+						double radius = 10.0f;
 
-						if( turnAngle < -180 )
+						targetPoint = getGoalieTargetPosition( side, mStationaryFlags[myGoal], ballPos, radius );
+
+						if( ( currSbd.absLocation - targetPoint ).magnitude() > 1.0 )
 						{
-							turnAngle += 360;
+							turnThenDash( currSbd.absLocation, targetPoint, currSbd.absAngle, currSbd.head_angle, ballIter->second.direction, this->dashAfterTurnMode, commandQueue );
 						}
-						else if( turnAngle > 180 )
+						else if( fabs( currSbd.head_angle ) > 0 )
 						{
-							turnAngle -= 360;
+							commandQueue.push( Turn_Cmd( currSbd.head_angle ) );
+							commandQueue.push( Turn_Neck_Cmd( -currSbd.head_angle ) );
 						}
-
-						commandQueue.push( Turn_Cmd( turnAngle ) );
-					}*/
+						else if( fabs( ballIter->second.direction ) > 5 )
+						{
+							commandQueue.push( Turn_Cmd( ballIter->second.direction / 3 ) );//* ( 1 - 5 / fabs( ballIter->second.direction ) ) ) );
+						}
+					}
 				}
 				// If the ball is on the other side of the field, just get back into position
 				else
 				{
-					// TURN THEN DASH TO CENTER OF GOAL BOX
 				}
 
 			}
-			/*
 			else
 			{
-				SenseBodyData currSbd = mSenseBodyDataQueue.back();
-				Vector2f predictedBallPos = getObjectPosition( "b", mSenseBodyDataQueue.back().timestamp );
-				cout << "Ball pos: " << predictedBallPos << endl;
-
-				double turnAngle = getAbsAngleToLocation( currSbd.absLocation, predictedBallPos ) - ( currSbd.absAngle + currSbd.head_angle );
-
-				if( turnAngle < -180 )
-				{
-					turnAngle += 360;
-				}
-				else if( turnAngle > 180 )
-				{
-					turnAngle -= 360;
-				}
-
-				commandQueue.push( Turn_Neck_Cmd( -turnAngle ) );
+				commandQueue.push( Turn_Cmd( 30 ) );
 			}
-			*/
-			// Otherwise, back up until the ball is visible, or turn if that is not enough
-			/*else
-			{
-				SenseBodyData currSbd = mSenseBodyDataQueue.back();
-
-				if( side == 'l' )
-				{
-					targetPoint = Vector2f( LEFT_LINE_X + 7.5, 0.0 );
-				}
-				else
-				{
-					targetPoint = Vector2f( RIGHT_LINE_X - 7.5, 0.0 );
-				}
-
-				if( !goalieInPosition && ( targetPoint - currSbd.absLocation ).magnitude() > 1.0 )
-				{
-					reverseTurnThenDash( currSbd.absLocation, targetPoint, currSbd.absAngle, currSbd.head_angle, this->dashAfterTurnMode, commandQueue );
-					goalieInPosition = false;
-				}
-				else if( currSbd.speed[0] != 0 && ( fabs( currSbd.absAngle ) > 4 || fabs( currSbd.head_angle ) > 4 ) )
-				{
-					commandQueue.push( Turn_Cmd( currSbd.absAngle ) );
-					commandQueue.push( Turn_Neck_Cmd( -currSbd.head_angle ) );
-					goalieInPosition = true;
-				}
-				else
-				{
-					goalieInPosition = false;
-				}
-			}*/
 			break;
 		}
 		case PLAYER_TYPE_FORWARD:

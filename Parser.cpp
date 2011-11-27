@@ -444,6 +444,13 @@ void Parser::parseVisualPacket( const string visualString, unordered_map<string,
 		dummyVisualData.direction = atof( dummyString.c_str() );
 		dummyString.clear();
 
+		// Handle some weird case that caused a crash. Can't find anything about it in the docs, but
+		// once on a visible player I got ((p "diverge") 30 -4 k), no idea what the 'k' is about. Kick?
+		if( visualString[i] == ' ' && visualString[i+1] == 'k' )
+		{
+			i+=2;
+		}
+
 		// Hit the end of information about object
 		if( visualString[i] == ')' )
 		{

@@ -640,7 +640,7 @@ void AI_Processing::turnThenDash( const Vector2f & currentPos, const Vector2f & 
 		{
 			commandQueue.push( Turn_Cmd( -turnAngle ) );
 
-			if( fabs( angleToBall ) > 1 )
+			if( fabs( angleToBall ) > 0 )
 			{
 				commandQueue.push( Turn_Neck_Cmd( turnAngle + angleToBall ) );
 			}
@@ -696,4 +696,51 @@ void AI_Processing::reverseTurnThenDash( const Vector2f & currentPos, const Vect
 	{
 		commandQueue.push( Say_Cmd( "Goalie in position." ) );
 	}
+}
+
+Vector2f AI_Processing::getGoalieTargetPosition( char side, const Vector2f & goalPos, Vector2f ballPos, double radius )
+{
+	// Want to treat goal position as (0, 0)
+	ballPos -= goalPos;
+
+	double slope = 0;
+	if( ballPos[0] <= 0 )
+	{
+		return Vector2f( 0.0f, ballPos[1] );
+	}
+	else
+	{
+		slope = ballPos[1] / ballPos[0];
+	}
+
+	double targetX = sqrt( radius * radius / ( slope * slope + 1 ) );
+	double targetY = 0;
+
+	if( ballPos[1] > 0 )
+	{
+		targetY = sqrt( radius * radius - targetX * targetX );
+	}
+	else if( ballPos[1] < 0 )
+	{
+		targetY = -sqrt( radius * radius - targetX * targetX );
+	}
+	else
+	{
+		targetY = 0;
+	}
+
+	if( side == 'l' )
+	{
+		targetX += goalPos[0];
+	}
+	else if( side == 'r' )
+	{
+		targetX = goalPos[0] - targetX;
+	}
+	else
+	{
+		alwaysAssert();
+	}
+
+	return Vector2f( targetX, targetY );
 }
