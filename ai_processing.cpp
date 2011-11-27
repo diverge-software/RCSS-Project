@@ -754,7 +754,7 @@ bool AI_Processing::isBallInterceptable( Vector2f ballLoc, Vector2f ballVel, Vec
 
 bool AI_Processing::isTeammateCloserBall( vector<VisiblePlayer> teammates, VisualData ballData )  
 {
-	for(unsigned int i = 0; i <= teammates.size(); i++)
+	for(unsigned int i = 0; i < teammates.size(); i++)
 	{
 		double distFromBall = ( teammates[i].visualData.absLocation - ballData.absLocation ).magnitude();
 
@@ -765,4 +765,35 @@ bool AI_Processing::isTeammateCloserBall( vector<VisiblePlayer> teammates, Visua
 		}
 	}
 	return false; 
+}
+
+void AI_Processing::getInFrontOfBall(char side, vector<VisiblePlayer> teammates, VisualData ballData, SenseBodyData senseBodyData, queue<string> & commandQueue )
+{
+	int multiplier = 1;
+	//determine which side you're on
+	if(side == 'r')
+	{
+		multiplier = -1;
+	}
+
+
+
+	// If you are behind the ball
+	if ( multiplier * (senseBodyData.absLocation[0] - ballData.absLocation[0]) > 0)
+	{
+		//if(ballData.direction < 90 && ballData.direction > -90 )
+		{
+			commandQueue.push( Turn_Cmd( -1 * ballData.direction ) );
+		}
+		
+		commandQueue.push( Dash_Cmd( 100 ) );
+		
+
+	}
+	// if you are too close to the ball
+	// if there's not an open path between you and the ball
+	else
+	{
+		commandQueue.push( Dash_Cmd( 100 ) );
+	}
 }
