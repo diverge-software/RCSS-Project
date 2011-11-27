@@ -634,7 +634,7 @@ void AI_Processing::turnThenDash( const Vector2f & currentPos, const Vector2f & 
 		// If we can basically see the point, just dash to it
 		if( fabs( turnAngle ) < 3 )
 		{
-			commandQueue.push( Dash_Cmd( 50 ) );
+			commandQueue.push( Dash_Cmd( 75 ) );
 		}
 		else
 		{
@@ -649,7 +649,7 @@ void AI_Processing::turnThenDash( const Vector2f & currentPos, const Vector2f & 
 	}
 	else
 	{
-		commandQueue.push( Dash_Cmd( 50 ) );
+		commandQueue.push( Dash_Cmd( 75 ) );
 		dashAfterTurnMode = false;
 	}
 }
