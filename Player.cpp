@@ -119,6 +119,8 @@ Player::Player()
 	dashAfterTurnMode	 = false;
 	goalieInPosition	 = false;
 	viewModeSet			 = false;
+	
+	uNumPossessesBall	 = INVALID_UNIFORM_NUMBER;
 }
 
 // Decide the buffer type and pass to respective parsing function
@@ -232,6 +234,7 @@ bool Player::parseBuffer(const string buffer)
 		}
 		else if( !buffer.compare( 0, 5, "(hear" ) )
 		{
+			string temp;
 			AuralData auralData;
 			parseAuralPacket( buffer, auralData );
 
@@ -243,9 +246,28 @@ bool Player::parseBuffer(const string buffer)
 			}
 			mAuralDataQueue.push_back( auralData );
 
-			if(auralData.sender.compare( "referee" ) == 0)
-			{
+			if( auralData.sender.compare( "referee" ) == 0)
+			{//asdfasdfa
 				playMode = auralData.message;
+			}
+
+			if( auralData.message.compare( 0, 1, "t" ) )
+			{
+				teamPossessesBall = true;
+				for( unsigned int i = 1; i < auralData.message.size(); i++ )
+				{
+					temp.push_back( auralData.message[i] ); 
+					uNumPossessesBall = atoi(temp.c_str());
+				} 
+			} 
+			else if( auralData.message.compare( 0, 1, "o" ) )
+			{
+				teamPossessesBall = true;
+				for( unsigned int i = 1; i < auralData.message.size(); i++ )
+				{
+					temp.push_back( auralData.message[i] ); 
+					uNumPossessesBall = atoi(temp.c_str());
+				} 
 			}
 
 		}
@@ -675,20 +697,9 @@ void Player::think( queue<string> & commandQueue )
 {
 	// Use this to retrieve information about the ball
 	unordered_map<string, VisualData>::const_iterator ballIter = mVisualDataQueue.back().find( "b" );
-	if( ballIter != mVisualDataQueue.back().end() )
-	{
-		//clientPossessesBall = doesClientPossessBall( ballIter->second.distance );
-		// If the client now possesses the ball, let everyone know
-		if( doesClientPossessBall( mSenseBodyDataQueue.back().absLocation, ballIter->second.absLocation ) )
-		{
-			ostringstream temp; 
-			temp << "t " << uniformNumber;
-			commandQueue.push( Say_Cmd( temp.str() ) );
 
-			clientPossessesBall = true;
-			teamPossessesBall = true;
-		}
-	}
+	// Determine which team/player possesses the ball 
+	determinePossession( commandQueue ); 
 
 	switch( playerRole )
 	{
@@ -824,7 +835,7 @@ void Player::think_forward( queue<string> & commandQueue ) //const
 
 		// You have possession of the ball if you're within 4
 		// This is approx. the max distance from the ball when dribbling
-		if(visualData["b"].distance < 4)
+		if( visualData["b"].distance < 4 )
 		{
 			// If you're within kicking distance
 			if(visualData["b"].distance <= 0.7)
@@ -953,33 +964,7 @@ void Player::think_forward( queue<string> & commandQueue ) //const
 			
 			if( !mTeammateListQueue.empty() )
 			{
-				for(unsigned int i = 0; i <= teammates.size() - 1; i++)
-				{
-					double distFromBall = ( teammates[i].visualData.absLocation - visualData["b"].absLocation ).magnitude();
-
-					// if you see a teammate closer to ball, set flag
-					// also record the closest player to the ball
-					if( teammates[i].teamName == teamName &&
-						teammates[i].teamName != INVALID_TEAM_NAME &&
-						distFromBall < visualData["b"].distance)
-					{
-						isTeammateCloser = true;
-						if( ( teammates[i].visualData.absLocation - visualData["b"].absLocation ).magnitude() <
-							( teammates[closestPlayer].visualData.absLocation - visualData["b"].absLocation ).magnitude() )
-						{
-							closestPlayer = i;
-						}
-					}
-
-					// determine if there's an open path between you and the ball
-					// there's a 10 degree 
-					double ballDir = visualData["b"].direction;
-					if(	( teammates[i].visualData.direction > ballDir && teammates[i].visualData.direction - ballDir < 10 ) ||
-						( teammates[i].visualData.direction < ballDir && ballDir - teammates[i].visualData.direction < 10 ) )
-					{
-						isSomeoneInYourWay = true;
-					}
-				}
+				isTeammateCloser = isTeammateCloserBall( mTeammateListQueue.back(), visualData["b"] ); 
 			}
 			
 			// If yes, get open for pass
@@ -1055,46 +1040,60 @@ void Player::determinePossession( queue<string> & commandQueue )
 		if( !clientPossessesBall  && doesClientPossessBall( mSenseBodyDataQueue.back().absLocation, ballIter->second.absLocation ) )
 		{
 			ostringstream temp; 
-			temp << "t " << uniformNumber;
+			temp << "t" << uniformNumber;
 			commandQueue.push( Say_Cmd( temp.str() ) );
 			clientPossessesBall = true;
 			teamPossessesBall = true;
+			
+	
+			cout << "##### clientPossessesBall = " << clientPossessesBall << endl 
+				 << "##### teamPossessesBall = " << teamPossessesBall << endl;
 		}
 	
 		// Check if an opponent possesses the ball 
-		if( teamPossessesBall )
+		if( !mOpponentListQueue.empty() )
 		{
-			vector<VisiblePlayer> opponentList = mOpponentListQueue.back();
-		
-			for( unsigned int i=0; i < opponentList.size(); i++ )
+			if( teamPossessesBall && !clientPossessesBall)
 			{
-				if( doesClientPossessBall( opponentList[i].visualData.absLocation, ballIter->second.absLocation ) )
-				{	
-					ostringstream temp; 
-					temp << "o " << opponentList[i].uniformNumber;
-					commandQueue.push( Say_Cmd( temp.str() ) );
-					teamPossessesBall = false;
-					break;
+				vector<VisiblePlayer> opponentList = mOpponentListQueue.back();
+			
+				for( unsigned int i=0; i < opponentList.size(); i++ )
+				{
+					if( doesClientPossessBall( opponentList[i].visualData.absLocation, ballIter->second.absLocation ) )
+					{	
+						ostringstream temp; 
+						temp << "o" << opponentList[i].uniformNumber;
+						commandQueue.push( Say_Cmd( temp.str() ) );
+						teamPossessesBall = false;
+						clientPossessesBall = false; 
+						break;
+					}
 				}
 			}
 		}
 
 		// Check if a teammate possesses the ball 
-		if( !teamPossessesBall )
+		if( !mTeammateListQueue.empty() )
 		{
-			vector<VisiblePlayer> teammateList = mTeammateListQueue.back();
-		
-			for( unsigned int i=0; i < teammateList.size(); i++ )
+			if( !teamPossessesBall )
 			{
-				if( doesClientPossessBall( teammateList[i].visualData.absLocation, ballIter->second.absLocation ) )
-				{	
-					ostringstream temp; 
-					temp << "t " << teammateList[i].uniformNumber;
-					commandQueue.push( Say_Cmd( temp.str() ) );
-					teamPossessesBall = true;
-					break;
+				vector<VisiblePlayer> teammateList = mTeammateListQueue.back();
+			
+				for( unsigned int i=0; i < teammateList.size(); i++ )
+				{
+					if( doesClientPossessBall( teammateList[i].visualData.absLocation, ballIter->second.absLocation ) )
+					{	
+						ostringstream temp; 
+						temp << "t" << teammateList[i].uniformNumber;
+						commandQueue.push( Say_Cmd( temp.str() ) );
+						teamPossessesBall = true;
+						break;
+					}
 				}
 			}
 		}
 	}
+	
+	//cout << "##### clientPossessesBall = " << clientPossessesBall << endl 
+	//	 << "##### teamPossessesBall = " << teamPossessesBall << endl;
 }

@@ -744,3 +744,25 @@ Vector2f AI_Processing::getGoalieTargetPosition( char side, const Vector2f & goa
 
 	return Vector2f( targetX, targetY );
 }
+
+bool AI_Processing::isBallInterceptable( Vector2f ballLoc, Vector2f ballVel, Vector2f clientLoc, Vector2f clientVel, 
+										 double player_speed_max, double player_accel_max, double ball_speed_max, double ball_decay )
+{
+	// Pass in ball location, ball velocity, client's location, client's velocity, player_speed_max, player_accel_max, ball_speed_max
+	return false;
+}
+
+bool AI_Processing::isTeammateCloserBall( vector<VisiblePlayer> teammates, VisualData ballData )  
+{
+	for(unsigned int i = 0; i <= teammates.size(); i++)
+	{
+		double distFromBall = ( teammates[i].visualData.absLocation - ballData.absLocation ).magnitude();
+
+		// if you see a teammate closer to ball, set flag
+		if( distFromBall < ballData.distance )
+		{
+			return true;
+		}
+	}
+	return false; 
+}

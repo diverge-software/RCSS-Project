@@ -247,6 +247,28 @@ namespace AI_Processing
 	 * @return Position that the goalie should move toward.
 	 */
 	Vector2f getGoalieTargetPosition( char side, const Vector2f & goalPos, Vector2f ballPos, double radius );
+	
+	/** Used to determine if the ball is interceptable, can be modified to return point of interceptino
+	 * @param ballLoc the location of the ball
+	 * @param ballVel the velocity of the ball 
+	 * @param clientLoc the location of the client 
+	 * @param clientVel the velocity of the client
+	 * @param player_speed_max the maximum velocity magnitude of a player. Default max = 1
+	 * @param player_accel_max the maximum accelation magnitude of a player. Default max = 1
+	 * @param ball_speed_max the maximum speed of the ball. Default maximum = 2.7
+	 * @pre None
+	 * @post None
+	 * @return returns true if the ball is interceptable and false if it is not.
+	 */
+	bool isBallInterceptable( Vector2f ballLoc, Vector2f ballVel, Vector2f clientLoc, Vector2f clientVel, 
+										 double player_speed_max, double player_accel_max, double ball_speed_max, double ball_decay );
+	
+	/** Determines if a teammate is closer to the ball than this->client
+	 * @param teammates a list of teammates
+	 * @param ballDistance the distance from this->client to the ball
+	 * @return returns true if a teammate is close and false if this->client is closest 
+	 */ 
+	bool isTeammateCloserBall( vector<VisiblePlayer> teammates, VisualData ballData );
 };
 
 /*--------------------------------------------------------------------

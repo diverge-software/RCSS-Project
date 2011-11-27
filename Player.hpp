@@ -168,9 +168,9 @@ class Player
 		deque<unordered_map<string, VisualData>>  mVisualDataQueue;
 
 		// Initialization data passed from the server
-		int uniformNumber;
-		char side;    // Which side you're playing from, left or right
-		string teamName;
+		int		uniformNumber;
+		char	side;    // Which side you're playing from, left or right
+		string	teamName;
 		AI_Processing::player_type_t32 playerRole;
 
 		unordered_map<string, PlayerTypeStruct>   mPlayerTypes[NUM_PLAYER_TYPES];
@@ -188,6 +188,7 @@ class Player
 
 		bool	teamPossessesBall;
 		bool	clientPossessesBall;
+		int		uNumPossessesBall;
 
 		// Used to keep track of if we're trying to turn, then dash to a location.
 		// This should be used if the turn has just been sent, and the dash needs
