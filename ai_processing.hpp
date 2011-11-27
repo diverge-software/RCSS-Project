@@ -269,6 +269,12 @@ namespace AI_Processing
 	 * @return returns true if a teammate is close and false if this->client is closest 
 	 */ 
 	bool isTeammateCloserBall( vector<VisiblePlayer> teammates, VisualData ballData );
+
+
+	/** Makes the player move in front of the ball
+	*
+	*/
+	void getInFrontOfBall(char side, vector<VisiblePlayer> teammates, VisualData ballData, SenseBodyData senseBodyData,  queue<string> & commandQueue );
 };
 
 /*--------------------------------------------------------------------

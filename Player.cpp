@@ -972,9 +972,12 @@ void Player::think_forward( queue<string> & commandQueue ) //const
 
 				/****************************
 				*
-				*  Try to get in front of the ball
+				*  Try to get in front of the ball and maintain a suitable distance
 				*
 				*****************************/
+				
+				getInFrontOfBall( side, mTeammateListQueue.back(), visualData["b"], senseBodyData, commandQueue);
+
 
 				/****************************
 				*
