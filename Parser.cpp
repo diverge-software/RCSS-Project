@@ -502,6 +502,12 @@ void Parser::parseVisualPacket( const string visualString, unordered_map<string,
 		dummyVisualData.directionChange = atof( dummyString.c_str() );
 		dummyString.clear();
 
+		// Weird case handling again
+		if( visualString[i] == ' ' && visualString[i+1] == 'k' )
+		{
+			i+=2;
+		}
+
 		// Hit the end of information about object
 		if( visualString[i] == ')' )
 		{
@@ -549,6 +555,11 @@ void Parser::parseVisualPacket( const string visualString, unordered_map<string,
 			}
 			dummyPlayerData.headDirection = atof( dummyString.c_str() );
 			dummyString.clear();
+
+			if( visualString[i] == ' ' && visualString[i+1] == 'k' )
+			{
+				i+=2;
+			}
 
 			dummyPlayerData.visualData = dummyVisualData;
 			visiblePlayers.push_back( dummyPlayerData );
