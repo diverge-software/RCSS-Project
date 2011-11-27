@@ -754,7 +754,7 @@ bool AI_Processing::isBallInterceptable( Vector2f ballLoc, Vector2f ballVel, Vec
 
 bool AI_Processing::isTeammateCloserBall( vector<VisiblePlayer> teammates, VisualData ballData )  
 {
-	for(unsigned int i = 0; i <= teammates.size(); i++)
+	for(unsigned int i = 0; i < teammates.size(); i++)
 	{
 		double distFromBall = ( teammates[i].visualData.absLocation - ballData.absLocation ).magnitude();
 
