@@ -219,7 +219,7 @@ namespace AI_Processing
 	 * to the target position.
 	 */
 	void turnThenDash( const Vector2f & currentPos, const Vector2f & targetPos,
-					   double absFacingAngle, double headAngle, double angleToBall,
+					   double absFacingAngle, double headAngle, double angleToBall, double dashPower,
 					   bool & dashAfterTurnMode, queue<string> & commandQueue );
 
 	/** Use this to backpedal toward a target point. Much like turnThenDash(), but he dashes back instead.
