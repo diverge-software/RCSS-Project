@@ -614,7 +614,7 @@ string AI_Processing::goalieDoCatchOrKick( const char side, const Vector2f & goa
 }
 
 void AI_Processing::turnThenDash( const Vector2f & currentPos, const Vector2f & targetPos,
-								  double absFacingAngle, double headAngle, double angleToBall,
+								  double absFacingAngle, double headAngle, double angleToBall, double dashPower,
 								  bool & dashAfterTurnMode, queue<string> & commandQueue )
 {
 	// If we haven't turned toward the point yet, we need to turn to it
@@ -634,7 +634,7 @@ void AI_Processing::turnThenDash( const Vector2f & currentPos, const Vector2f & 
 		// If we can basically see the point, just dash to it
 		if( fabs( turnAngle ) < 3 )
 		{
-			commandQueue.push( Dash_Cmd( 75 ) );
+			commandQueue.push( Dash_Cmd( dashPower ) );
 		}
 		else
 		{
@@ -649,7 +649,7 @@ void AI_Processing::turnThenDash( const Vector2f & currentPos, const Vector2f & 
 	}
 	else
 	{
-		commandQueue.push( Dash_Cmd( 75 ) );
+		commandQueue.push( Dash_Cmd( dashPower ) );
 		dashAfterTurnMode = false;
 	}
 }
@@ -704,17 +704,26 @@ Vector2f AI_Processing::getGoalieTargetPosition( char side, const Vector2f & goa
 	ballPos -= goalPos;
 
 	double slope = 0;
-	if( ballPos[0] <= 0 )
+	if( ballPos[0] == 0 )
 	{
-		return Vector2f( 0.0f, ballPos[1] );
+		return Vector2f( goalPos[0], ballPos[1] );
 	}
 	else
 	{
 		slope = ballPos[1] / ballPos[0];
 	}
 
-	double targetX = sqrt( radius * radius / ( slope * slope + 1 ) );
-	double targetY = 0;
+	double targetX = 0.0f;
+	double targetY = 0.0f;
+
+	if( side == 'l' )
+	{
+		targetX = sqrt( radius * radius / ( slope * slope + 1 ) );
+	}
+	else if( side == 'r' )
+	{
+		targetX = -sqrt( radius * radius / ( slope * slope + 1 ) );
+	}
 
 	if( ballPos[1] > 0 )
 	{
@@ -729,18 +738,7 @@ Vector2f AI_Processing::getGoalieTargetPosition( char side, const Vector2f & goa
 		targetY = 0;
 	}
 
-	if( side == 'l' )
-	{
-		targetX += goalPos[0];
-	}
-	else if( side == 'r' )
-	{
-		targetX = goalPos[0] - targetX;
-	}
-	else
-	{
-		alwaysAssert();
-	}
+	targetX += goalPos[0];
 
 	return Vector2f( targetX, targetY );
 }
