@@ -749,7 +749,7 @@ void Player::think( queue<string> & commandQueue )
 
 						if( ( currSbd.absLocation - targetPoint ).magnitude() > 1.0 )
 						{
-							turnThenDash( currSbd.absLocation, targetPoint, currSbd.absAngle, currSbd.head_angle, ballIter->second.direction, this->dashAfterTurnMode, commandQueue );
+							turnThenDash( currSbd.absLocation, targetPoint, currSbd.absAngle, currSbd.head_angle, ballIter->second.direction, 100, this->dashAfterTurnMode, commandQueue );
 						}
 						else if( fabs( currSbd.head_angle ) > 0 )
 						{
@@ -861,16 +861,60 @@ void Player::think_forward( queue<string> & commandQueue ) //const
 				// If you see the goal
 				if(visualData.find(opponentGoal) != visualData.end())
 				{
-					
-					/****************************
-					*
-					*   Insert code: Blocked by other players
-					*
-					*****************************/
+					int playerInWay;
 
+					if(!opponents.empty())
+					{
+						for(unsigned int i = 0; i < opponents.size(); i++)
+						{
+							if (opponents[i].visualData.distance < 10)
+							{
+								isSomeoneInYourWay = true;
+								playerInWay = i;
+							}
+						}
+					}		
+
+					if (isSomeoneInYourWay)
+					{
+						int closestTeammate = -1;
+						if(!teammates.empty())
+						{
+
+							for(unsigned int x = 0; x < teammates.size(); x++)
+							{
+								if (teammates[x].visualData.distance < teammates[closestTeammate].visualData.distance)
+								{
+									closestTeammate = x;
+								}
+							}
+						}
+						
+						if (teammates[closestTeammate].visualData.distance < 20 && closestTeammate != -1)
+						{
+							commandQueue.push ( Kick_Cmd( 100, teammates[closestTeammate].visualData.direction ) );
+						}
+						else if ( opponents[playerInWay].visualData.direction < 0)
+						{
+							targetPoint = Vector2f( opponents[playerInWay].visualData.absLocation[0], opponents[playerInWay].visualData.absLocation[1] + 5 );
+							if( ( senseBodyData.absLocation - targetPoint ).magnitude() > 1.0 )
+							{
+								turnThenDash( senseBodyData.absLocation, targetPoint, senseBodyData.absAngle, senseBodyData.head_angle, visualData["b"].direction, 100, this->dashAfterTurnMode, commandQueue );
+							}
+						}
+						else
+						{
+							targetPoint = Vector2f( opponents[playerInWay].visualData.absLocation[0], opponents[playerInWay].visualData.absLocation[1] - 5 );
+							if( ( senseBodyData.absLocation - targetPoint ).magnitude() > 1.0 )
+							{
+								turnThenDash( senseBodyData.absLocation, targetPoint, senseBodyData.absAngle, senseBodyData.head_angle, visualData["b"].direction, 100, this->dashAfterTurnMode, commandQueue );
+							}
+						}
+						
+					}
 					// If you're within the opponent's penalty box
 					// absLocation may give odd results if far away from flags
-					if(visualData[opponentGoal].distance < 20)
+					else if(visualData[opponentGoal].distance < 20)
 					//if( checkPlayerBounds(PLAYER_TYPE_GOALIE, visualData["b"].absLocation, getOpponentSide(side)) )
 					{
 						int goalieInt;
@@ -925,7 +969,7 @@ void Player::think_forward( queue<string> & commandQueue ) //const
 					{
 						// Dribble the ball
 						// This needs some work, player sometimes loses the ball and has to find it again.
-						commandQueue.push( Kick_Cmd( 25, visualData[opponentGoal].direction ) );
+						commandQueue.push( Kick_Cmd( 20, visualData[opponentGoal].direction ) );
 					}
 				}
 				// If you don't see the goal
@@ -987,17 +1031,17 @@ void Player::think_forward( queue<string> & commandQueue ) //const
 
 				if (multiplier * (visualData["b"].absLocation[0] - senseBodyData.absLocation[0]) > 0)
 				{
-					targetPoint = Vector2f( visualData["b"].absLocation[0] + 5, visualData["b"].absLocation[1] + 15 );
+					targetPoint = Vector2f( visualData["b"].absLocation[0] + 15, visualData["b"].absLocation[1] + 15 );
 					if( ( senseBodyData.absLocation - targetPoint ).magnitude() > 1.0 )
 					{
-						turnThenDash( senseBodyData.absLocation, targetPoint, senseBodyData.absAngle, senseBodyData.head_angle, visualData["b"].direction, this->dashAfterTurnMode, commandQueue );
+						turnThenDash( senseBodyData.absLocation, targetPoint, senseBodyData.absAngle, senseBodyData.head_angle, visualData["b"].direction, 100, this->dashAfterTurnMode, commandQueue );
 					}
 					//commandQueue.push( Turn_Neck_Cmd( -1 * senseBodyData.head_angle ) );
 
 				}
 				else
 				{
-					commandQueue.push( Dash_Cmd( 100 ) );
+					//commandQueue.push( Dash_Cmd( 100 ) );
 					//prepare for catch
 				}
 
