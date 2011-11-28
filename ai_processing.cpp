@@ -580,7 +580,7 @@ bool AI_Processing::doesClientPossessBall( const Vector2f & playerPos, const Vec
 {
 	double distance = ( playerPos - ballPos ).magnitude();
 
-	return ( (distance < 1) && (distance > -1) );
+	return ( (distance < 4) && (distance > -4) );
 }
 
 bool AI_Processing::goalieShouldBeActive( const char side, const Vector2f & ballPos )
@@ -753,7 +753,7 @@ bool AI_Processing::isBallInterceptable( Vector2f ballLoc, Vector2f ballVel, Vec
 }
 
 
-bool AI_Processing::isTeammateCloserBall( vector<VisiblePlayer> teammates, VisualData ballData )  
+bool AI_Processing::isTeammateCloserBall( vector<VisiblePlayer> teammates, VisualData ballData/*, bool & clientPossessesBall*/)  
 {
 	for(unsigned int i = 0; i < teammates.size(); i++)
 	{
@@ -762,9 +762,11 @@ bool AI_Processing::isTeammateCloserBall( vector<VisiblePlayer> teammates, Visua
 		// if you see a teammate closer to ball, set flag
 		if( distFromBall < ballData.distance )
 		{
+			//clientPossessesBall = false;
 			return true;
 		}
 	}
+	//clientPossessesBall = true;
 	return false; 
 }
 

@@ -198,6 +198,7 @@ class Player
 		bool		viewModeSet;
 		Vector2f	targetPoint;
 
+
 		string  playMode;
 };
 	

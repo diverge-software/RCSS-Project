@@ -268,7 +268,7 @@ namespace AI_Processing
 	 * @param ballDistance the distance from this->client to the ball
 	 * @return returns true if a teammate is close and false if this->client is closest 
 	 */ 
-	bool isTeammateCloserBall( vector<VisiblePlayer> teammates, VisualData ballData );
+	bool isTeammateCloserBall( vector<VisiblePlayer> teammates, VisualData ballData /*, bool & clientPossessesBall*/ );
 
 
 	/** Makes the player move in front of the ball

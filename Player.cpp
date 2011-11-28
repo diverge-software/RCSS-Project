@@ -802,6 +802,8 @@ void Player::think_forward( queue<string> & commandQueue ) //const
 	// Get most recent senseBody info
 	SenseBodyData senseBodyData = mSenseBodyDataQueue.back();
 
+	//unordered_map<string, AuralData> auralData = mAuralDataQueue.back();
+
 	// get the most recent list of teammates player can see
 	vector<VisiblePlayer> teammates;
 	if(!mTeammateListQueue.empty())
@@ -839,7 +841,7 @@ void Player::think_forward( queue<string> & commandQueue ) //const
 		// Is there a teammate in your field of view that is closer to the ball than you?		
 		if( !mTeammateListQueue.empty() )
 		{
-			isTeammateCloser = isTeammateCloserBall( mTeammateListQueue.back(), visualData["b"] ); 
+			isTeammateCloser = isTeammateCloserBall( mTeammateListQueue.back(), visualData["b"] /*, clientPossessesBall*/ ); 
 		}
 
 		//cout << "Ball loc: " << visualData["b"].absLocation[0] << " " << visualData["b"].absLocation[1] << endl;
@@ -980,37 +982,18 @@ void Player::think_forward( queue<string> & commandQueue ) //const
 			}
 
 			// If yes, get open for pass
-			if(isTeammateCloser == true)
+			if( isTeammateCloser == true /* || clientPossessesBall == false */)
 			{
+
 				if (multiplier * (visualData["b"].absLocation[0] - senseBodyData.absLocation[0]) > 0)
 				{
-					targetPoint = Vector2f( visualData["b"].absLocation[0] + 5, visualData["b"].absLocation[1] + 10 );
+					targetPoint = Vector2f( visualData["b"].absLocation[0] + 5, visualData["b"].absLocation[1] + 15 );
 					if( ( senseBodyData.absLocation - targetPoint ).magnitude() > 1.0 )
 					{
 						turnThenDash( senseBodyData.absLocation, targetPoint, senseBodyData.absAngle, senseBodyData.head_angle, visualData["b"].direction, this->dashAfterTurnMode, commandQueue );
 					}
+					//commandQueue.push( Turn_Neck_Cmd( -1 * senseBodyData.head_angle ) );
 
-					/*
-					if(visualData["b"].distance < 10 )
-					{
-						commandQueue.push( Dash_Cmd( -50 ) );
-					}
-					else
-					{
-						commandQueue.push( Dash_Cmd( 100 ) );
-					}
-					*/
-					/* THis kind of works
-					if( dashAfterTurnMode == true)
-					{
-						commandQueue.push( Dash_Cmd( 100 ) );
-						dashAfterTurnMode = false;
-					}
-					else
-					{
-						commandQueue.push( Turn_Cmd( -0.5 * ( visualData["b"].direction - senseBodyData.absAngle ) ) );
-						dashAfterTurnMode = true;
-					}*/
 				}
 				else
 				{
