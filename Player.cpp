@@ -802,6 +802,8 @@ void Player::think_forward( queue<string> & commandQueue ) //const
 	// Get most recent senseBody info
 	SenseBodyData senseBodyData = mSenseBodyDataQueue.back();
 
+	AuralData auralData = mAuralDataQueue.back();
+
 	//unordered_map<string, AuralData> auralData = mAuralDataQueue.back();
 
 	// get the most recent list of teammates player can see
@@ -825,6 +827,13 @@ void Player::think_forward( queue<string> & commandQueue ) //const
 	bool isTeammateCloser = false;
 	bool isSomeoneInYourWay = false;
 	int closestPlayer = 0;	
+
+	int multiplier = 1;
+	//determine which side you're on
+	if(side == 'r')
+	{
+		multiplier = -1;
+	}
 
 
 	//cout << " SBD: " << senseBodyData.absLocation[0] << ", " << senseBodyData.absLocation[1] << endl;
@@ -851,8 +860,8 @@ void Player::think_forward( queue<string> & commandQueue ) //const
 		// You have possession of the ball if you're within 4
 		// This is approx. the max distance from the ball when dribbling
 		if( visualData["b"].distance < 4 )
-				  //&& dashAfterTurnMode == false)
 		{
+			clientPossessesBall = true;
 			commandQueue.push( Turn_Neck_Cmd( -1 * senseBodyData.head_angle ) );
 
 			// If you're within kicking distance
@@ -914,7 +923,7 @@ void Player::think_forward( queue<string> & commandQueue ) //const
 					}
 					// If you're within the opponent's penalty box
 					// absLocation may give odd results if far away from flags
-					else if(visualData[opponentGoal].distance < 20)
+					else if(visualData[opponentGoal].distance < 17)
 					//if( checkPlayerBounds(PLAYER_TYPE_GOALIE, visualData["b"].absLocation, getOpponentSide(side)) )
 					{
 						int goalieInt;
@@ -969,7 +978,7 @@ void Player::think_forward( queue<string> & commandQueue ) //const
 					{
 						// Dribble the ball
 						// This needs some work, player sometimes loses the ball and has to find it again.
-						commandQueue.push( Kick_Cmd( 20, visualData[opponentGoal].direction ) );
+						commandQueue.push( Kick_Cmd( 15, visualData[opponentGoal].direction ) );
 					}
 				}
 				// If you don't see the goal
@@ -998,179 +1007,168 @@ void Player::think_forward( queue<string> & commandQueue ) //const
 				commandQueue.push( Dash_Cmd( 50 ) );
 			}
 		}
+		
 		// If you see the ball, but it's at too wide an angle,
 		// turn so you're more directly facing it.
 		else if ( visualData["b"].direction < -10 ||
 				  visualData["b"].direction > 10 )
-				  //&& dashAfterTurnMode == false)
 		{
 			// Interesting thing I found...
 			// Don't run straight at the ball,
 			// Instead, run slightly outside of it (I added '2.0' to the direction)
 			// This helps so you're not always in a battle
 			// trying to find the ball and the goal at the same time
-			commandQueue.push( Turn_Cmd( visualData["b"].direction + 0.5) );
+			commandQueue.push( Turn_Cmd( visualData["b"].direction + 1) );
 		}
-		// If you're not in possessions of the ball
-		else
+		
+		// If you're not in possession of the ball
+		else if (isTeammateCloser == true)
 		{
-			///////////////////////////////////////////////////////////////////
-			// I suppose this is ambiguous... Are we in defensive or offensive mode?
-			///////////////////////////////////////////////////////////////////
 
-			int multiplier = 1;
-			//determine which side you're on
-			if(side == 'r')
-			{
-				multiplier = -1;
-			}
-
-			// If yes, get open for pass
-			if( isTeammateCloser == true /* || clientPossessesBall == false */)
+			if(visualData["b"].distance > 5)
 			{
 
 				if (multiplier * (visualData["b"].absLocation[0] - senseBodyData.absLocation[0]) > 0)
 				{
-					targetPoint = Vector2f( visualData["b"].absLocation[0] + 15, visualData["b"].absLocation[1] + 15 );
+					targetPoint = Vector2f( visualData["b"].absLocation[0] + 15*multiplier, senseBodyData.absLocation[1] );
+		
 					if( ( senseBodyData.absLocation - targetPoint ).magnitude() > 1.0 )
 					{
 						turnThenDash( senseBodyData.absLocation, targetPoint, senseBodyData.absAngle, senseBodyData.head_angle, visualData["b"].direction, 100, this->dashAfterTurnMode, commandQueue );
 					}
-					//commandQueue.push( Turn_Neck_Cmd( -1 * senseBodyData.head_angle ) );
-
 				}
 				else
 				{
 					//commandQueue.push( Dash_Cmd( 100 ) );
 					//prepare for catch
 				}
-
-				
-				//commandQueue.push( Dash_Cmd ( 100 ) );
-				/****************************
-				*
-				*  Try to get in front of the ball and maintain a suitable distance
-				*
-				*****************************/
-				//getInFrontOfBall( side, mTeammateListQueue.back(), visualData["b"], senseBodyData, commandQueue);
-
-				
-				
-				/****************************
-				*
-				*  Prepare for pass
-				*
-				********************************/
-
-				/******************************
-				*
-				*  Intercept if able
-				*
-				*********************************/
-
-
-				// move to a strategic place on the field
-				// make sure there's an open path between you and the ball.
-
-				//commandQueue.push( Dash_Cmd( 20 ) );
-
-				/*
-				int multiplier = 1;
-				if(side == 'r')
-				{
-					multiplier = -1;
-				}
-				if( multiplier * (teammates[closestPlayer].visualData.absLocation[0] - senseBodyData.absLocation[0]) > 0 )
-				{
-					//if(visualData.find(opponentGoal) == visualData.end() )
-					//{
-					//	commandQueue.push( Turn_Cmd( 135 ) );
-					//}
-					//commandQueue.push( Turn_Cmd( 45 ) );
-					commandQueue.push( Dash_Cmd( 100 ) );
-				}
-				else
-				{
-					// keep a suitable distance away from the player w/ ball
-					// If you're too far, try to get closer
-					if( teammates[closestPlayer].visualData.distance > 25 )
-					{
-						//commandQueue.push( Turn_Cmd ( 45 ) );
-						commandQueue.push( Dash_Cmd( 100 ) );
-					}
-					// If you're too close, spread out
-					else if (teammates[closestPlayer].visualData.distance < 5 )
-					{
-						commandQueue.push( Dash_Cmd ( -50 ) );
-					}
-					else
-					{
-						// try to get open
-						// have a direct path between you and the person with the ball
-						if( isSomeoneInYourWay == true)
-						{
-							if(senseBodyData.absLocation[1] >= 0 )
-							{
-								commandQueue.push( Turn_Cmd ( 10 ) );
-							}
-							else
-							{
-								commandQueue.push( Turn_Cmd ( -10) );
-							}
-							commandQueue.push( Dash_Cmd( 30 ) );
-						}
-						else
-						{
-							// prepare for a pass here
-						}
-					}
-				}*/
-				/*
-				if( visualData["b"].absLocation[0] - senseBodyData.absLocation[0] > 0 )
-				{
-					commandQueue.push( Dash_Cmd( 100 ) );
-				}
-				else
-				{
-					// keep a suitable distance away from the player w/ ball
-					// If you're too far, try to get closer
-					if( teammates[closestPlayer].visualData.distance > 15 )
-					{
-						commandQueue.push( Dash_Cmd( 100 ) );
-					}
-					// If you're too close, spread out
-					else if (teammates[closestPlayer].visualData.distance < 5 )
-					{
-						commandQueue.push( Dash_Cmd ( -50 ) );
-					}
-					else
-					{
-						// try to get open
-						// have a direct path between you and the person with the ball
-						if( isSomeoneInYourWay == true)
-						{
-							if(senseBodyData.absLocation[1] >= 0 )
-							{
-								commandQueue.push( Turn_Cmd ( 10 ) );
-							}
-							else
-							{
-								commandQueue.push( Turn_Cmd ( -10) );
-							}
-							commandQueue.push( Dash_Cmd( 30 ) );
-						}
-						else
-						{
-							// prepare for a pass here
-						}
-					}
-				}*/
 			}
-			// if no, try to get the ball
+
+			
+//			commandQueue.push( Dash_Cmd ( 10 ) );
+			/****************************
+			*
+			*  Try to get in front of the ball and maintain a suitable distance
+			*
+			*****************************/
+			//getInFrontOfBall( side, mTeammateListQueue.back(), visualData["b"], senseBodyData, commandQueue);
+
+			
+			
+			/****************************
+			*
+			*  Prepare for pass
+			*
+			********************************/
+
+			/******************************
+			*
+			*  Intercept if able
+			*
+			*********************************/
+
+
+			// move to a strategic place on the field
+			// make sure there's an open path between you and the ball.
+
+			//commandQueue.push( Dash_Cmd( 20 ) );
+
+			/*
+			int multiplier = 1;
+			if(side == 'r')
+			{
+				multiplier = -1;
+			}
+			if( multiplier * (teammates[closestPlayer].visualData.absLocation[0] - senseBodyData.absLocation[0]) > 0 )
+			{
+				//if(visualData.find(opponentGoal) == visualData.end() )
+				//{
+				//	commandQueue.push( Turn_Cmd( 135 ) );
+				//}
+				//commandQueue.push( Turn_Cmd( 45 ) );
+				commandQueue.push( Dash_Cmd( 100 ) );
+			}
 			else
+			{
+				// keep a suitable distance away from the player w/ ball
+				// If you're too far, try to get closer
+				if( teammates[closestPlayer].visualData.distance > 25 )
+				{
+					//commandQueue.push( Turn_Cmd ( 45 ) );
+					commandQueue.push( Dash_Cmd( 100 ) );
+				}
+				// If you're too close, spread out
+				else if (teammates[closestPlayer].visualData.distance < 5 )
+				{
+					commandQueue.push( Dash_Cmd ( -50 ) );
+				}
+				else
+				{
+					// try to get open
+					// have a direct path between you and the person with the ball
+					if( isSomeoneInYourWay == true)
+					{
+						if(senseBodyData.absLocation[1] >= 0 )
+						{
+							commandQueue.push( Turn_Cmd ( 10 ) );
+						}
+						else
+						{
+							commandQueue.push( Turn_Cmd ( -10) );
+						}
+						commandQueue.push( Dash_Cmd( 30 ) );
+					}
+					else
+					{
+						// prepare for a pass here
+					}
+				}
+			}*/
+			/*
+			if( visualData["b"].absLocation[0] - senseBodyData.absLocation[0] > 0 )
 			{
 				commandQueue.push( Dash_Cmd( 100 ) );
 			}
+			else
+			{
+				// keep a suitable distance away from the player w/ ball
+				// If you're too far, try to get closer
+				if( teammates[closestPlayer].visualData.distance > 15 )
+				{
+					commandQueue.push( Dash_Cmd( 100 ) );
+				}
+				// If you're too close, spread out
+				else if (teammates[closestPlayer].visualData.distance < 5 )
+				{
+					commandQueue.push( Dash_Cmd ( -50 ) );
+				}
+				else
+				{
+					// try to get open
+					// have a direct path between you and the person with the ball
+					if( isSomeoneInYourWay == true)
+					{
+						if(senseBodyData.absLocation[1] >= 0 )
+						{
+							commandQueue.push( Turn_Cmd ( 10 ) );
+						}
+						else
+						{
+							commandQueue.push( Turn_Cmd ( -10) );
+						}
+						commandQueue.push( Dash_Cmd( 30 ) );
+					}
+					else
+					{
+						// prepare for a pass here
+					}
+				}
+			}*/
+		}
+		// if not, try to get the ball
+		else
+		{
+			commandQueue.push( Dash_Cmd( 100 ) );
 		}
 	}
 	// If you can't see the ball, then turn to find it

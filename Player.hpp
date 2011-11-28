@@ -199,6 +199,10 @@ class Player
 		Vector2f	targetPoint;
 
 
+		// forwards keys
+		bool top;
+
+
 		string  playMode;
 };
 	

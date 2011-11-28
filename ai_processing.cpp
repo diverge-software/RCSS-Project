@@ -760,11 +760,9 @@ bool AI_Processing::isTeammateCloserBall( vector<VisiblePlayer> teammates, Visua
 		// if you see a teammate closer to ball, set flag
 		if( distFromBall < ballData.distance )
 		{
-			//clientPossessesBall = false;
 			return true;
 		}
 	}
-	//clientPossessesBall = true;
 	return false; 
 }
 
