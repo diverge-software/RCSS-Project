@@ -141,7 +141,7 @@ class Player
 		 * @post None.
 		 * @return command initialized with string to send to server to make the forward do something.
 		 */
-		void think_forward( queue<string> & commandQueue );
+		void think_forward( AI_Processing::player_type_t32 playerRole, queue<string> & commandQueue );
 
 		/** Retrieves the contents of playMode
 		 * @pre Player initialized.
