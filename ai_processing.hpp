@@ -270,6 +270,9 @@ namespace AI_Processing
 	 */ 
 	bool isTeammateCloserBall( vector<VisiblePlayer> teammates, VisualData ballData /*, bool & clientPossessesBall*/ );
 
+	int tooCloseToTeammate(vector<VisiblePlayer> teammates, double spacingDistance);
+
+	void movePlayersAround(int teammateTooClose, vector<VisiblePlayer> teammates, SenseBodyData sbd, bool dashAfterTurnMode, VisualData ballData, queue<string> & commandQueue);
 };
 
 /*--------------------------------------------------------------------
@@ -296,9 +299,9 @@ namespace AI_Processing
  *       when evaluating the boundary ranges below.
  */
 const float bounds[4][4] = {{PENALTY_LEFT,  LEFT_LINE_X,  PENALTY_TOP, PENALTY_BOTTOM},		// Goalie
-					        {RIGHT_LINE_X,  -10.0f,		  TOP_LINE_Y,  BOTTOM_LINE_Y},		// Foward/striker
-					        {30.0f,	  	    -20.0f,		  TOP_LINE_Y,  BOTTOM_LINE_Y},		// Midfielder
-					        {10.0f,		    LEFT_LINE_X,  TOP_LINE_Y,  BOTTOM_LINE_Y}};		// Defender
+					        {RIGHT_LINE_X,  -50.0f,		  TOP_LINE_Y,  BOTTOM_LINE_Y},		// Foward/striker
+					        {15.0f,	  	    -15.0f,		  TOP_LINE_Y,  BOTTOM_LINE_Y},		// Midfielder
+					        {0.0f,		    LEFT_LINE_X,  TOP_LINE_Y,  BOTTOM_LINE_Y}};		// Defender
 /*--------------------------------------------------------------------
                                 MACROS
 --------------------------------------------------------------------*/

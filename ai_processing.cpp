@@ -765,3 +765,40 @@ bool AI_Processing::isTeammateCloserBall( vector<VisiblePlayer> teammates, Visua
 	}
 	return false; 
 }
+
+int AI_Processing::tooCloseToTeammate(vector<VisiblePlayer> teammates, double spacingDistance)
+{
+	for (unsigned int i = 0; i < teammates.size(); i++)
+	{
+		if (teammates[i].visualData.distance < spacingDistance)
+		{
+			return ( i );
+		}
+	}
+	return ( -1 );
+}
+
+void AI_Processing::movePlayersAround(int teammateTooClose, vector<VisiblePlayer> teammates, SenseBodyData sbd, bool dashAfterTurnMode, VisualData ballData, queue<string> & commandQueue)
+{
+	Vector2f targetPoint;
+	// set a nearby target point to space out players
+	if(teammates[teammateTooClose].visualData.absLocation[1] > sbd.absLocation[1])
+	{
+		targetPoint = Vector2f( teammates[teammateTooClose].visualData.absLocation[0], teammates[teammateTooClose].visualData.absLocation[1] - 10);
+	}
+	else
+	{
+		targetPoint = Vector2f( teammates[teammateTooClose].visualData.absLocation[0], teammates[teammateTooClose].visualData.absLocation[1] + 10);
+	}
+
+	// space out
+	if( ( sbd.absLocation - targetPoint ).magnitude() > 1.0 )
+	{
+		turnThenDash( sbd.absLocation, targetPoint, sbd.absAngle, sbd.head_angle, ballData.direction, 50, dashAfterTurnMode, commandQueue );
+	}
+	else
+	{
+		dashAfterTurnMode = false;
+		commandQueue.push( Turn_Neck_Cmd ( -1 * sbd.head_angle ) );
+	}
+}
