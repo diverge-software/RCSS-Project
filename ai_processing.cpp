@@ -751,15 +751,14 @@ bool AI_Processing::isBallInterceptable( Vector2f ballLoc, Vector2f ballVel, Vec
 }
 
 
-bool AI_Processing::isTeammateCloserBall( vector<VisiblePlayer> teammates, VisualData ballData/*, bool & clientPossessesBall*/)  
+bool AI_Processing::isTeammateCloserBall( vector<VisiblePlayer> teammates, VisualData ballData, player_type_t32 playerRole, int uniformNumber)  
 {
 	for(unsigned int i = 0; i < teammates.size(); i++)
 	{
 		double distFromBall = ( teammates[i].visualData.absLocation - ballData.absLocation ).magnitude();
-
-		// if you see a teammate closer to ball, set flag
-		if( distFromBall < ballData.distance )
+		if ( distFromBall < ballData.distance && teammates[i].isGoalie == false )
 		{
+			// if you see a teammate closer to ball, set flag
 			return true;
 		}
 	}
@@ -794,7 +793,7 @@ void AI_Processing::movePlayersAround(int teammateTooClose, vector<VisiblePlayer
 	// space out
 	if( ( sbd.absLocation - targetPoint ).magnitude() > 1.0 )
 	{
-		turnThenDash( sbd.absLocation, targetPoint, sbd.absAngle, sbd.head_angle, ballData.direction, 50, dashAfterTurnMode, commandQueue );
+		turnThenDash( sbd.absLocation, targetPoint, sbd.absAngle, sbd.head_angle, ballData.direction, 100, dashAfterTurnMode, commandQueue );
 	}
 	else
 	{

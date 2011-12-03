@@ -268,7 +268,7 @@ namespace AI_Processing
 	 * @param ballDistance the distance from this->client to the ball
 	 * @return returns true if a teammate is close and false if this->client is closest 
 	 */ 
-	bool isTeammateCloserBall( vector<VisiblePlayer> teammates, VisualData ballData /*, bool & clientPossessesBall*/ );
+	bool isTeammateCloserBall( vector<VisiblePlayer> teammates, VisualData ballData, player_type_t32 playerRole, int uniformNumber );
 
 	int tooCloseToTeammate(vector<VisiblePlayer> teammates, double spacingDistance);
 
@@ -299,7 +299,7 @@ namespace AI_Processing
  *       when evaluating the boundary ranges below.
  */
 const float bounds[4][4] = {{PENALTY_LEFT,  LEFT_LINE_X,  PENALTY_TOP, PENALTY_BOTTOM},		// Goalie
-					        {RIGHT_LINE_X,  -50.0f,		  TOP_LINE_Y,  BOTTOM_LINE_Y},		// Foward/striker
+					        {RIGHT_LINE_X,  -5.0f,		  TOP_LINE_Y,  BOTTOM_LINE_Y},		// Foward/striker
 					        {15.0f,	  	    -15.0f,		  TOP_LINE_Y,  BOTTOM_LINE_Y},		// Midfielder
 					        {0.0f,		    LEFT_LINE_X,  TOP_LINE_Y,  BOTTOM_LINE_Y}};		// Defender
 /*--------------------------------------------------------------------

@@ -246,21 +246,21 @@ for( i = 0; i < player_cnt; i++ )
         }
 
     /*------------------------------------------------------
-    Assign player forward type 
-    ------------------------------------------------------*/
-    else if( forward-- > 0 )
-        {
-        uniform_num = udp_client_ptr->UDP_open_socket( server_ip, server_port, teamName, PLAYER_TYPE_FORWARD );
-        pt_str = "Forward";
-        }
-
-    /*------------------------------------------------------
     Assign player midfielder type 
     ------------------------------------------------------*/
     else if( midfielder-- > 0 )
         {
         uniform_num = udp_client_ptr->UDP_open_socket( server_ip, server_port, teamName, PLAYER_TYPE_MIDFIELDER );
         pt_str = "Midfielder";
+        }
+
+    /*------------------------------------------------------
+    Assign player forward type 
+    ------------------------------------------------------*/
+    else if( forward-- > 0 )
+        {
+        uniform_num = udp_client_ptr->UDP_open_socket( server_ip, server_port, teamName, PLAYER_TYPE_FORWARD );
+        pt_str = "Forward";
         }
 
     /*------------------------------------------------------

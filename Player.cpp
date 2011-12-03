@@ -848,12 +848,12 @@ void Player::think_forward( player_type_t32 playerRole, queue<string> & commandQ
 	if( visualData.find("b") != visualData.end() &&
 		checkPlayerBounds( playerRole, visualData["b"].absLocation, side ) )
 	{
+
 		// Is there a teammate in your field of view that is closer to the ball than you?		
 		if( !mTeammateListQueue.empty() )
 		{
-			isTeammateCloser = isTeammateCloserBall( mTeammateListQueue.back(), visualData["b"] /*, clientPossessesBall*/ ); 
+			isTeammateCloser = isTeammateCloserBall( mTeammateListQueue.back(), visualData["b"], playerRole, uniformNumber ); 
 		}
-
 		//cout << "Ball loc: " << visualData["b"].absLocation[0] << " " << visualData["b"].absLocation[1] << endl;
 		//cout << "Ball Dist: " << visualData["b"].distance << endl;
 		//cout << "------------------------------\n";
@@ -861,7 +861,12 @@ void Player::think_forward( player_type_t32 playerRole, queue<string> & commandQ
 		
 		// You have possession of the ball if you're within 4
 		// This is approx. the max distance from the ball when dribbling
-		if( visualData["b"].distance < 4 ) //&& isTeammateCloser == false )
+		if( visualData["b"].distance < 4 && isTeammateCloser == true)
+		{
+			commandQueue.push( Turn_Neck_Cmd( -1 * senseBodyData.head_angle ) );
+//			commandQueue.push( Dash_Cmd( 0 ) );
+		}
+		else if( visualData["b"].distance < 4 ) //&& isTeammateCloser == false )
 		{
 			commandQueue.push( Turn_Neck_Cmd( -1 * senseBodyData.head_angle ) );
 
@@ -884,7 +889,7 @@ void Player::think_forward( player_type_t32 playerRole, queue<string> & commandQ
 							}
 						}
 					}		
-
+/*
 					if ( isSomeoneInYourWay && visualData[opponentGoal].distance > 20 )
 					{
 						int closestTeammate = 0;
@@ -927,7 +932,7 @@ void Player::think_forward( player_type_t32 playerRole, queue<string> & commandQ
 						}
 						
 					}
-					else if( visualData[opponentGoal].distance > 20)
+					else */if( visualData[opponentGoal].distance > 20)
 					{
 						commandQueue.push( Kick_Cmd( 20 , visualData[opponentGoal].direction ) );
 					}
@@ -991,7 +996,25 @@ void Player::think_forward( player_type_t32 playerRole, queue<string> & commandQ
 				{
 					// Run a bit away from the ball to get a new perspective
 					// Maybe you'll see both the goal and the ball.
-					commandQueue.push( Dash_Cmd( 35 ) );
+					double angleToKick;
+					if( side == 'l' )
+					{
+						if (senseBodyData.absAngle <= 180)
+						{
+							angleToKick = senseBodyData.absAngle;
+						}
+						else
+						{
+							angleToKick = senseBodyData.absAngle - 180 ;
+						}
+						commandQueue.push( Kick_Cmd ( 10 , angleToKick ) );
+					}
+					else if( side == 'r' )
+					{
+						commandQueue.push (Dash_Cmd( 35 ) );
+					}
+					
+					//commandQueue.push( Dash_Cmd( 35 ) );
 					//commandQueue.push( Turn_Cmd( 30 );
 				}
 			}
@@ -1044,7 +1067,7 @@ void Player::think_forward( player_type_t32 playerRole, queue<string> & commandQ
 			else
 			{
 				commandQueue.push( Turn_Neck_Cmd( -1 * senseBodyData.head_angle ) );
-				commandQueue.push( Dash_Cmd( 75 ) );
+				commandQueue.push( Dash_Cmd( 100 ) );
 			}
 		}
 		// If you're not in possession of the ball
@@ -1082,28 +1105,6 @@ void Player::think_forward( player_type_t32 playerRole, queue<string> & commandQ
 				//void AI_Processing::movePlayersAround(vector<VisiblePlayer> teammates, SenseBodyData sbd, bool dashAfterTurnMode, VisualData ballData, queue<string> & commandQueue)
 
 				movePlayersAround(teammateTooClose, teammates, senseBodyData, dashAfterTurnMode, visualData["b"], commandQueue);
-				/*
-				// set a nearby target point to space out players
-				if(teammates[teammateTooClose].visualData.absLocation[1] > senseBodyData.absLocation[1])
-				{
-					targetPoint = Vector2f( teammates[teammateTooClose].visualData.absLocation[0], teammates[teammateTooClose].visualData.absLocation[1] - 5);
-				}
-				else
-				{
-					targetPoint = Vector2f( teammates[teammateTooClose].visualData.absLocation[0], teammates[teammateTooClose].visualData.absLocation[1] + 5);
-				}
-
-				// space out
-				if( ( senseBodyData.absLocation - targetPoint ).magnitude() > 1.0 )
-				{
-					turnThenDash( senseBodyData.absLocation, targetPoint, senseBodyData.absAngle, senseBodyData.head_angle, visualData["b"].direction, 50, this->dashAfterTurnMode, commandQueue );
-				}
-				else
-				{
-					dashAfterTurnMode = false;
-					commandQueue.push( Turn_Neck_Cmd ( -1 * senseBodyData.head_angle ) );
-				}
-				*/
 			}
 			// if you're too close the ball, run in front of it
 			else if( ( senseBodyData.absLocation[0] - visualData["b"].absLocation[0] ) < ( 5 * multiplier ) )
@@ -1122,14 +1123,15 @@ void Player::think_forward( player_type_t32 playerRole, queue<string> & commandQ
 			}
 			// so you don't have a collision of two players on the same
 			// team fighting after the ball and cause the game to crash
-			else if( ( visualData["b"].distance ) < 10 )
+			else if( ( visualData["b"].distance ) < 15 )
 			{
-				commandQueue.push( Dash_Cmd( -20 ) );
+				commandQueue.push( Dash_Cmd( -10 ) );
 			}
 			else
 			{
 				//cout << "HELLO.\n";
-				//commandQueue.push( Dash_Cmd( 10 ) );
+				commandQueue.push( Dash_Cmd( 70 ) );
+				//commandQueue.push( Turn_Neck_Cmd( 0 ) );
 				// prepare for a pass here
 			}
 		}
