@@ -287,6 +287,7 @@ namespace AI_Processing
 /*--------------------------------------------------------------------
                                VARIABLES
 --------------------------------------------------------------------*/
+
 /* bounds[x][y]:
  *   [x]: [0] goalie;  [1] forward; [2] midfielder; [3] defender
  *   [y]: [0] right x; [1] left x;  [2] top y;      [3] bottom y
@@ -302,6 +303,27 @@ const float bounds[4][4] = {{PENALTY_LEFT,  LEFT_LINE_X,  PENALTY_TOP, PENALTY_B
 					        {RIGHT_LINE_X,  -5.0f,		  TOP_LINE_Y,  BOTTOM_LINE_Y},		// Foward/striker
 					        {15.0f,	  	    -15.0f,		  TOP_LINE_Y,  BOTTOM_LINE_Y},		// Midfielder
 					        {0.0f,		    LEFT_LINE_X,  TOP_LINE_Y,  BOTTOM_LINE_Y}};		// Defender
+
+/* init_pos[x][y]:
+ *   [x]: [0] goalie;  [1-3] defender; [4-7] midfielder; [8-10] forward
+ *   [y]: [0] x coordinate; [1] y coordinate;
+ *
+ * NOTE: These bounds have been defined as if playing from the left side of the field.
+ *       If you are playing on the right side of the field, this should be inverted
+ */
+
+const float init_pos[11][2] = { { -41, 0   },
+                                { -30, -20 },
+                                { -30, 0   }, 
+                                { -30, 20  },
+                                { -20, -25 },
+                                { -20, -10 },
+                                { -20, 10  },
+                                { -20, 25  },
+                                { -9, 0    },
+                                { -6, -7   },
+                                { -6, 7    } };
+
 /*--------------------------------------------------------------------
                                 MACROS
 --------------------------------------------------------------------*/
