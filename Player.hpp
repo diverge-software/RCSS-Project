@@ -28,6 +28,8 @@ using namespace Parser;
 class Player
 {
 	public:
+        char	side;
+
 		/** Default constructor. Initializes invalid values for aural and sense body queues.
 		* Also initializes stationary flag positions.
 		* @pre None.
@@ -169,7 +171,6 @@ class Player
 
 		// Initialization data passed from the server
 		int		uniformNumber;
-		char	side;    // Which side you're playing from, left or right
 		string	teamName;
 		AI_Processing::player_type_t32 playerRole;
 
