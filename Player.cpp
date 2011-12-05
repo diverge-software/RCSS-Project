@@ -954,7 +954,7 @@ void Player::think_forward( player_type_t32 playerRole, queue<string> & commandQ
 				{
 					// Run a bit away from the ball to get a new perspective
 					// Maybe you'll see both the goal and the ball.
-					double angleToKick;
+					//double angleToKick;
 					if( side == 'l' )
 					{
 						/*
