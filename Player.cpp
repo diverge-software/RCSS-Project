@@ -889,50 +889,8 @@ void Player::think_forward( player_type_t32 playerRole, queue<string> & commandQ
 							}
 						}
 					}		
-/*
-					if ( isSomeoneInYourWay && visualData[opponentGoal].distance > 20 )
-					{
-						int closestTeammate = 0;
-						if(!teammates.empty())
-						{
-
-							for(unsigned int x = 0; x < teammates.size(); x++)
-							{
-								if ( teammates[x].visualData.distance < teammates[closestTeammate].visualData.distance &&
-									 teammates[x].visualData.absLocation[x] < senseBodyData.absLocation[x] )
-								{
-									closestTeammate = x;
-								}
-							}
-						}
-						else
-						{
-							closestTeammate = -1;
-						}
-						
-						if (closestTeammate != -1 && teammates[closestTeammate].visualData.distance < 20)
-						{
-							commandQueue.push ( Kick_Cmd( 20, teammates[closestTeammate].visualData.direction ) );
-						}
-						else if ( opponents[playerInWay].visualData.direction < 0)
-						{
-							targetPoint = Vector2f( opponents[playerInWay].visualData.absLocation[0], opponents[playerInWay].visualData.absLocation[1] + 5 );
-							if( ( senseBodyData.absLocation - targetPoint ).magnitude() > 1.0 )
-							{
-								turnThenDash( senseBodyData.absLocation, targetPoint, senseBodyData.absAngle, senseBodyData.head_angle, visualData["b"].direction, 100, this->dashAfterTurnMode, commandQueue );
-							}
-						}
-						else
-						{
-							targetPoint = Vector2f( opponents[playerInWay].visualData.absLocation[0], opponents[playerInWay].visualData.absLocation[1] - 5 );
-							if( ( senseBodyData.absLocation - targetPoint ).magnitude() > 1.0 )
-							{
-								turnThenDash( senseBodyData.absLocation, targetPoint, senseBodyData.absAngle, senseBodyData.head_angle, visualData["b"].direction, 100, this->dashAfterTurnMode, commandQueue );
-							}
-						}
-						
-					}
-					else */if( visualData[opponentGoal].distance > 20)
+					
+					if( visualData[opponentGoal].distance > 20)
 					{
 						commandQueue.push( Kick_Cmd( 20 , visualData[opponentGoal].direction ) );
 					}
@@ -999,6 +957,7 @@ void Player::think_forward( player_type_t32 playerRole, queue<string> & commandQ
 					double angleToKick;
 					if( side == 'l' )
 					{
+						/*
 						if (senseBodyData.absAngle <= 180)
 						{
 							angleToKick = senseBodyData.absAngle;
@@ -1007,11 +966,15 @@ void Player::think_forward( player_type_t32 playerRole, queue<string> & commandQ
 						{
 							angleToKick = senseBodyData.absAngle - 180 ;
 						}
-						commandQueue.push( Kick_Cmd ( 10 , angleToKick ) );
+						*/
+						
+						commandQueue.push( Dash_Cmd( 35 ) );
+						//commandQueue.push( Turn_Cmd ( -1 * getAbsAngleToLocation(senseBodyData.absLocation, mStationaryFlags["g r"] ) ) );
 					}
 					else if( side == 'r' )
 					{
 						commandQueue.push (Dash_Cmd( 35 ) );
+						//commandQueue.push( Turn_Cmd ( -1 * getAbsAngleToLocation(senseBodyData.absLocation, mStationaryFlags["g l"] ) ) );
 					}
 					
 					//commandQueue.push( Dash_Cmd( 35 ) );
