@@ -317,7 +317,6 @@ Local Variables
 ----------------------------------------------------------*/
 int						err_no;		/* error number					*/
 string                  filename;   /* filename                     */
-int                     invert;     /* invert x coordinates         */
 int                     ret_val;    /* return value                 */
 ostringstream           tmp_str;    /* temporary string             */
 WSADATA					wsa_data;	/* winsock data					*/
@@ -327,7 +326,6 @@ Set the team name and role
 ----------------------------------------------------------*/
 m_player.setTeamName( team_name );
 m_player.setPlayerRole( player_type );
-invert = 1;
 
 /*----------------------------------------------------------
 Initiate Winsock DLL
@@ -501,17 +499,18 @@ if( player_type != PLAYER_TYPE_TRAINER )
     else
         {
         ret_val = this->m_player.getUniformNumber();
-        
-        if( this->m_player.side != 'l' )
-            {
-            invert = -1;
-            }
 
         /*--------------------------------------------------
         Based on the player type, assign a position on the
         field
         --------------------------------------------------*/
-        this->UDP_send( Move_Cmd( invert * init_pos[ret_val - 1][0], init_pos[ret_val - 1][1] ) );
+        this->UDP_send( Move_Cmd( init_pos[ret_val - 1][0], init_pos[ret_val - 1][1] ) );
+        
+        if( this->m_player.side != 'l' )
+            {
+            Sleep( 100 );
+            this->UDP_send( Turn_Cmd( 180 ) );
+            }
         }
     }
 
